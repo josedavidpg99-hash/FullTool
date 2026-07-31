@@ -1591,7 +1591,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
     <div class="guide-step"><h4>🍫 Chocolate</h4><p>Selecciona línea, Running Item y Chocolate Item; agrega LP y vencimiento. Solo ENROBERS AND PIPES y BED vienen en 100%. Tanks, AD, Decorators y Morcos se llenan manualmente. Ingresa sistema, revisa físico y ajuste, luego guarda. Save crea el reporte y actualiza el borrador de PASOS; Word descarga el cuadro final.</p></div>
     <div class="guide-step"><h4>🥜 Ingredients</h4><p>Selecciona línea, plantilla, Finished Goods Item, LP y vencimiento. Ingresa Completion, físico, sistema y scrap de Mid y End. El físico incluye pallets sin label, banda, cama y cajas/totes. End Completion es el total final; Scrap, PA y Total Adjustment sí son acumulativos. Save transfiere cada ingrediente a PASOS.</p></div>
     <div class="guide-step"><h4>📦 Pouches</h4><p>Selecciona línea e ítem; agrega LP y vencimiento. Completa Mid Shift y End Shift con Completion, sistema, físico y scrap. End Completion es el total final; Scrap, PA y Total Adjustment son acumulativos. Revisa el estado, guarda y descarga Word.</p></div>
-    <div class="guide-step"><h4>🍳 Kitchen y LP</h4><p>Sube Excel/CSV de IMS o NetSuite. Inventory Number corresponde al lote y no es lo mismo que Bin/LP. El LP con R es la prioridad. Registra físico, diferencia, coincidencia de LP y ajuste.</p></div>
+    <div class="guide-step"><h4>🍳 Kitchen y LP</h4><p>Usa <strong>Pre-Kitchen Physical Inventory</strong> para registrar Item, LP y cantidad física sin subir un archivo. Puedes agregar varias filas y el borrador queda guardado en este dispositivo. Para comparar contra sistema, sube Excel/CSV de IMS o NetSuite. Inventory Number corresponde al lote y no es lo mismo que Bin/LP. El LP con R es la prioridad.</p></div>
     <div class="guide-step"><h4>🔎 Cycle Count</h4><p>Sube el Inventory Balance de NetSuite y revisa cada LP desde el teléfono. Marca Found Correct, Not Found, Different Location, Different Quantity o Location + Quantity Different. Cuando exista una diferencia, registra la ubicación o cantidad realmente encontrada. Presiona Save para agregar el conteo al historial acumulativo; puedes abrirlo y actualizarlo después. Descarga en Word el reporte individual o acumulativo, con resumen, excepciones y detalle completo.</p></div>
     <div class="guide-step"><h4>🏷 Hershey Lot Code</h4><p>Selecciona fabricación, empaque, designador de equipo/matriz, turno y hora. La herramienta genera el lote con la tabla oficial de 2026. Expiración: avanza 11 meses y usa el día 30 del mes resultante; si no existe, usa el último día válido. Ejemplo: 7/29/2026 → 6/30/2027. Verifica siempre designador y turno contra la orden.</p></div>
     <div class="guide-step"><h4>🗓 Schedule y ✅ Shift Tasks</h4><p>Schedule muestra la asignación semanal. Shift Tasks crea el checklist según turno, área, empaque, ingrediente especial y estado de línea. Las tareas están divididas en Before the Shift, Start of Shift, During/Mid Shift y End of Shift. Al marcar una tarea se agrega inmediatamente al borrador de PASOS; al desmarcarla se retira.</p></div>
@@ -1803,6 +1803,31 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
         <div class="field"><label>Shift</label><input id="kitShift" placeholder="Start / End Shift"></div>
         <div class="field"><label>Date</label><input id="kitDate" readonly></div>
         <div class="field"><label>Prepared By</label><input id="kitPreparedBy" placeholder="Name"></div>
+      </div>
+
+      <div class="card" style="border:2px solid var(--blue-dim);box-shadow:none;margin:14px 0">
+        <div class="card-head" style="background:var(--blue-bg)">
+          <span class="card-icon">📝</span>
+          <span class="card-title">Pre-Kitchen — Physical Inventory (No File Required)</span>
+          <button class="btn btn-outline btn-sm no-print" onclick="clearPreKitchen()">Clear Pre-Kitchen</button>
+        </div>
+        <div class="card-body">
+          <div class="help-box"><strong>Physical count only:</strong> Enter the Item, LP and Physical Qty directly. Use this before receiving the NetSuite/IMS file. Rows are saved automatically on this device.</div>
+          <div class="g4 no-print">
+            <div class="field"><label>Item</label><input id="preKitItem" autocomplete="off" placeholder="Enter item manually"></div>
+            <div class="field"><label>LP</label><input id="preKitLP" placeholder="R..." onkeydown="if(event.key==='Enter')addPreKitchenRow()"></div>
+            <div class="field"><label>Physical Qty</label><input id="preKitQty" type="number" step="any" inputmode="decimal" placeholder="0" onkeydown="if(event.key==='Enter')addPreKitchenRow()"></div>
+            <div class="field"><label>Notes (Optional)</label><input id="preKitNotes" placeholder="Location or condition" onkeydown="if(event.key==='Enter')addPreKitchenRow()"></div>
+          </div>
+          <div class="row-actions no-print" style="margin-top:0"><button class="btn btn-blue" onclick="addPreKitchenRow()">＋ Add Physical Count</button></div>
+          <div class="tbl-wrap" id="preKitWrap" style="display:none;margin-top:12px">
+            <table>
+              <thead><tr><th>#</th><th>Item</th><th>LP</th><th>Physical Qty</th><th>Notes</th><th class="no-print">Action</th></tr></thead>
+              <tbody id="preKitBody"></tbody>
+            </table>
+          </div>
+          <div id="preKitSummary" class="kit-summary" style="display:none"></div>
+        </div>
       </div>
 
       <div class="kit-upload-box no-print">
@@ -3599,10 +3624,72 @@ function renderPublicLeaderboard(){
 // ══════════════════════ KITCHEN — INVENTORY LP VERIFICATION ══════════════════════
 let kitRows = [];
 let kitPhysical = {};
+let preKitchenRows = [];
+const PRE_KITCHEN_KEY = 'shifthub_pre_kitchen_v1';
 
 function initKitchen(){
   const d = document.getElementById('kitDate');
   if(d && !d.value) d.value = new Date().toLocaleDateString('en-US');
+  try{
+    const saved = JSON.parse(localStorage.getItem(PRE_KITCHEN_KEY) || '[]');
+    preKitchenRows = Array.isArray(saved) ? saved : [];
+  }catch{ preKitchenRows = []; }
+  renderPreKitchen();
+}
+
+function persistPreKitchen(){
+  try{ localStorage.setItem(PRE_KITCHEN_KEY, JSON.stringify(preKitchenRows)); }catch{}
+}
+
+function addPreKitchenRow(){
+  const item = document.getElementById('preKitItem')?.value.trim() || '';
+  const lp = document.getElementById('preKitLP')?.value.trim() || '';
+  const qtyRaw = document.getElementById('preKitQty')?.value.trim() || '';
+  const notes = document.getElementById('preKitNotes')?.value.trim() || '';
+  if(!item || !lp || qtyRaw === '' || isNaN(parseFloat(kitCleanNum(qtyRaw)))){
+    toast('⚠️ Enter Item, LP and a valid Physical Qty');
+    return;
+  }
+  preKitchenRows.push({id:String(Date.now())+Math.random().toString(16).slice(2), item, lp, qty:kitCleanNum(qtyRaw), notes});
+  persistPreKitchen();
+  ['preKitItem','preKitLP','preKitQty','preKitNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderPreKitchen();
+  document.getElementById('preKitItem')?.focus();
+  toast('✅ Pre-Kitchen physical count added');
+}
+
+function removePreKitchenRow(id){
+  preKitchenRows = preKitchenRows.filter(r=>r.id!==id);
+  persistPreKitchen();
+  renderPreKitchen();
+}
+
+function clearPreKitchen(){
+  if(preKitchenRows.length && !confirm('Clear all Pre-Kitchen physical counts?')) return;
+  preKitchenRows = [];
+  persistPreKitchen();
+  renderPreKitchen();
+  toast('Pre-Kitchen cleared');
+}
+
+function renderPreKitchen(){
+  const body=document.getElementById('preKitBody'), wrap=document.getElementById('preKitWrap'), summary=document.getElementById('preKitSummary');
+  if(!body || !wrap || !summary) return;
+  body.innerHTML=preKitchenRows.map((r,i)=>`<tr><td>${i+1}</td><td class="mono"><strong>${kitEscape(r.item)}</strong></td><td class="mono">${kitEscape(r.lp)}</td><td class="mono">${kitFormatExact(r.qty)}</td><td>${kitEscape(r.notes||'')}</td><td class="no-print"><button class="btn btn-red btn-sm" onclick="removePreKitchenRow('${r.id}')">Delete</button></td></tr>`).join('');
+  const show=preKitchenRows.length>0;
+  wrap.style.display=show?'block':'none';
+  summary.style.display=show?'block':'none';
+  if(show){
+    const items=new Set(preKitchenRows.map(r=>r.item)).size;
+    const lps=new Set(preKitchenRows.map(r=>r.lp)).size;
+    summary.innerHTML=`<strong>Physical rows:</strong> ${preKitchenRows.length} | <strong>Items:</strong> ${items} | <strong>LPs:</strong> ${lps}`;
+  }else summary.innerHTML='';
+  const badge=document.getElementById('nb-kit');
+  if(badge) badge.textContent=String(kitRows.length+preKitchenRows.length);
+}
+
+function getPreKitchenRowsForExport(){
+  return preKitchenRows.map(r=>({item:r.item,systemLP:r.lp,physicalQty:r.qty,notes:r.notes||''}));
 }
 
 function kitStatus(msg, type='ok'){
@@ -3890,8 +3977,8 @@ function exportKitchenCSV(){
 }
 
 async function exportKitchenWord(){
-  if(!kitRows.length){
-    toast('⚠️ Upload Kitchen file first');
+  if(!kitRows.length && !preKitchenRows.length){
+    toast('⚠️ Add Pre-Kitchen counts or upload a Kitchen file first');
     return;
   }
 
@@ -3907,12 +3994,17 @@ async function exportKitchenWord(){
   const adjustYes = rows.filter(r => r.adjust === 'Yes').length;
   const adjustPending = rows.filter(r => !r.adjust).length;
 
+  const preCols=[1200,2200,1800,4400];
+  const preHeader=wRow(['Item','LP','Physical Qty','Notes'].map((h,i)=>thCell(h,preCols[i])).join(''));
+  const preBody=preKitchenRows.map((r,i)=>wRow([r.item,r.lp,kitFormatExact(r.qty),r.notes||'—'].map((v,ci)=>tdCell(v,preCols[ci],i%2===1)).join(''))).join('');
+  const preSection=preKitchenRows.length ? wSec('Pre-Kitchen Physical Inventory — No File') + wPara(`Physical rows: ${preKitchenRows.length} · Unique items: ${new Set(preKitchenRows.map(r=>r.item)).size} · Unique LPs: ${new Set(preKitchenRows.map(r=>r.lp)).size}`, {size:18,color:'555555'}) + wTable(4,preCols,preHeader+preBody,9600) : '';
+  const verificationSection=rows.length ? wSec('Inventory LP Verification Table') + wTable(11, cols, header + bodyRows, tw) : '';
+
   const docBody =
     wHdr(`Kitchen / Inventory LP Verification — ${document.getElementById('kitDate')?.value || ''}`) +
     wPara(`Area: ${document.getElementById('kitArea')?.value || ''}   Shift: ${document.getElementById('kitShift')?.value || ''}   Prepared By: ${document.getElementById('kitPreparedBy')?.value || ''}`, {size:18,color:'555555'}) +
-    wPara(`Summary: Counted ${counted}/${rows.length} · Review LP ${reviewLP} · Adjust Yes ${adjustYes} · Adjust Pending ${adjustPending}`, {size:18,color:'555555'}) +
-    wSec('Inventory LP Verification Table') +
-    wTable(11, cols, header + bodyRows, tw);
+    wPara(`Summary: Pre-Kitchen ${preKitchenRows.length} · System Counted ${counted}/${rows.length} · Review LP ${reviewLP} · Adjust Yes ${adjustYes} · Adjust Pending ${adjustPending}`, {size:18,color:'555555'}) +
+    preSection + verificationSection;
 
   const blob = await buildDocx(docBody, true);
   if(blob) dlBlob(blob, 'Kitchen_LP_Verification.docx');
@@ -3920,19 +4012,22 @@ async function exportKitchenWord(){
 }
 
 function saveKitchen(){
-  const data = {date:document.getElementById('kitDate')?.value || '', shift:document.getElementById('kitShift')?.value || '', building:'L1', operator:document.getElementById('kitPreparedBy')?.value || '', area:document.getElementById('kitArea')?.value || '', rows:getKitchenRowsForExport()};
+  const data = {date:document.getElementById('kitDate')?.value || '', shift:document.getElementById('kitShift')?.value || '', building:'L1', operator:document.getElementById('kitPreparedBy')?.value || '', area:document.getElementById('kitArea')?.value || '', preKitchen:getPreKitchenRowsForExport(), rows:getKitchenRowsForExport()};
 
   saveReport({id:String(Date.now()), module:'kitchen', date:data.date, shift:data.shift, building:data.building, operator:data.operator, data, savedAt:new Date().toISOString()});
   poSyncContext(data.operator,data.date,data.shift,data.area);
   poAutoReplace(`kitchen|${data.date}|${data.shift}|${data.area}`,'cycle',data.rows.filter(r=>r.physicalQty!==''||r.lpMatch||r.adjust).map(r=>({item:r.item,lpn:r.systemLP,found:r.lpMatch==='No'?'NO':'YES',detail:`Kitchen inventory · Lot ${r.inventoryNumber||'—'} · Exp ${r.expirationDate||'—'} · System ${r.systemQty||'—'} · Physical ${r.physicalQty||'—'} · Difference ${r.difference===''?'—':r.difference} · ${r.review||'Reviewed'}${r.notes?` · ${r.notes}`:''}`})));
+  poAutoReplace(`prekitchen|${data.date}|${data.shift}|${data.area}`,'cycle',data.preKitchen.map(r=>({item:r.item,lpn:r.systemLP,found:'YES',detail:`Pre-Kitchen physical inventory · Physical ${r.physicalQty}${r.notes?` · ${r.notes}`:''}`})));
 
   const badge = document.getElementById('nb-kit');
-  if(badge) badge.textContent = String(kitRows.length);
+  if(badge) badge.textContent = String(kitRows.length + preKitchenRows.length);
 }
 
 function resetKitchen(){
   kitRows = [];
   kitPhysical = {};
+  preKitchenRows = [];
+  persistPreKitchen();
   const table = document.getElementById('kitTable');
   const body = document.getElementById('kitBody');
   const summary = document.getElementById('kitSummary');
@@ -3944,13 +4039,14 @@ function resetKitchen(){
   if(summary){ summary.style.display = 'none'; summary.innerHTML = ''; }
   if(file) file.value = '';
   if(paste) paste.value = '';
+  renderPreKitchen();
 
   ['kitArea','kitShift','kitPreparedBy'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
 
   const badge = document.getElementById('nb-kit');
   if(badge) badge.textContent = '0';
 
-  kitStatus('Ready. Upload Excel/CSV or paste data.', 'ok');
+  kitStatus('Ready. Add Pre-Kitchen physical counts, upload Excel/CSV or paste data.', 'ok');
   toast('Kitchen reset');
 }
 
