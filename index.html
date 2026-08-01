@@ -4,7 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiftHub Pro — L1 Operations</title>
+<title>IMS Tool — Operations</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f3b23c'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Arial,sans-serif' font-size='21' font-weight='800' fill='%232d1a00'%3EIMS%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
@@ -64,9 +65,9 @@ body {
 }
 .logo { display: flex; align-items: center; gap: 10px; }
 .logo-hex {
-  width: 36px; height: 36px; background: var(--gold);
+  width: 42px; height: 36px; background: var(--gold);
   border-radius: 8px; display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 18px; color: #1a0a00; letter-spacing: -1px;
+  font-weight: 800; font-size: 14px; color: #1a0a00; letter-spacing: -0.6px;
 }
 .logo-name { font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: -0.3px; }
 .logo-sub { font-size: 11px; color: var(--ink3); margin-top: -2px; font-family: 'DM Mono', monospace; }
@@ -1577,7 +1578,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
 <div class="modal-bg" id="guideModal">
   <div class="modal-box">
     <div class="modal-head">
-      <div class="modal-title">📖 ShiftHub Pro — Guía Operativa IMS</div>
+      <div class="modal-title">📖 IMS Tool — Guía Operativa</div>
       <button class="btn btn-outline btn-sm" onclick="closeGuide()">✕ Cerrar</button>
     </div>
 
@@ -1605,10 +1606,10 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="logo">
-    <div class="logo-hex">SH</div>
+    <div class="logo-hex">IMS</div>
     <div>
-      <div class="logo-name">ShiftHub Pro</div>
-      <div class="logo-sub">L1 · Lindon Operations Center</div>
+      <div class="logo-name">IMS Tool</div>
+      <div class="logo-sub">imstool.net · Lindon Operations</div>
     </div>
   </div>
   <div class="topbar-right">
@@ -3302,7 +3303,7 @@ function ccBuildReportHtml(sessions,title){
   .status{display:inline-block;padding:3px 6px;border-radius:10px;font-weight:700;white-space:nowrap}.status.found{background:#d9f3e5;color:#17643e}.status.not_found,.status.qty_diff,.status.moved_qty{background:#ffe0e0;color:#9f2525}.status.moved{background:#fff0c9;color:#805d00}.status.pending{background:#e9edf2;color:#5a6876}
   .legend{font-size:11px;color:#526174;background:#f4f7fa;border:1px solid #dce2e8;padding:10px;margin:10px 0}.print{border:0;border-radius:6px;padding:9px 14px;background:#183d66;color:#fff;font-weight:700;cursor:pointer}
   @media print{body{background:#fff}.page{max-width:none;margin:0;box-shadow:none;padding:8px}.print{display:none}tr{break-inside:avoid}h2{break-after:avoid}}
-  </style></head><body><main class="page"><header><div><div class="brand">ShiftHub Pro Kitchen · IMS</div><h1>${ccReportValue(title)}</h1><div>${sessions.length} saved count${sessions.length===1?'':'s'} · ${aggregate.total} LP reviews</div></div><div class="meta">Generated: ${ccReportValue(generated)}</div></header>
+  </style></head><body><main class="page"><header><div><div class="brand">IMS Tool · Kitchen</div><h1>${ccReportValue(title)}</h1><div>${sessions.length} saved count${sessions.length===1?'':'s'} · ${aggregate.total} LP reviews</div></div><div class="meta">Generated: ${ccReportValue(generated)}</div></header>
   <div class="cards"><div class="card"><b>${sessions.length}</b><span>Cycle Counts</span></div><div class="card"><b>${aggregate.reviewed}/${aggregate.total}</b><span>LPs Reviewed</span></div><div class="card good"><b>${aggregate.found}</b><span>Found Correct</span></div><div class="card bad"><b>${aggregate.exceptions}</b><span>Exceptions</span></div><div class="card ${aggregate.net?'bad':''}"><b>${ccSigned(aggregate.net)}</b><span>Net Qty Difference</span></div></div>
   <div class="legend"><b>How to read this report:</b> Found Correct means LP, location and quantity agree with the system. Exceptions identify LPs that were not found or whose physical location/quantity differs. Net Qty Difference = physical quantity minus system quantity.</div>
   <h2>Count Summary</h2><table><thead><tr><th>Date</th><th>Count / Reference</th><th>Employee</th><th>Shift / Area</th><th>LPs</th><th>Reviewed</th><th>Found</th><th>Exceptions</th><th>Net Qty Diff.</th></tr></thead><tbody>${summaryRows}</tbody></table>
@@ -4539,10 +4540,10 @@ async function exportDayWord() {
   const date = document.getElementById('dashDate').value;
   const filtered = date ? arr.filter(r=>r.date===date) : arr;
   if(!filtered.length) { toast('No reports to export'); return; }
-  const body = wHdr(`ShiftHub Pro — Day Export ${date||'All'}`) + wPara(`Generated: ${new Date().toLocaleString()} · ${filtered.length} reports`,{size:18,color:'555555'}) +
+  const body = wHdr(`IMS Tool — Day Export ${date||'All'}`) + wPara(`Generated: ${new Date().toLocaleString()} · ${filtered.length} reports`,{size:18,color:'555555'}) +
     filtered.map(r => wSec(`${r.module.toUpperCase()} — ${r.date} ${r.shift||''} ${r.building||''}`)).join('');
   const blob = await buildDocx(body, true);
-  if(blob) dlBlob(blob, `ShiftHub_Day_${date||'All'}.docx`);
+  if(blob) dlBlob(blob, `IMS_Tool_Day_${date||'All'}.docx`);
   toast('✅ Day export done!');
 }
 
@@ -4570,7 +4571,7 @@ window.addEventListener('DOMContentLoaded', init);
     const headHTML = heads.map(h=>`<th>${esc(h)}</th>`).join('');
     const bodyHTML = rows.length ? rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('') : `<tr class="ops-empty-row"><td colspan="${heads.length}">No records entered yet</td></tr>`;
     const sumHTML = summary.map(x=>`<div class="ops-summary-cell"><strong>${esc(x[0])}</strong><span class="${x[2]||''}">${x[1]}</span></div>`).join('');
-    return `<div class="ops-one-sheet ops-${type}-sheet" id="ops-${type}-sheet"><div class="ops-sheet-title">${esc(title)}</div><div class="ops-sheet-meta">${metaHTML}</div><table class="ops-sheet-table"><thead><tr>${headHTML}</tr></thead><tbody>${bodyHTML}</tbody></table><div class="ops-summary-grid">${sumHTML}</div><div class="ops-sheet-note"><span>${esc(note||'Prepared in ShiftHub Pro')}</span><span>Signature: ____________________________</span></div></div>`;
+    return `<div class="ops-one-sheet ops-${type}-sheet" id="ops-${type}-sheet"><div class="ops-sheet-title">${esc(title)}</div><div class="ops-sheet-meta">${metaHTML}</div><table class="ops-sheet-table"><thead><tr>${headHTML}</tr></thead><tbody>${bodyHTML}</tbody></table><div class="ops-summary-grid">${sumHTML}</div><div class="ops-sheet-note"><span>${esc(note||'Prepared in IMS Tool')}</span><span>Signature: ____________________________</span></div></div>`;
   }
 
   function ensureReports(){
