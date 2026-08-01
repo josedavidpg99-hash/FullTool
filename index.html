@@ -4171,14 +4171,22 @@ function wSec(text){ return wPara(text,{bold:true,size:22,color:'7c3aed',spaceAf
 function wCell(text,w,opts={}){ const {bold,fill='FFFFFF',center}=opts; return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${fill}"/><w:tcMar><w:top w:w="60" w:type="dxa"/><w:left w:w="100" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tcMar></w:tcPr><w:p><w:pPr>${center?'<w:jc w:val="center"/>':''}</w:pPr><w:r><w:rPr>${bold?'<w:b/>':''}<w:sz w:val="18"/></w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p></w:tc>`; }
 function wHdrCell(text,w){ return wCell(text,w,{bold:true,fill:'1E3A5F',center:true}).replace(/w:val="1E3A5F"/,'w:val="FFFFFF" w:themeColor="dark1"').replace('<w:color w:val="111827"/>','<w:color w:val="FFFFFF"/>'); }
 // simpler hdr
-function thCell(text,w){ return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="1E3A5F"/></w:tcPr><w:p><w:r><w:rPr><w:b/><w:color w:val="FFFFFF"/><w:sz w:val="18"/></w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p></w:tc>`; }
-function tdCell(text,w,even){ return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${even?'F1F5F9':'FFFFFF'}"/></w:tcPr><w:p><w:r><w:rPr><w:sz w:val="18"/></w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p></w:tc>`; }
-function wRow(cells){ return `<w:tr>${cells}</w:tr>`; }
+function wCellMargins(){ return '<w:tcMar><w:top w:w="70" w:type="dxa"/><w:left w:w="90" w:type="dxa"/><w:bottom w:w="70" w:type="dxa"/><w:right w:w="90" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/>'; }
+function thCell(text,w){ return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="1E3A5F"/>${wCellMargins()}</w:tcPr><w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="0"/></w:pPr><w:r><w:rPr><w:b/><w:color w:val="FFFFFF"/><w:sz w:val="18"/></w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p></w:tc>`; }
+function tdCell(text,w,even,opts={}){ const {bold=false,color='111827',fill='',center=false,size=18}=opts; const bg=fill||(even?'F1F5F9':'FFFFFF'); return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${bg}"/>${wCellMargins()}</w:tcPr><w:p><w:pPr>${center?'<w:jc w:val="center"/>':''}<w:spacing w:after="0"/></w:pPr><w:r><w:rPr>${bold?'<w:b/>':''}<w:color w:val="${color}"/><w:sz w:val="${size}"/></w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p></w:tc>`; }
+function wRow(cells,opts={}){ return `<w:tr><w:trPr>${opts.header?'<w:tblHeader/>':''}<w:cantSplit/></w:trPr>${cells}</w:tr>`; }
+function wHeaderRow(cells){ return wRow(cells,{header:true}); }
 function borders(){ return `<w:tblBorders><w:top w:val="single" w:sz="4" w:color="AAAAAA"/><w:left w:val="single" w:sz="4" w:color="AAAAAA"/><w:bottom w:val="single" w:sz="4" w:color="AAAAAA"/><w:right w:val="single" w:sz="4" w:color="AAAAAA"/><w:insideH w:val="single" w:sz="4" w:color="AAAAAA"/><w:insideV w:val="single" w:sz="4" w:color="AAAAAA"/></w:tblBorders>`; }
-function wTable(cols, widths, rows, totalW){ const grid=widths.map(w=>`<w:gridCol w:w="${w}"/>`).join(''); return `<w:tbl><w:tblPr><w:tblW w:w="${totalW}" w:type="dxa"/>${borders()}</w:tblPr><w:tblGrid>${grid}</w:tblGrid>${rows}</w:tbl>`; }
+function wTable(cols, widths, rows, totalW){ const grid=widths.map(w=>`<w:gridCol w:w="${w}"/>`).join(''); return `<w:tbl><w:tblPr><w:tblW w:w="${totalW}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblInd w:w="0" w:type="dxa"/>${borders()}</w:tblPr><w:tblGrid>${grid}</w:tblGrid>${rows}</w:tbl>`; }
+const WORD_POS='047857', WORD_NEG='B91C1C', WORD_WARN='B45309';
+function wordNumber(value){ const n=parseFloat(String(value??'').replace(/,/g,'')); return Number.isFinite(n)?n:0; }
+function wordTone(value){ const n=wordNumber(value); return n>0?{color:WORD_POS,fill:'DCFCE7'}:n<0?{color:WORD_NEG,fill:'FEE2E2'}:{color:'475569',fill:'F8FAFC'}; }
+function wordAdjustment(value,formatter=fmt,unit=''){ const n=wordNumber(value),amount=formatter(Math.abs(n)); return n>0?`SUMAR +${amount}${unit}`:n<0?`QUITAR -${amount}${unit}`:`SIN AJUSTE ${amount}${unit}`; }
+function wordToneCell(value,text,w,even,center=true){ const tone=wordTone(value); return tdCell(text,w,even,{bold:true,color:tone.color,fill:tone.fill,center}); }
+function wordStatusCell(status,w,even){ const s=String(status||'').toLowerCase(); const bad=/critical|crítico|exception|not found|missing/.test(s),warn=/attention|review|warning|qty|location/.test(s); return tdCell(status||'—',w,even,{bold:true,color:bad?WORD_NEG:warn?WORD_WARN:WORD_POS,fill:bad?'FEE2E2':warn?'FEF3C7':'DCFCE7',center:true}); }
 
 async function buildDocx(bodyXml, landscape=false) {
-  const margins = landscape ? 'w:top="720" w:right="720" w:bottom="720" w:left="720"' : 'w:top="1080" w:right="1080" w:bottom="1080" w:left="1080"';
+  const margins = landscape ? 'w:top="576" w:right="720" w:bottom="576" w:left="720"' : 'w:top="1080" w:right="1080" w:bottom="1080" w:left="1080"';
   const pageSize = landscape ? '<w:pgSz w:w="15840" w:h="12240" w:orient="landscape"/>' : '<w:pgSz w:w="12240" w:h="15840"/>';
   const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -4227,8 +4235,8 @@ async function exportDailyWord() {
 async function exportChocWord() {
   calcChoc();
   const data = getChocData();
-  const cols = [3000,2000,2000,1500,2000]; const tw = 10500;
-  const hdr = wRow(['Area / Tank','Fixed Weight (lbs)','Physical Input','Mode','Total lbs'].map((h,i)=>thCell(h,cols[i])).join(''));
+  const cols = [4000,2500,2700,1800,3400]; const tw = 14400;
+  const hdr = wHeaderRow(['Area / Tank','Fixed Weight (lbs)','Physical Input','Mode','Total lbs'].map((h,i)=>thCell(h,cols[i])).join(''));
   const rows = data.rows.map((r,i)=>wRow([r.area,r.fixed,r.input||'—',r.mode||'—',r.qty].map((v,ci)=>tdCell(v||'—',cols[ci],i%2===1)).join(''))).join('');
 
   let total = 0;
@@ -4236,11 +4244,18 @@ async function exportChocWord() {
   const sys = parseFloat(data.system)||0;
   const diff = total - sys;
 
+  const sumCols=[3600,3200,7600];
+  const sumHeader=wHeaderRow(['Total Physical','System Quantity','Required Action'].map((h,i)=>thCell(h,sumCols[i])).join(''));
+  const sumRow=wRow([
+    tdCell(`${fmt(total)} lbs`,sumCols[0],false,{bold:true,center:true}),
+    tdCell(`${fmt(sys)} lbs`,sumCols[1],false,{bold:true,center:true}),
+    wordToneCell(diff,wordAdjustment(diff,fmt,' lbs'),sumCols[2],false)
+  ].join(''));
   const body = wHdr(`Chocolate Adjustment — ${data.line}`) +
     wPara(`Date: ${data.date}   Shift: ${data.shift}   Running Item: ${data.item}   Chocolate Item: ${data.chocItem}   LP: ${data.lpn||'—'}   Expiration: ${data.expiration||'—'}`,{size:18,color:'555555'}) +
     wTable(5,cols,hdr+rows,tw) +
-    wSec('Summary') +
-    wPara(`Total Physical Inventory: ${fmt(total)} lbs   System Qty: ${fmt(sys)} lbs   Adjustment Needed: ${diff>0?'+':''}${fmt(diff)} lbs`,{size:20,bold:true});
+    wSec('Summary — Green = Add / Red = Remove') +
+    wTable(3,sumCols,sumHeader+sumRow,tw);
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `Chocolate_${data.date}.docx`);
   toast('✅ Chocolate exported!');
@@ -4251,21 +4266,29 @@ async function exportChocWord() {
 async function exportIngWord() {
   calcIng();
   const data = getIngData();
-  const cols = [1300,3400,1300,1700,1800]; const tw = 9500;
-  const hdr = wRow(['Ingredient','Detail','Mid Qty / lbs','End Qty / lbs','Per Unit lbs'].map((h,i)=>thCell(h,cols[i])).join(''));
+  const cols = [1800,5000,2500,2500,2600]; const tw = 14400;
+  const hdr = wHeaderRow(['Ingredient','Detail','Mid Qty / lbs','End Qty / lbs','Per Unit lbs'].map((h,i)=>thCell(h,cols[i])).join(''));
   const grouped={};
   data.rows.forEach(r=>{const key=`${r.item}|${r.detail}|${r.fixed}`;grouped[key] ||= {item:r.item,detail:r.detail,fixed:r.fixed,mid:null,end:null};grouped[key][r.stage]=r;});
   const rows = Object.values(grouped).map((r,i)=>wRow([r.item,r.detail,`${r.mid?.qty||'—'} / ${fmt(r.mid?.lbs||0)}`,`${r.end?.qty||'—'} / ${fmt(r.end?.lbs||0)}`,r.fixed].map((v,ci)=>tdCell(v,cols[ci],i%2===1)).join(''))).join('');
+  const summaryCols=[1700,1400,1400,1400,1200,1500,1500,1700,1200,1400];
+  const summaryHeader=wHeaderRow(['Stage','Completion','Physical','System','BOM','Scrap','PA','Total Adj.','Adj. %','Status'].map((h,i)=>thCell(h,summaryCols[i])).join(''));
   const summaries = data.mid.ingredients.map((mid,index) => {
     const end=data.end.ingredients[index];
-    return wSec(`${mid.id} — ${mid.name}`) +
-    wPara(`MID — Completion: ${fmt(data.mid.completion)}   Physical: ${fmt(mid.physical)} lbs   Scrap: ${fmt(mid.scrapDisplay)} lbs   PA: ${mid.productionAdjustment>0?'+':''}${fmt(mid.productionAdjustment)} lbs   Total Adjustment: ${mid.totalAdjustment>0?'+':''}${fmt(mid.totalAdjustment)} lbs`,{size:18,bold:true}) +
-    wPara(`END CUMULATIVE — Final Completion: ${fmt(data.end.completion)} (not added)   Physical: ${fmt(end.physical)} lbs   Scrap: ${fmt(end.scrapDisplay)} lbs   PA: ${end.productionAdjustment>0?'+':''}${fmt(end.productionAdjustment)} lbs`,{size:18,color:'555555'}) +
-    wPara(`Cumulative Total Adjustment: ${end.totalAdjustment>0?'+':''}${fmt(end.totalAdjustment)} lbs   Adjustment %: ${(end.pct*100).toFixed(1)}%   Status: ${end.status.label}`,{size:18,bold:true});
+    const stageRow=(label,completion,d,even)=>wRow([
+      tdCell(label,summaryCols[0],even,{bold:true}),tdCell(fmt(completion),summaryCols[1],even,{center:true}),
+      tdCell(fmt(d.physical),summaryCols[2],even,{center:true}),tdCell(fmt(d.system),summaryCols[3],even,{center:true}),
+      tdCell(fmt(d.bom),summaryCols[4],even,{center:true}),wordToneCell(d.scrapDisplay,wordAdjustment(d.scrapDisplay,fmt,' lbs'),summaryCols[5],even),
+      wordToneCell(d.productionAdjustment,wordAdjustment(d.productionAdjustment,fmt,' lbs'),summaryCols[6],even),
+      wordToneCell(d.totalAdjustment,wordAdjustment(d.totalAdjustment,fmt,' lbs'),summaryCols[7],even),
+      tdCell(`${(d.pct*100).toFixed(1)}%`,summaryCols[8],even,{bold:true,center:true}),wordStatusCell(d.status.label,summaryCols[9],even)
+    ].join(''));
+    return wSec(`${mid.id} — ${mid.name}`) + wTable(10,summaryCols,summaryHeader+stageRow('MID',data.mid.completion,mid,false)+stageRow('END CUMULATIVE',data.end.completion,end,true),tw)+wPara('',{spaceAfter:100});
   }
   ).join('');
   const body = wHdr('Ingredients Adjustment — L1') +
     wPara(`Date: ${data.date}   Shift: ${data.shift}   Report: ${data.report}   Line: ${data.line}   FG Item: ${data.fgItem||'—'}   LP: ${data.lpn||'—'}   Expiration: ${data.expiration||'—'}`,{size:18,color:'555555'}) +
+    wPara('Print key: GREEN = quantity to add. RED = quantity to remove. Every colored value also includes a written action.',{size:18,bold:true,color:'334155'})+
     wTable(5,cols,hdr+rows,tw) + summaries;
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `Ingredients_${data.date}.docx`);
@@ -4293,32 +4316,45 @@ async function exportPchWord() {
   const grandPctSigned = totalCompletionForRatio ? grandTotalAdjustment / totalCompletionForRatio : 0;
   const grandStatus = pchStatusFromTotal(grandTotalAdjustment, Math.abs(grandPctSigned));
 
-  const cols = [3200,2600,2600,2600]; 
-  const tw = 11000;
+  const cols = [3000,3600,5000,2800]; 
+  const tw = 14400;
 
   const mkSection = (d, label) => {
-    const hdr = wRow(['Field','Value','Notes','Status'].map((h,i)=>thCell(h,cols[i])).join(''));
+    const hdr = wHeaderRow(['Field','Value / Required Action','Notes','Status'].map((h,i)=>thCell(h,cols[i])).join(''));
     const rows = [
-      ['Report', d.report, '', ''],
-      ['Item', item, desc, ''],
-      ['Completion', pchFormat(d.completion), 'Production recorded in NetSuite', ''],
-      ['Qty in System', pchFormat(d.system), 'Before applying scrap', ''],
-      ['Qty in Physical', pchFormat(d.physical), 'Real physical count', ''],
-      ['Scrap Reported', pchFormatSigned(d.scrapDisplay), 'Reported by Production', ''],
-      ['PA', pchFormatSigned(d.pa), 'Physical - (System - Scrap)', ''],
-      ['Total Adjustment', pchFormatSigned(d.totalAdjustment), 'Scrap + PA', `${Math.round(d.adjPctSigned*100)}% · ${d.status.label}`]
-    ].map((r,i)=>wRow(r.map((v,ci)=>tdCell(v||'—',cols[ci],i%2===1)).join(''))).join('');
+      {field:'Report',value:d.report,notes:'',status:''},
+      {field:'Item',value:item,notes:desc,status:''},
+      {field:'Completion',value:pchFormat(d.completion),notes:'Production recorded in NetSuite',status:''},
+      {field:'Qty in System',value:pchFormat(d.system),notes:'Before applying scrap',status:''},
+      {field:'Qty in Physical',value:pchFormat(d.physical),notes:'Real physical count',status:''},
+      {field:'Scrap Reported',value:wordAdjustment(d.scrapDisplay,pchFormat),tone:d.scrapDisplay,notes:'Reported by Production',status:''},
+      {field:'PA',value:wordAdjustment(d.pa,pchFormat),tone:d.pa,notes:'Physical - (System - Scrap)',status:''},
+      {field:'Total Adjustment',value:wordAdjustment(d.totalAdjustment,pchFormat),tone:d.totalAdjustment,notes:'Scrap + PA',status:`${Math.round(d.adjPctSigned*100)}% · ${d.status.label}`}
+    ].map((r,i)=>wRow([
+      tdCell(r.field,cols[0],i%2===1,{bold:true}),
+      r.tone===undefined?tdCell(r.value||'—',cols[1],i%2===1,{center:true}):wordToneCell(r.tone,r.value,cols[1],i%2===1),
+      tdCell(r.notes||'—',cols[2],i%2===1),
+      r.status?wordStatusCell(r.status,cols[3],i%2===1):tdCell('—',cols[3],i%2===1,{center:true})
+    ].join(''))).join('');
     return wSec(label) + wTable(4, cols, hdr+rows, tw);
   };
 
+  const totalCols=[3200,3200,4200,3800];
+  const totalHeader=wHeaderRow(['Scrap','PA','Grand Adjustment','Grand Status'].map((h,i)=>thCell(h,totalCols[i])).join(''));
+  const totalRow=wRow([
+    wordToneCell(totalScrap,wordAdjustment(totalScrap,pchFormat),totalCols[0],false),
+    wordToneCell(totalPA,wordAdjustment(totalPA,pchFormat),totalCols[1],false),
+    wordToneCell(grandTotalAdjustment,wordAdjustment(grandTotalAdjustment,pchFormat),totalCols[2],false),
+    wordStatusCell(`${Math.round(grandPctSigned*100)}% · ${grandStatus.label}`,totalCols[3],false)
+  ].join(''));
   const body = wHdr(`Pouches Adjustments — ${date}`) +
     wPara(`Shift: ${document.getElementById('pchShift').value}   Line: ${document.getElementById('pchLine').value}   LP: ${document.getElementById('pchLP').value||'—'}   Expiration: ${document.getElementById('pchExpiration').value||'—'}`,{size:18,color:'555555'}) +
     mkSection(mid, 'Mid Shift') +
     wPara(document.getElementById('pchMidReportPreview').value,{size:18,color:'555555'}) +
     mkSection(end, 'End of Shift') +
     wPara(document.getElementById('pchEndReportPreview').value,{size:18,color:'555555'}) +
-    wSec('Grand Totals — Net Adjustments') +
-    wPara(`Total Scrap: ${pchFormatSigned(totalScrap)}   Total PA: ${pchFormatSigned(totalPA)}   Grand Total Adjustment: ${pchFormatSigned(grandTotalAdjustment)}   Grand Adjustment %: ${Math.round(grandPctSigned*100)}%   Grand Status: ${grandStatus.label}`,{size:20,bold:true}) +
+    wSec('Grand Totals — Green = Add / Red = Remove') +
+    wTable(4,totalCols,totalHeader+totalRow,tw) +
     wSec('Comments') +
     wPara(`Mid Shift: ${document.getElementById('pchMidComments').value || '—'}`,{size:18,color:'555555'}) +
     wPara(`End of Shift: ${document.getElementById('pchEndComments').value || '—'}`,{size:18,color:'555555'});
@@ -4391,8 +4427,8 @@ function ccInventoryGroups(sessions){
     .sort((a,b)=>a.area.localeCompare(b.area)||String(a.item).localeCompare(String(b.item),undefined,{numeric:true}));
 }
 function ccWordBody(sessions,title){
-  const summaryCols=[1500,2600,1700,1700,1100,1200,1200,1800],summaryW=12800;
-  const summaryHeader=wRow(['Date','Count / Reference','Employee','Shift / Area','LPs','Reviewed','Found','Exceptions'].map((h,i)=>thCell(h,summaryCols[i])).join(''));
+  const summaryCols=[1600,3000,1800,2300,1100,1500,1400,1700],summaryW=14400;
+  const summaryHeader=wHeaderRow(['Date','Count / Reference','Employee','Shift / Area','LPs','Reviewed','Found','Exceptions'].map((h,i)=>thCell(h,summaryCols[i])).join(''));
   const summaryRows=sessions.map((s,i)=>{
     const x=ccSessionStats(s);
     return wRow([s.date||'—',s.name||'Cycle Count',s.employee||'—',`${s.shift||'—'} / ${s.area||'—'}`,x.total,`${x.reviewed}/${x.total}`,x.found,x.exceptions].map((v,ci)=>tdCell(v,summaryCols[ci],i%2===1)).join(''));
@@ -4400,19 +4436,32 @@ function ccWordBody(sessions,title){
   const all=sessions.flatMap(s=>(s.rows||[]).map(r=>({s,r})));
   const exceptions=all.filter(({r})=>!['pending','found'].includes(r.result));
   const inventoryGroups=ccInventoryGroups(sessions);
-  const groupCols=[1600,1400,900,900,900,1000,1000,1000,4100],groupW=12800;
-  const groupHeader=wRow(['Area','Item','Counted','Found','Missing','Wrong Loc.','Qty Diff.','Net Diff.','Comments / Findings'].map((h,i)=>thCell(h,groupCols[i])).join(''));
-  const groupRows=inventoryGroups.map((g,i)=>wRow([g.area,g.item,g.counted,g.found,g.missing,g.moved,g.qtyDiff,ccSigned(g.net),g.comments].map((v,ci)=>tdCell(v,groupCols[ci],i%2===1)).join(''))).join('');
-  const detailCols=[1700,1300,1400,1700,1100,1800,1700,1100,1000],detailW=12800;
-  const detailHeader=wRow(['Count','LP','Item / Lot','System Location','System Qty','Result','Actual Location','Actual Qty','Difference'].map((h,i)=>thCell(h,detailCols[i])).join(''));
-  const makeRows=items=>items.map(({s,r},i)=>wRow([
-    s.name||s.date||'Count',r.lp,r.lot?`${r.item} / ${r.lot}`:r.item,r.bin||'—',fmt(r.systemQty),
-    ccResultLabel(r.result),r.actualLocation||'—',r.actualQty===''?'—':fmt(r.actualQty),ccSigned(ccDifference(r))
-  ].map((v,ci)=>tdCell(v,detailCols[ci],i%2===1)).join(''))).join('');
+  const groupCols=[1600,1300,900,900,900,1100,1000,1200,5500],groupW=14400;
+  const groupHeader=wHeaderRow(['Area','Item','Counted','Found','Missing','Wrong Loc.','Qty Diff.','Net Diff.','Comments / Findings'].map((h,i)=>thCell(h,groupCols[i])).join(''));
+  const groupRows=inventoryGroups.map((g,i)=>wRow([
+    tdCell(g.area,groupCols[0],i%2===1),tdCell(g.item,groupCols[1],i%2===1),tdCell(g.counted,groupCols[2],i%2===1,{center:true}),
+    tdCell(g.found,groupCols[3],i%2===1,{center:true}),tdCell(g.missing,groupCols[4],i%2===1,{center:true}),tdCell(g.moved,groupCols[5],i%2===1,{center:true}),
+    tdCell(g.qtyDiff,groupCols[6],i%2===1,{center:true}),wordToneCell(g.net,wordAdjustment(g.net,fmt),groupCols[7],i%2===1),tdCell(g.comments,groupCols[8],i%2===1)
+  ].join(''))).join('');
+  const detailCols=[1600,1300,1400,1900,1200,1900,1800,1200,2100],detailW=14400;
+  const detailHeader=wHeaderRow(['Count','LP','Item / Lot','System Location','System Qty','Result','Actual Location','Actual Qty','Difference / Action'].map((h,i)=>thCell(h,detailCols[i])).join(''));
+  const makeRows=items=>items.map(({s,r},i)=>{const diff=ccDifference(r),result=ccResultLabel(r.result);return wRow([
+    tdCell(s.name||s.date||'Count',detailCols[0],i%2===1),tdCell(r.lp,detailCols[1],i%2===1),tdCell(r.lot?`${r.item} / ${r.lot}`:r.item,detailCols[2],i%2===1),
+    tdCell(r.bin||'—',detailCols[3],i%2===1),tdCell(fmt(r.systemQty),detailCols[4],i%2===1,{center:true}),wordStatusCell(result,detailCols[5],i%2===1),
+    tdCell(r.actualLocation||'—',detailCols[6],i%2===1),tdCell(r.actualQty===''?'—':fmt(r.actualQty),detailCols[7],i%2===1,{center:true}),
+    wordToneCell(diff,wordAdjustment(diff,fmt),detailCols[8],i%2===1)
+  ].join(''));}).join('');
   const totals=sessions.reduce((a,s)=>{const x=ccSessionStats(s);a.total+=x.total;a.reviewed+=x.reviewed;a.found+=x.found;a.exceptions+=x.exceptions;a.net+=x.net;return a;},{total:0,reviewed:0,found:0,exceptions:0,net:0});
+  const totalCols=[2600,2600,2600,2600,4000];
+  const totalHeader=wHeaderRow(['Reviewed','Found Correct','Exceptions','Total LPs','Net Difference / Action'].map((h,i)=>thCell(h,totalCols[i])).join(''));
+  const totalRow=wRow([
+    tdCell(`${totals.reviewed}/${totals.total}`,totalCols[0],false,{bold:true,center:true}),tdCell(totals.found,totalCols[1],false,{bold:true,center:true}),
+    tdCell(totals.exceptions,totalCols[2],false,{bold:true,color:totals.exceptions?WORD_NEG:WORD_POS,center:true}),tdCell(totals.total,totalCols[3],false,{bold:true,center:true}),
+    wordToneCell(totals.net,wordAdjustment(totals.net,fmt),totalCols[4],false)
+  ].join(''));
   let body=wHdr(title)+
     wPara(`Generated: ${new Date().toLocaleString()}   Saved Counts: ${sessions.length}`,{size:18,color:'555555'})+
-    wPara(`Summary: Reviewed ${totals.reviewed}/${totals.total} LPs · Found Correct ${totals.found} · Exceptions ${totals.exceptions} · Net Qty Difference ${ccSigned(totals.net)}`,{size:20,bold:true})+
+    wTable(5,totalCols,totalHeader+totalRow,14400)+
     wPara('Found Correct means the LP, location and quantity agree with the system. Exceptions require review because the LP was missing or the physical location/quantity was different.',{size:18,color:'555555'})+
     wSec('Inventory Summary by Area and Item')+wTable(9,groupCols,groupHeader+groupRows,groupW)+
     wSec('Count Summary')+wTable(8,summaryCols,summaryHeader+summaryRows,summaryW)+
