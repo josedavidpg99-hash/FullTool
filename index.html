@@ -760,8 +760,14 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
 .kit-yes { color:#047857; font-weight:800; }
 .kit-no { color:#b91c1c; font-weight:800; }
 .kit-pending { color:#b45309; font-weight:800; }
-.kit-review-row td { background:#fee2e2!important; }
-.kit-adjust-row td { background:#ecfdf5!important; }
+.kit-row-adjust td { background:#fee2e2!important; }
+.kit-row-no-adjust td { background:#dcfce7!important; }
+.kit-row-verify-label td { background:#fef9c3!important; }
+.kit-row-verify-adjust td { background:#ffedd5!important; }
+.kit-row-adjust td:first-child { border-left:5px solid #dc2626; }
+.kit-row-no-adjust td:first-child { border-left:5px solid #16a34a; }
+.kit-row-verify-label td:first-child { border-left:5px solid #eab308; }
+.kit-row-verify-adjust td:first-child { border-left:5px solid #f97316; }
 .kit-summary { margin-top:12px; border:1px solid var(--border); border-radius:var(--r-sm); background:#ffffff; padding:12px; font-size:13px; line-height:1.7; }
 .kit-summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:10px; }
 .kit-summary-card { border:1px solid var(--border); border-radius:var(--r-sm); padding:10px; background:#f8fafc; }
@@ -769,6 +775,314 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
 .kit-summary-card .value { font-family:'DM Mono', monospace; font-size:22px; font-weight:800; margin-top:3px; }
 
 @media(max-width:700px){ .kit-summary-grid{grid-template-columns:1fr 1fr;} }
+
+/* ── SEARCHABLE ITEM / FG SELECTORS ── */
+.search-combo{position:relative;}
+.search-combo input[type="search"]{
+  padding-right:38px;
+  background:#fff;
+  font-weight:700;
+}
+.search-combo::after{
+  content:'⌕';
+  position:absolute;
+  right:13px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#64748b;
+  font-size:20px;
+  pointer-events:none;
+}
+.search-source-select{display:none!important;}
+.search-combo input.search-unresolved{
+  border-color:#f59e0b!important;
+  background:#fffbeb!important;
+}
+.field-search-note{display:block;margin-top:4px;color:#64748b;font-size:10px;font-weight:700;}
+.match-status{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  grid-column:1/-1;
+  border:1px solid #cbd5e1;
+  border-left:6px solid #64748b;
+  border-radius:9px;
+  padding:9px 12px;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.4;
+  background:#f8fafc;
+  color:#334155;
+}
+.match-status::before{content:'●';line-height:1.2;}
+.match-status.match-ok{border-color:#86efac;border-left-color:#16a34a;background:#f0fdf4;color:#166534;}
+.match-status.match-review{border-color:#fde68a;border-left-color:#eab308;background:#fefce8;color:#854d0e;}
+.match-status.match-error{border-color:#fca5a5;border-left-color:#dc2626;background:#fef2f2;color:#991b1b;}
+
+/* ── INGREDIENTS GUIDED WORKFLOW ── */
+#panel-ingredients.content{max-width:1500px;}
+.ing-shift-entry-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin:14px 0 16px;
+}
+.ing-shift-entry-card{
+  display:grid;
+  grid-template-columns:auto minmax(180px,1fr);
+  align-items:center;
+  gap:14px;
+  border:2px solid #cbd5e1;
+  border-radius:12px;
+  background:#f8fafc;
+  padding:12px 14px;
+}
+.ing-shift-entry-card.end{border-color:#c4b5fd;background:#f5f3ff;}
+.ing-shift-entry-title strong{display:block;font-size:16px;color:#0f172a;}
+.ing-shift-entry-title span{display:block;margin-top:3px;font-size:11px;color:#64748b;line-height:1.35;}
+.ing-shift-entry-card input{
+  background:#fff7cc!important;
+  border:2px solid #eab308!important;
+  font-family:'DM Mono',monospace;
+  font-size:18px!important;
+  font-weight:900;
+  text-align:right;
+}
+.ing-bom-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:12px;
+  margin-bottom:16px;
+}
+.ing-bom-card{
+  display:grid;
+  grid-template-columns:1fr minmax(150px,220px);
+  align-items:center;
+  gap:12px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  padding:10px 12px;
+  background:#fff;
+}
+.ing-bom-card strong{display:block;font-size:14px;color:#0f172a;}
+.ing-bom-card small{display:block;margin-top:2px;color:#64748b;}
+.ing-bom-card input{
+  background:#fff7cc!important;
+  border:1px solid #eab308!important;
+  font-family:'DM Mono',monospace;
+  font-weight:900;
+  text-align:right;
+}
+.ing-workflow-stack{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;}
+.ing-workflow-stage{
+  border:2px solid #0f172a;
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 8px 20px rgba(15,23,42,.08);
+}
+.ing-stage-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:12px 16px;
+  color:#0f172a;
+  background:#dbeafe;
+  border-bottom:2px solid #0f172a;
+}
+.ing-stage-header.end{background:#ede9fe;}
+.ing-stage-header strong{font-size:22px;font-weight:900;}
+.ing-stage-header small{display:block;margin-top:2px;font-size:11px;font-weight:700;color:#475569;}
+.ing-stage-completion{
+  flex:0 0 auto;
+  border:1px solid #64748b;
+  border-radius:999px;
+  background:#fff;
+  padding:7px 12px;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+}
+.ing-stage-completion span{font-family:'DM Mono',monospace;font-size:15px;color:#0f172a;}
+.ing-ingredient-cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(520px,1fr));
+  gap:14px;
+  padding:14px;
+  align-items:start;
+}
+.ing-ingredient-card{
+  border:1px solid #cbd5e1;
+  border-radius:11px;
+  overflow:hidden;
+  background:#fff;
+}
+.ing-ingredient-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  background:#f8fafc;
+  border-bottom:1px solid #cbd5e1;
+}
+.ing-ingredient-title strong{font-size:16px;color:#0f172a;}
+.ing-ingredient-title span{font-size:11px;font-weight:800;color:#475569;}
+.ing-ingredient-title b{font-family:'DM Mono',monospace;color:#0f172a;}
+.ing-step{border-bottom:1px solid #cbd5e1;}
+.ing-step:last-child{border-bottom:none;}
+.ing-step-head{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:9px 12px;
+  background:#f8fafc;
+  font-size:13px;
+  font-weight:900;
+  color:#0f172a;
+}
+.ing-step-number{
+  display:inline-grid;
+  place-items:center;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  color:#fff;
+  background:#2563eb;
+  font-family:'DM Mono',monospace;
+  font-size:12px;
+}
+.ing-step-system .ing-step-number{background:#7c3aed;}
+.ing-step-result .ing-step-number{background:#047857;}
+.ing-breakdown summary{
+  cursor:pointer;
+  list-style:none;
+  padding:8px 12px;
+  background:#eff6ff;
+  color:#1e3a8a;
+  font-size:12px;
+  font-weight:800;
+  border-top:1px dotted #93c5fd;
+}
+.ing-breakdown summary::-webkit-details-marker{display:none;}
+.ing-breakdown summary::before{content:'▾';display:inline-block;margin-right:7px;transition:transform .2s;}
+.ing-breakdown:not([open]) summary::before{transform:rotate(-90deg);}
+.ing-physical-wrap{overflow-x:auto;}
+.ing-physical-table{width:100%;min-width:610px;border-collapse:collapse;}
+.ing-physical-table th,.ing-physical-table td{border:1px dotted #94a3b8;padding:7px 8px;}
+.ing-physical-table th{
+  background:#f8fafc;
+  color:#475569;
+  font-size:10px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.35px;
+}
+.ing-physical-table td{font-size:12px;font-weight:700;}
+.ing-physical-table td:nth-child(n+2){text-align:right;font-family:'DM Mono',monospace;}
+.ing-physical-table input{
+  min-height:32px!important;
+  padding:4px 7px!important;
+  font-family:'DM Mono',monospace;
+  font-weight:900;
+  text-align:right;
+}
+.ing-entry-input{background:#fff7cc!important;border:1px solid #eab308!important;}
+.ing-calculated-input{background:#f1f5f9!important;border:1px solid #cbd5e1!important;}
+.ing-fixed-value{display:inline-block;min-width:76px;padding:6px 8px;border-radius:6px;background:#e2e8f0;color:#334155;text-align:right;}
+.ing-fixed-note{display:block;margin-top:3px;font-family:'DM Sans',sans-serif;font-size:9px;color:#64748b;text-align:right;}
+.ing-physical-total{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:14px;
+  padding:10px 12px;
+  background:#dcfce7;
+  border-top:2px solid #16a34a;
+  font-size:12px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+.ing-physical-total output{font-family:'DM Mono',monospace;font-size:20px;color:#065f46;}
+.ing-system-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  padding:12px;
+}
+.ing-system-grid .field label{font-size:10px;}
+.ing-system-grid input{
+  font-family:'DM Mono',monospace;
+  font-size:16px!important;
+  font-weight:900;
+  text-align:right;
+}
+.ing-auto-callout{background:#eff6ff!important;border:1px solid #93c5fd!important;color:#1e3a8a!important;}
+.ing-result-wrap{overflow-x:auto;}
+.ing-result-table{width:100%;border-collapse:collapse;}
+.ing-result-table th,.ing-result-table td{border:1px dotted #94a3b8;padding:7px 10px;}
+.ing-result-table th{
+  width:56%;
+  background:#f8fafc;
+  color:#334155;
+  text-align:right;
+  font-size:11px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+.ing-result-table td{text-align:right;}
+.ing-result-table input{
+  width:100%;
+  min-height:28px!important;
+  padding:0!important;
+  border:none!important;
+  background:transparent!important;
+  font-family:'DM Mono',monospace;
+  font-size:16px!important;
+  font-weight:900;
+  text-align:right;
+}
+.ing-result-table input.good-bg{background:#86efac!important;color:#111!important;padding:4px 8px!important;}
+.ing-result-table input.att-bg{background:#fde047!important;color:#111!important;padding:4px 8px!important;}
+.ing-result-table input.crit-bg{background:#ef4444!important;color:#fff!important;padding:4px 8px!important;}
+.ing-result-table input.adjusted-in-bg{background:#5bc0eb!important;color:#001529!important;padding:4px 8px!important;}
+.ing-result-table .ing-result-scrap th,.ing-result-table .ing-result-pa th{background:#fff2e8;}
+.ing-result-table .ing-result-total th,.ing-result-table .ing-result-total td{background:#fff7cc;}
+.ing-result-table .ing-result-pct th,.ing-result-table .ing-result-pct td{background:#fff200;}
+.ing-status-cell{padding:8px!important;}
+.ing-status-cell .pouch-clean-note{margin:0;}
+.ing-legend-bar{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:8px;
+  padding:12px;
+  background:#f8fafc;
+  border-top:1px solid #cbd5e1;
+}
+.ing-legend-item{display:flex;align-items:center;border:1px solid #cbd5e1;background:#fff;}
+.ing-legend-item strong{padding:6px 9px;font-size:11px;}
+.ing-legend-item span{padding:6px 9px;font-size:11px;font-weight:700;color:#475569;}
+@media(max-width:760px){
+  .ing-shift-entry-grid{grid-template-columns:1fr;}
+  .ing-shift-entry-card{grid-template-columns:1fr;}
+  .ing-bom-card{grid-template-columns:1fr;}
+  .ing-ingredient-cards{grid-template-columns:1fr;padding:8px;}
+  .ing-system-grid{grid-template-columns:1fr;}
+  .ing-stage-header{align-items:flex-start;flex-direction:column;}
+}
+
+/* ── PRETZEL DARK + MILK PARALLEL INVENTORY ── */
+.pretzel-dual-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+.pretzel-side-card{border:2px solid var(--border);border-radius:var(--r-sm);overflow:hidden;background:#fff;}
+.pretzel-side-title{padding:10px 12px;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:.5px;}
+.pretzel-side-title.dark{background:#dbeafe;color:#1e3a8a;}
+.pretzel-side-title.milk{background:#fef3c7;color:#92400e;}
+.pretzel-side-card table{min-width:620px;}
+.pretzel-side-card th{font-size:9px;}
+@media(max-width:980px){.pretzel-dual-grid{grid-template-columns:1fr;}}
 
 @media print {
   body.print-pouches .topbar,
@@ -1589,10 +1903,10 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
     <div class="guide-step"><h4>4. Dos horas antes del final</h4><p>Hora objetivo: <strong>1:00 p.m. Shift 1 · 9:00 p.m. Shift 2 · 5:00 a.m. Shift 3</strong>. Repite el conteo físico de cocina, confirma las últimas ollas y completa el ajuste final de cocina. Realiza el ajuste End Shift de pouches e ingredientes especiales y termina inventarios pendientes.</p></div>
     <div class="guide-step"><h4>5. Cierre y entrega</h4><p>Mantén los pallets/labels al día. Completa el scrap restante de SafetyChain. Registra en <strong>PASOS / Pass Off</strong> todos los ajustes, movimientos, scrap e inventarios. Prepara el reporte final, escanea documentos y envía los reportes. Envía capturas de los cuadros de pouches e ingredientes especiales al grupo correspondiente de Teams.</p></div>
     <div class="guide-step"><h4>Cuando la línea no está corriendo</h4><p>Utiliza el tiempo para realizar la mayor cantidad posible de inventarios y confirmar que la línea tenga materiales correctos y suficientes.</p></div>
-    <div class="guide-step"><h4>🍫 Chocolate</h4><p>Selecciona línea, Running Item y Chocolate Item; agrega LP y vencimiento. Solo ENROBERS AND PIPES y BED vienen en 100%. Tanks, AD, Decorators y Morcos se llenan manualmente. Ingresa sistema, revisa físico y ajuste, luego guarda. Save crea el reporte y actualiza el borrador de PASOS; Word descarga el cuadro final.</p></div>
-    <div class="guide-step"><h4>🥜 Ingredients</h4><p>Selecciona línea, plantilla, Finished Goods Item, LP y vencimiento. Ingresa Completion, físico, sistema y scrap de Mid y End. El físico incluye pallets sin label, banda, cama y cajas/totes. End Completion es el total final; Scrap, PA y Total Adjustment sí son acumulativos. Save transfiere cada ingrediente a PASOS.</p></div>
-    <div class="guide-step"><h4>📦 Pouches</h4><p>Selecciona línea e ítem; agrega LP y vencimiento. Completa Mid Shift y End Shift con Completion, sistema, físico y scrap. End Completion es el total final; Scrap, PA y Total Adjustment son acumulativos. Revisa el estado, guarda y descarga Word.</p></div>
-    <div class="guide-step"><h4>🍳 Kitchen y LP</h4><p>Usa <strong>Pre-Kitchen Physical Inventory</strong> para registrar Item, LP y cantidad física sin subir un archivo. Puedes agregar varias filas y el borrador queda guardado en este dispositivo. Para comparar contra sistema, sube Excel/CSV de IMS o NetSuite. Inventory Number corresponde al lote y no es lo mismo que Bin/LP. El LP con R es la prioridad.</p></div>
+    <div class="guide-step"><h4>🍫 Chocolate</h4><p>Selecciona línea, Running Item y Chocolate Item. Solo ENROBERS AND PIPES y BED vienen en 100%. Tanks, AD, Decorators y Morcos se llenan manualmente. Pretzel permite completar Dark y Milk al mismo tiempo en dos cuadros paralelos. Ingresa sistema, revisa físico y ajuste, luego guarda.</p></div>
+    <div class="guide-step"><h4>🥜 Ingredients</h4><p>Selecciona línea, plantilla y Finished Goods Item. Completion representa las bolsas/unidades completadas y la herramienta calcula Pounds = Completion × BOM. El físico incluye pallets sin label, banda/enrober, cama y cajas/totes. Mid + End se acumulan para Completion, Scrap y Production Adjustment; el reporte muestra el porcentaje individual de Scrap, Production Adjustment y Total Adjustment.</p></div>
+    <div class="guide-step"><h4>📦 Pouches</h4><p>Selecciona línea e ítem. Completa Mid Shift y el incremento de End Shift. Completion, Scrap y Production Adjustment se acumulan en el reporte final, con porcentajes separados para Scrap, Production Adjustment y Total Adjustment.</p></div>
+    <div class="guide-step"><h4>🍳 Kitchen y LP</h4><p>Usa <strong>Pre-Kitchen Physical Inventory</strong> para registrar Item, LP y cantidad física sin subir un archivo. Para comparar contra sistema, sube Excel/CSV de IMS o NetSuite. Inventory Number corresponde al lote y no es lo mismo que Bin/LP. Los colores muestran la acción: rojo ajustar, verde no ajustar, amarillo verificar LP e imprimir label, y anaranjado verificar LP y ajustar.</p></div>
     <div class="guide-step"><h4>🔎 Cycle Count</h4><p>Sube el Inventory Balance de NetSuite y revisa cada LP desde el teléfono. Marca Found Correct, Not Found, Different Location, Different Quantity o Location + Quantity Different. Cuando exista una diferencia, registra la ubicación o cantidad realmente encontrada. Presiona Save para agregar el conteo al historial acumulativo; puedes abrirlo y actualizarlo después. Descarga en Word el reporte individual o acumulativo, con resumen, excepciones y detalle completo.</p></div>
     <div class="guide-step"><h4>🏷 Hershey Lot Code</h4><p>Selecciona fabricación, empaque, designador de equipo/matriz, turno y hora. La herramienta genera el lote con la tabla oficial de 2026. Expiración: avanza 11 meses y usa el día 30 del mes resultante; si no existe, usa el último día válido. Ejemplo: 7/29/2026 → 6/30/2027. Verifica siempre designador y turno contra la orden.</p></div>
     <div class="guide-step"><h4>🗓 Schedule y ✅ Shift Tasks</h4><p>Schedule muestra la asignación semanal. Shift Tasks crea el checklist según turno, área, empaque, ingrediente especial y estado de línea. Las tareas están divididas en Before the Shift, Start of Shift, During/Mid Shift y End of Shift. Al marcar una tarea se agrega inmediatamente al borrador de PASOS; al desmarcarla se retira.</p></div>
@@ -1735,19 +2049,28 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
         <div class="field"><label>Shift</label><select id="chShift"><option>Shift 1</option><option>Shift 2</option><option>Shift 3</option></select></div>
         <div class="field"><label>IMS Employee</label><input type="text" id="chEmployee" placeholder="Employee name"></div>
         <div class="field"><label>Line</label><select id="chLine" onchange="buildChocRows()"><option>Sollich 2</option><option>Sollich 3</option><option>Pretzel — Dark + Milk</option></select></div>
-        <div class="field"><label>Running Item</label><select id="chItem" onchange="buildChocRows()"></select></div>
-        <div class="field"><label>Chocolate Item</label><select id="chChocItem"></select></div>
-        <div class="field"><label>LP Number</label><input type="text" id="chLP" placeholder="R..."></div>
-        <div class="field"><label>Expiration Date</label><input type="date" id="chExpiration"></div>
-        <div class="field"><label>Total in System (lbs)</label><input type="number" id="chSystem" placeholder="e.g. 16638" oninput="calcChoc()"></div>
+        <div class="field"><label>Running Item</label><div class="search-combo"><input type="search" id="chItemSearch" list="chItemList" autocomplete="off" placeholder="Type item or description" oninput="searchableSelectInput('chItemSearch','chItem')" onchange="searchableSelectCommit('chItemSearch','chItem')"><datalist id="chItemList"></datalist><select id="chItem" class="search-source-select" onchange="buildChocRows()"></select></div><small class="field-search-note">Search by item number or description</small></div>
+        <div class="field"><label id="chChocItemLabel">Chocolate Item</label><div class="search-combo"><input type="search" id="chChocItemSearch" list="chChocItemList" autocomplete="off" placeholder="Type chocolate item" oninput="searchableSelectInput('chChocItemSearch','chChocItem')" onchange="searchableSelectCommit('chChocItemSearch','chChocItem')"><datalist id="chChocItemList"></datalist><select id="chChocItem" class="search-source-select"></select></div></div>
+        <div class="field" id="chChocItemMilkGroup" style="display:none"><label>Milk Chocolate Item</label><div class="search-combo"><input type="search" id="chChocItemMilkSearch" list="chChocItemMilkList" autocomplete="off" placeholder="Type milk chocolate item" oninput="searchableSelectInput('chChocItemMilkSearch','chChocItemMilk')" onchange="searchableSelectCommit('chChocItemMilkSearch','chChocItemMilk')"><datalist id="chChocItemMilkList"></datalist><select id="chChocItemMilk" class="search-source-select"></select></div></div>
+        <div class="field"><label id="chSystemLabel">Total in System (lbs)</label><input type="number" id="chSystem" placeholder="e.g. 16638" oninput="calcChoc()"></div>
         <div class="field" id="chSystemMilkGroup" style="display:none"><label>Milk Total in System (Pretzel)</label><input type="number" id="chSystemMilk" placeholder="Milk system lbs" oninput="calcChoc()"></div>
       </div>
       <div class="help-box"><strong>Important note:</strong> Only <strong>ENROBERS AND PIPES</strong> and <strong>BED</strong> default to <strong>100%</strong>. Tanks / AD / Decorators / Morcos must be entered manually. FG Pallets = pallet count. Boxes on the Floor = box count.</div>
-      <div class="tbl-wrap">
+      <div class="tbl-wrap" id="chSingleTableWrap">
         <table id="chTable">
           <thead><tr><th>Area / Tank</th><th>Fixed Weight (lbs)</th><th>Physical Input</th><th>Mode</th><th>Total lbs</th></tr></thead>
           <tbody id="chBody"></tbody>
         </table>
+      </div>
+      <div id="chPretzelDual" class="pretzel-dual-grid" style="display:none">
+        <div class="pretzel-side-card">
+          <div class="pretzel-side-title dark">Dark Chocolate</div>
+          <div class="tbl-wrap"><table><thead><tr><th>Area / Tank</th><th>Fixed Weight</th><th>Physical Input</th><th>Mode</th><th>Total lbs</th></tr></thead><tbody id="chDarkBody"></tbody></table></div>
+        </div>
+        <div class="pretzel-side-card">
+          <div class="pretzel-side-title milk">Milk Chocolate</div>
+          <div class="tbl-wrap"><table><thead><tr><th>Area / Tank</th><th>Fixed Weight</th><th>Physical Input</th><th>Mode</th><th>Total lbs</th></tr></thead><tbody id="chMilkBody"></tbody></table></div>
+        </div>
       </div>
       <div class="g3" id="chSummary" style="margin-top:12px"></div>
 
@@ -1795,8 +2118,8 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
     </div>
     <div class="card-body">
       <div class="help-box">
-        <strong>Kitchen Logic:</strong> Upload Excel/CSV from IMS/NetSuite. The tool reads Item, Description, Inventory Number (from the "Lot Number" column — this is different from Bin/LP), Expiration Date, LP Number and exact System Qty.
-        Then enter Physical Qty, LP Match and Adjust manually. System Lot comes from Inventory Number, not from Bin. R LP is the priority.
+        <strong>Kitchen Logic:</strong> Upload Excel/CSV from IMS/NetSuite. The tool reads Item, Description, Inventory Number (from the "Lot Number" column — this is different from Bin/LP), LP Number and exact System Qty.
+        Enter Physical Qty, LP Match and Adjust manually. The complete row changes color according to the required action.
       </div>
 
       <div class="g4">
@@ -1834,7 +2157,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
       <div class="kit-upload-box no-print">
         <strong>Upload Excel / CSV</strong><br><br>
         <input type="file" id="kitFile" accept=".csv,.xls,.xlsx" onchange="loadKitchenFile(event)">
-        <p class="kit-note">Required columns: <strong>Item</strong>, <strong>Inventory Number</strong> (use the <strong>Lot Number</strong> column — Bin/Bin Number is often the same value as LP, not a real inventory number), <strong>LP Number</strong>, <strong>Qty / On Hand / Sum of On Hand</strong>. Optional: <strong>Description</strong>, <strong>Expiration Date</strong>.</p>
+        <p class="kit-note">Required columns: <strong>Item</strong>, <strong>Inventory Number</strong> (use the <strong>Lot Number</strong> column — Bin/Bin Number is often the same value as LP, not a real inventory number), <strong>LP Number</strong>, <strong>Qty / On Hand / Sum of On Hand</strong>. Optional: <strong>Description</strong>.</p>
         <div id="kitStatus" class="kit-status"></div>
 
         <div class="row-actions">
@@ -1855,7 +2178,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
         <table id="kitTable" style="display:none">
           <thead>
             <tr>
-              <th>Item</th><th>Description</th><th>Inventory Number<br>(System Lot)</th><th>Expiration Date</th><th>System LP</th><th>System Qty</th><th>Physical Qty</th><th>Difference</th><th>LP Match?</th><th>Adjust?</th><th>Review Needed</th><th>Notes</th>
+              <th>Item</th><th>Description</th><th>Inventory Number<br>(System Lot)</th><th>System LP</th><th>System Qty</th><th>Physical Qty</th><th>Difference</th><th>LP Match?</th><th>Adjust?</th><th>Required Action</th><th>Notes</th>
             </tr>
           </thead>
           <tbody id="kitBody"></tbody>
@@ -1881,8 +2204,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
     </div>
     <div class="card-body">
       <div class="help-box">
-        <strong>Mid + End logic:</strong> End Shift Completion is the final production total and is not added to Mid Shift.
-        End Shift Scrap, PA and Total Adjustment are cumulative: Mid + End. System and Physical remain the actual count for each stage.
+        <strong>Guided ingredient flow:</strong> For each stage, complete <strong>1) Physical Inventory</strong>, <strong>2) System &amp; SafetyChain</strong>, then review <strong>3) Automatic Result</strong>. Yellow fields are editable; gray and colored fields are calculated. End Shift uses the additional amounts since Mid, while System and Physical remain the actual count for that stage.
       </div>
       <div class="g4" style="margin-bottom:12px">
         <div class="field"><label>Date</label><input type="date" id="ingDate"></div>
@@ -1890,21 +2212,28 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
         <div class="field"><label>IMS Employee</label><input type="text" id="ingEmployee" placeholder="Employee name"></div>
         <div class="field"><label>Line</label><select id="ingLine" onchange="calcIng()"><option>Sollich 1</option><option selected>Sollich 2</option><option>Sollich 3</option></select></div>
         <div class="field"><label>Template</label>
-          <select id="ingTemplate" onchange="buildIngRows()">
+          <select id="ingTemplate" onchange="ingTemplateChanged()">
             <option value="single">1 Ingredient</option>
             <option value="smore">Smore — Graham & Marshmallow</option>
             <option value="pistachio">Pistachio Big & Small</option>
             <option value="pecan">Pecan</option>
           </select>
         </div>
-        <div class="field" id="ingItemGroup"><label>Ingredient</label><select id="ingItem" onchange="buildIngRows()"></select></div>
-        <div class="field"><label>Finished Goods Item</label><select id="ingFgItem" onchange="ingAutoConfigure()"></select></div>
-        <div class="field"><label>LP Number</label><input type="text" id="ingLP" placeholder="R..."></div>
-        <div class="field"><label>Expiration Date</label><input type="date" id="ingExpiration"></div>
-        <div class="field"><label>Mid Shift Completion</label><input type="number" step="any" id="ingMidCompletion" placeholder="Mid production total" oninput="calcIng()"></div>
-        <div class="field"><label>End Shift Completion — Final Total</label><input type="number" step="any" id="ingEndCompletion" placeholder="Final production total" oninput="calcIng()"><small style="color:var(--ink3)">Do not enter only the difference</small></div>
-        <input type="hidden" id="ingReport" value="Mid + End">
+        <div class="field" id="ingItemGroup"><label>Ingredient</label><div class="search-combo"><input type="search" id="ingItemSearch" list="ingItemList" autocomplete="off" placeholder="Type ingredient item or name" oninput="searchableSelectInput('ingItemSearch','ingItem')" onchange="searchableSelectCommit('ingItemSearch','ingItem')"><datalist id="ingItemList"></datalist><select id="ingItem" class="search-source-select" onchange="ingIngredientChanged()"></select></div><small class="field-search-note">Search instead of scrolling</small></div>
+        <div class="field"><label>Finished Goods Item (FG)</label><div class="search-combo"><input type="search" id="ingFgItemSearch" list="ingFgItemList" autocomplete="off" placeholder="Type FG item or product" oninput="searchableSelectInput('ingFgItemSearch','ingFgItem')" onchange="searchableSelectCommit('ingFgItemSearch','ingFgItem')"><datalist id="ingFgItemList"></datalist><select id="ingFgItem" class="search-source-select" onchange="ingAutoConfigure()"></select></div><small class="field-search-note">Matched using the ingredient BOM</small></div>
+        <div id="ingMatchStatus" class="match-status match-review">Select an ingredient and FG to verify the BOM match.</div>
       </div>
+      <div class="ing-shift-entry-grid">
+        <div class="ing-shift-entry-card">
+          <div class="ing-shift-entry-title"><strong>Mid Shift Completion</strong><span>Enter completed bags / units at Mid Shift. Shared by every ingredient in this report.</span></div>
+          <input type="number" step="any" id="ingMidCompletion" placeholder="Completed bags / units" oninput="calcIng()">
+        </div>
+        <div class="ing-shift-entry-card end">
+          <div class="ing-shift-entry-title"><strong>End Shift Additional Completion</strong><span>Enter only the additional bags / units since Mid. The final report adds Mid + End.</span></div>
+          <input type="number" step="any" id="ingEndCompletion" placeholder="Additional since Mid" oninput="calcIng()">
+        </div>
+      </div>
+      <input type="hidden" id="ingReport" value="Mid + End">
       <div id="ingSummary" style="margin-top:12px"></div>
     </div>
   </div>
@@ -1925,7 +2254,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
 
     <div class="card-body">
       <div class="help-box">
-        <strong>Excel Logic:</strong> Scrap Reported is shown as negative in the report. PA = Physical − (System − Scrap Reported). Total Adjustment = Scrap + PA. If Total Adjustment is positive, it is Adjusted IN / Good.
+        <strong>Excel Logic:</strong> Scrap Reported is shown as negative in the report. Production Adjustment = Physical − (System − Scrap Reported). Total Adjustment = Scrap + Production Adjustment. If Total Adjustment is positive, it is Adjusted IN / Good.
       </div>
 
       <div class="g4" style="margin-bottom:12px">
@@ -1933,11 +2262,11 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
         <div class="field"><label>Shift</label><select id="pchShift"><option>Shift 1</option><option>Shift 2</option><option selected>Shift 3</option></select></div>
         <div class="field"><label>IMS Employee</label><input type="text" id="pchEmployee" placeholder="Employee name"></div>
         <div class="field"><label>Line</label><select id="pchLine"><option>Sollich 1</option><option selected>Sollich 2</option><option>Sollich 3</option><option>Pack 1</option><option>Pack 2</option><option>Pack 3</option></select></div>
-        <div class="field"><label>Item</label><select id="pchItem" onchange="pchUpdateDesc()"></select></div>
-        <div class="field"><label>LP Number</label><input type="text" id="pchLP" placeholder="R..."></div>
-        <div class="field"><label>Expiration Date</label><input type="date" id="pchExpiration"></div>
-        <div class="field" style="grid-column:span 3"><label>Description</label><input type="text" id="pchDesc" readonly></div>
+        <div class="field"><label>Packaging / Pouch Item</label><div class="search-combo"><input type="search" id="pchItemSearch" list="pchItemList" autocomplete="off" placeholder="Type item or pouch description" oninput="searchableSelectInput('pchItemSearch','pchItem')" onchange="searchableSelectCommit('pchItemSearch','pchItem')"><datalist id="pchItemList"></datalist><select id="pchItem" class="search-source-select" onchange="pchUpdateDesc()"></select></div><small class="field-search-note">Search by item, product or size</small></div>
+        <div class="field"><label>Matched Finished Goods (FG)</label><div class="search-combo"><input type="search" id="pchFgItemSearch" list="pchFgItemList" autocomplete="off" placeholder="Type FG item or product" oninput="searchableSelectInput('pchFgItemSearch','pchFgItem')" onchange="searchableSelectCommit('pchFgItemSearch','pchFgItem')"><datalist id="pchFgItemList"></datalist><select id="pchFgItem" class="search-source-select" onchange="pchValidateFgMatch()"></select></div><small class="field-search-note">Suggested from product description and size</small></div>
+        <div class="field" style="grid-column:span 2"><label>Description</label><input type="text" id="pchDesc" readonly></div>
         <div class="field"><label>BOM</label><input type="number" id="pchBom" value="1" readonly></div>
+        <div id="pchMatchStatus" class="match-status match-review">Select a packaging item to find its matching FG.</div>
       </div>
 
       <div class="section-label">Mid Shift Inputs</div>
@@ -1950,7 +2279,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
 
       <div class="section-label">End of Shift Inputs</div>
       <div class="pouch-input-grid-desktop">
-        <div class="field"><label>End Shift Completion — Final Total</label><input type="number" id="pchEndCompletion" oninput="calcPchAll()" placeholder="20000"><small style="color:var(--ink3)">Enter the final total; Mid is already included</small></div>
+        <div class="field"><label>End Shift Additional Completion</label><input type="number" id="pchEndCompletion" oninput="calcPchAll()" placeholder="20000"><small style="color:var(--ink3)">Final report adds Mid + End</small></div>
         <div class="field"><label>Qty in System</label><input type="number" id="pchEndSistema" oninput="calcPchAll()" placeholder="3450"></div>
         <div class="field"><label>Qty in Physical</label><input type="number" id="pchEndFisico" oninput="calcPchAll()" placeholder="2915"></div>
         <div class="field"><label>Additional Scrap Since Mid Shift</label><input type="number" id="pchEndScrapUsed" oninput="calcPchAll()" placeholder="327"><small style="color:var(--ink3)">Final report = Mid Shift + this amount</small></div>
@@ -1961,6 +2290,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
 
         <div class="pouch-clean-header">
           <div><strong>Item:</strong> <span id="pchViewItem">—</span></div>
+          <div><strong>FG:</strong> <span id="pchViewFg">—</span></div>
           <div><strong>Shift:</strong> <span id="pchViewShift">—</span></div>
           <div><strong>Line:</strong> <span id="pchViewLine">—</span></div>
           <div><strong>BOM:</strong> <span id="pchViewBom">1</span> Ea</div>
@@ -1975,7 +2305,9 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
               <tr><th>Qty in System</th><td><input id="pchMidViewSystem" readonly></td></tr>
               <tr><th>Qty in Physical</th><td><input id="pchMidViewPhysical" readonly></td></tr>
               <tr class="pouch-row-scrap"><th>Scrap Reported</th><td><input id="pchMidViewScrap" readonly></td></tr>
-              <tr class="pouch-row-pa"><th>PA</th><td><input id="pchMidViewPA" readonly></td></tr>
+              <tr class="pouch-row-pct"><th>Scrap %</th><td><input id="pchMidViewScrapPct" readonly></td></tr>
+              <tr class="pouch-row-pa"><th>Production Adjustment</th><td><input id="pchMidViewPA" readonly></td></tr>
+              <tr class="pouch-row-pct"><th>Production Adjustment %</th><td><input id="pchMidViewPAPct" readonly></td></tr>
               <tr class="pouch-row-total"><th>Total Adjustment</th><td><input id="pchMidViewTotalAdj" readonly></td></tr>
               <tr class="pouch-row-pct"><th>Adjustment %</th><td><input id="pchMidViewAdjPct" readonly></td></tr>
             </table>
@@ -1988,7 +2320,9 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
               <tr><th>Qty in System</th><td><input id="pchEndViewSystem" readonly></td></tr>
               <tr><th>Qty in Physical</th><td><input id="pchEndViewPhysical" readonly></td></tr>
               <tr class="pouch-row-scrap"><th>Scrap Reported</th><td><input id="pchEndViewScrap" readonly></td></tr>
-              <tr class="pouch-row-pa"><th>PA</th><td><input id="pchEndViewPA" readonly></td></tr>
+              <tr class="pouch-row-pct"><th>Scrap %</th><td><input id="pchEndViewScrapPct" readonly></td></tr>
+              <tr class="pouch-row-pa"><th>Production Adjustment</th><td><input id="pchEndViewPA" readonly></td></tr>
+              <tr class="pouch-row-pct"><th>Production Adjustment %</th><td><input id="pchEndViewPAPct" readonly></td></tr>
               <tr class="pouch-row-total"><th>Total Adjustment</th><td><input id="pchEndViewTotalAdj" readonly></td></tr>
               <tr class="pouch-row-pct"><th>Adjustment %</th><td><input id="pchEndViewAdjPct" readonly></td></tr>
             </table>
@@ -2008,7 +2342,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
           <div class="pouch-clean-grand-title">Grand Totals — Net Adjustments</div>
           <div class="pouch-clean-grand-grid">
             <div class="pouch-clean-grand-cell"><strong>Total Scrap</strong><span id="pchGrandScrapImpact">0</span></div>
-            <div class="pouch-clean-grand-cell"><strong>Total PA</strong><span id="pchGrandPAImpact">0</span></div>
+            <div class="pouch-clean-grand-cell"><strong>Total Production Adjustment</strong><span id="pchGrandPAImpact">0</span></div>
             <div class="pouch-clean-grand-cell"><strong>Grand Total Adjustment</strong><span id="pchGrandTotalImpact">0</span></div>
             <div class="pouch-clean-grand-cell"><strong>Grand Adjustment %</strong><span id="pchGrandAdjPct">0%</span></div>
           </div>
@@ -2335,7 +2669,7 @@ const PROD_ITEMS = [
   {id:'30537-Case6',desc:'FAD-Choc Car-Vanilla-SS-Milk-Pouch 11oz/Case6',chocPal:263,bed:2400},
   {id:'30539-Pallet240',desc:'KKL-Cluster-Smore-Milk-Pouch 26.3oz/Pallet240',chocPal:190.94,bed:1232.56},
   {id:'30554-Pallet400',desc:'KKL-Cluster-Macadamia-Milk-PET 32oz-Pallet400',chocPal:380,bed:876},
-  {id:'30809-Pallet240',desc:'MMK-Enrobed-Pretzel Thins-Dark-Pouch 19.2oz/Pallet240',chocPal:156,bed:181},
+  {id:'30809-Pallet240',desc:'MMK-Enrobed-Pretzel Thins-Dark-Pouch 19.2oz/Pallet240',chocPal:156,bed:181,pretzelDarkBed:136.392,pretzelMilkBed:31.416,pretzelDarkPal:163.6704,pretzelMilkPal:37.6992},
   {id:'30826-Pallet300',desc:'CPK-Cluster-Pistachio-Dark-Pouch 16oz/Pallet300',chocPal:77,bed:600},
   {id:'30873-Case6',desc:'TAT-Cookie Bark-SS-Dark-Pouch 5oz/Case6',chocPal:62.93,bed:101}
 ];
@@ -2376,15 +2710,22 @@ function init() {
   // Populate selects
   fillSelect('chItem', PROD_ITEMS, p => p.id, p => `${p.id} — ${p.desc}`);
   fillSelect('chChocItem', CHOC_ITEMS, c => c.id, c => `${c.id} — ${c.type}`);
+  fillSelect('chChocItemMilk', CHOC_ITEMS, c => c.id, c => `${c.id} — ${c.type}`);
   fillSelect('ingItem', ING_ITEMS, i => i.id, i => `${i.id} — ${i.name}`);
   fillSelect('ingFgItem', window.SHIFTHUB_INGREDIENT_DATA?.finishedGoods || [], i => i.id, i => `${i.id} — ${i.desc}`);
   if(document.getElementById('ingFgItem')?.querySelector('option[value="30803"]')) document.getElementById('ingFgItem').value='30803';
   fillSelect('pchItem', POUCH_ITEMS, p => p.id, p => `${p.id} — ${p.desc}`);
+  fillSelect('pchFgItem', (window.SHIFTHUB_INGREDIENT_DATA?.finishedGoods || []).filter(i=>/^3/.test(String(i.id))), i => i.id, i => `${i.id} — ${i.desc}`);
+  [
+    ['chItem','chItemSearch','chItemList'],['chChocItem','chChocItemSearch','chChocItemList'],['chChocItemMilk','chChocItemMilkSearch','chChocItemMilkList'],
+    ['ingItem','ingItemSearch','ingItemList'],['ingFgItem','ingFgItemSearch','ingFgItemList'],
+    ['pchItem','pchItemSearch','pchItemList'],['pchFgItem','pchFgItemSearch','pchFgItemList']
+  ].forEach(args=>setupSearchableSelect(...args));
   PROD_ITEMS.forEach(p => { const o = document.createElement('option'); o.value=p.id; document.getElementById('prodList').appendChild(o); });
 
   buildDailyShifts();
   buildChocRows();
-  ingAutoConfigure();
+  ingAutoConfigure(true);
   buildScheduleWeeks();
   renderSchedule();
   renderPalletChecklist();
@@ -2407,6 +2748,57 @@ function init() {
 function fillSelect(id, arr, val, label) {
   const s = document.getElementById(id); if(!s) return;
   s.innerHTML = arr.map(x => `<option value="${val(x)}">${label(x)}</option>`).join('');
+}
+
+function setupSearchableSelect(selectId,inputId,listId){
+  const select=document.getElementById(selectId),input=document.getElementById(inputId),list=document.getElementById(listId);
+  if(!select||!input||!list) return;
+  list.innerHTML=[...select.options].map(o=>`<option value="${String(o.textContent).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"></option>`).join('');
+  syncSearchableSelect(selectId,inputId);
+}
+function syncSearchableSelect(selectId,inputId){
+  const select=document.getElementById(selectId),input=document.getElementById(inputId);
+  if(!select||!input) return;
+  const option=select.selectedOptions?.[0];
+  input.value=option?.textContent||'';
+  input.dataset.resolvedValue=option?.value||'';
+  input.classList.remove('search-unresolved');
+  input.removeAttribute('aria-invalid');
+}
+function findSearchableOption(select,raw,allowPartial=false){
+  const value=String(raw||'').trim().toLowerCase();
+  if(!value) return null;
+  const options=[...select.options];
+  const exact=options.find(o=>String(o.value).toLowerCase()===value||String(o.textContent).trim().toLowerCase()===value||String(o.textContent).trim().toLowerCase().startsWith(value+' —'));
+  if(exact||!allowPartial) return exact||null;
+  const matches=options.filter(o=>String(o.textContent).toLowerCase().includes(value));
+  return matches.length===1?matches[0]:null;
+}
+function resolveSearchableSelect(inputId,selectId,allowPartial){
+  const input=document.getElementById(inputId),select=document.getElementById(selectId);
+  if(!input||!select) return false;
+  if(!input.value.trim()){
+    input.classList.remove('search-unresolved');
+    input.removeAttribute('aria-invalid');
+    return false;
+  }
+  const option=findSearchableOption(select,input.value,allowPartial);
+  if(!option){
+    if(allowPartial){input.classList.add('search-unresolved');input.setAttribute('aria-invalid','true');}
+    return false;
+  }
+  const changed=select.value!==option.value;
+  select.value=option.value;
+  input.value=option.textContent;
+  input.dataset.resolvedValue=option.value;
+  input.classList.remove('search-unresolved');
+  input.removeAttribute('aria-invalid');
+  if(changed) select.dispatchEvent(new Event('change',{bubbles:true}));
+  return true;
+}
+function searchableSelectInput(inputId,selectId){ resolveSearchableSelect(inputId,selectId,false); }
+function searchableSelectCommit(inputId,selectId){
+  if(!resolveSearchableSelect(inputId,selectId,true)) toast('Select one of the matching suggestions.');
 }
 
 // ══════════════════════ NAV ══════════════════════
@@ -2491,22 +2883,34 @@ function saveDaily() { saveReport({id:String(Date.now()),module:'daily',date:doc
 function buildChocRows() {
   const line = document.getElementById('chLine').value;
   const isPretzel=line.startsWith('Pretzel');
+  document.getElementById('chSingleTableWrap').style.display=isPretzel?'none':'block';
+  document.getElementById('chPretzelDual').style.display=isPretzel?'grid':'none';
+  document.getElementById('chChocItemMilkGroup').style.display=isPretzel?'block':'none';
   document.getElementById('chSystemMilkGroup').style.display=isPretzel?'block':'none';
+  document.getElementById('chChocItemLabel').textContent=isPretzel?'Dark Chocolate Item':'Chocolate Item';
+  document.getElementById('chSystemLabel').textContent=isPretzel?'Dark Total in System (lbs)':'Total in System (lbs)';
   if(isPretzel){
-    document.getElementById('chChocItem').value='10227';
+    document.getElementById('chChocItem').value='10257';
+    document.getElementById('chChocItemMilk').value='10200';
     const prod=PROD_ITEMS.find(p=>p.id===document.getElementById('chItem').value)||{};
-    const areas=[
+    const base=[
       ['MELTING TANK 1',4000,'pct'],['MELTING TANK 2',4000,'pct'],['MELTING TANK 3',4000,'pct'],
-      ['AD3',1800,'pct'],['AD4',1800,'pct'],['AD5',1800,'pct'],['AD6',1800,'pct'],['MORCOS TANK',4000,'pct'],
-      ['ENROBERS AND PIPES',400,'pct'],['BED',prod.bed||0,'pct'],['FG PALLETS WITHOUT LABEL',prod.chocPal||0,'count'],['BOXES ON THE FLOOR',50,'count']
+      ['AD3',1800,'pct'],['AD4',1800,'pct'],['AD5',1800,'pct'],['AD6',1800,'pct'],['MORCOS TANK',4000,'pct']
     ];
-    document.getElementById('chBody').innerHTML=['DARK','MILK'].flatMap(kind=>areas.map(([name,weight,mode])=>{
-      const adjusted=kind==='MILK'&&name==='ENROBERS AND PIPES'?100:weight;
+    const darkRows=[...base,['ENROBERS AND PIPES',400,'pct'],['BED',prod.pretzelDarkBed??prod.bed??0,'pct'],['FG PALLETS WITHOUT LABEL',prod.pretzelDarkPal??prod.chocPal??0,'count'],['BOXES ON THE FLOOR',50,'count']];
+    const milkRows=[...base,['ENROBERS AND PIPES',100,'pct'],['BED',prod.pretzelMilkBed??prod.bed??0,'pct'],['FG PALLETS WITHOUT LABEL',prod.pretzelMilkPal??prod.chocPal??0,'count'],['BOXES ON THE FLOOR',50,'count']];
+    const render=(kind,areas)=>areas.map(([name,weight,mode])=>{
       const defaultVal=(name==='ENROBERS AND PIPES'||name==='BED')?'100':'';
-      return `<tr data-kind="${kind}" data-mode="${mode}" data-fixed="${adjusted}"><td><strong>${kind}</strong> · ${name}</td><td class="mono fixed-cell">${fmt(adjusted)}</td><td><input type="number" step="any" class="ch-input" value="${defaultVal}" oninput="calcChoc()" placeholder="${mode==='count'?'Count':'Percent'}"></td><td><span class="tag ${kind==='DARK'?'tag-blue':'tag-amber'}">${kind}</span></td><td class="mono ch-qty pos">0.00</td></tr>`;
-    })).join('');
+      const modeTag=mode==='count'?'<span class="tag tag-blue">×</span>':'<span class="tag tag-amber">%</span>';
+      return `<tr data-kind="${kind}" data-mode="${mode}" data-fixed="${weight}"><td>${name}</td><td class="mono fixed-cell">${fmt(weight)}</td><td><input type="number" step="any" class="ch-input" value="${defaultVal}" oninput="calcChoc()" placeholder="${mode==='count'?'Count':'Percent'}"></td><td>${modeTag}</td><td class="mono ch-qty pos">0.00</td></tr>`;
+    }).join('');
+    document.getElementById('chBody').innerHTML='';
+    document.getElementById('chDarkBody').innerHTML=render('DARK',darkRows);
+    document.getElementById('chMilkBody').innerHTML=render('MILK',milkRows);
     calcChoc(); return;
   }
+  document.getElementById('chDarkBody').innerHTML='';
+  document.getElementById('chMilkBody').innerHTML='';
   const rows = line === 'Sollich 3' ? CHOC_ROWS_S3 : CHOC_ROWS_S2;
   const prod = PROD_ITEMS.find(p => p.id === document.getElementById('chItem').value) || {};
   const tbody = document.getElementById('chBody');
@@ -2531,7 +2935,7 @@ function buildChocRows() {
 }
 function calcChoc() {
   let total = 0, darkTotal=0, milkTotal=0;
-  document.querySelectorAll('#chBody tr').forEach(tr => {
+  document.querySelectorAll('#chBody tr,#chDarkBody tr,#chMilkBody tr').forEach(tr => {
     const mode = tr.dataset.mode, fw = parseFloat(tr.dataset.fixed)||0;
     const inp = parseFloat(tr.querySelector('.ch-input').value)||0;
     let lbs = 0;
@@ -2567,17 +2971,24 @@ function calcChoc() {
 }
 function getChocData() {
   const rows = [];
-  document.querySelectorAll('#chBody tr').forEach(tr => {
+  document.querySelectorAll('#chBody tr,#chDarkBody tr,#chMilkBody tr').forEach(tr => {
     rows.push({area:tr.cells[0].textContent,kind:tr.dataset.kind||'', fixed:tr.dataset.fixed, input:tr.querySelector('.ch-input').value, mode:tr.dataset.mode, qty:tr.querySelector('.ch-qty').textContent});
   });
-  return {date:document.getElementById('chDate').value,shift:document.getElementById('chShift').value,line:document.getElementById('chLine').value,item:document.getElementById('chItem').value,chocItem:document.getElementById('chChocItem').value,lpn:document.getElementById('chLP').value.trim(),expiration:document.getElementById('chExpiration').value,system:document.getElementById('chSystem').value,systemMilk:document.getElementById('chSystemMilk').value,rows};
+  return {date:document.getElementById('chDate').value,shift:document.getElementById('chShift').value,line:document.getElementById('chLine').value,item:document.getElementById('chItem').value,chocItem:document.getElementById('chChocItem').value,chocItemMilk:document.getElementById('chChocItemMilk').value,system:document.getElementById('chSystem').value,systemMilk:document.getElementById('chSystemMilk').value,rows};
 }
-function resetChoc() { ['chSystem','chSystemMilk','chLP','chExpiration'].forEach(id=>document.getElementById(id).value=''); buildChocRows(); toast('Chocolate reset'); }
+function resetChoc() { ['chSystem','chSystemMilk'].forEach(id=>document.getElementById(id).value=''); buildChocRows(); toast('Chocolate reset'); }
 function saveChoc() {
   const data=getChocData(),physical=data.rows.reduce((a,r)=>a+(parseFloat(String(r.qty).replace(/,/g,''))||0),0),system=(parseFloat(data.system)||0)+(parseFloat(data.systemMilk)||0),diff=physical-system;
   saveReport({id:String(Date.now()),module:'chocolate',date:data.date,shift:data.shift,building:'L1',operator:document.getElementById('chEmployee').value.trim(),data,savedAt:new Date().toISOString()});
   poSyncContext(document.getElementById('chEmployee').value.trim(),data.date,data.shift,data.line);
-  poAutoReplace(`chocolate|${data.date}|${data.shift}|${data.line}`,'adj',[{item:data.chocItem,qty:diff,units:'lb',lpn:data.lpn,reason:`Chocolate adjustment · ${data.line} · Physical ${fmt(physical)} · System ${fmt(system)} · Exp ${data.expiration||'—'}`}]);
+  const isPretzel=data.line.startsWith('Pretzel');
+  const entries=isPretzel?['DARK','MILK'].map(kind=>{
+    const item=kind==='DARK'?data.chocItem:data.chocItemMilk;
+    const physicalKind=data.rows.filter(r=>r.kind===kind).reduce((sum,r)=>sum+(parseFloat(String(r.qty).replace(/,/g,''))||0),0);
+    const systemKind=parseFloat(kind==='DARK'?data.system:data.systemMilk)||0;
+    return {item,qty:physicalKind-systemKind,units:'lb',lpn:'',reason:`Chocolate adjustment · Pretzel ${kind} · Physical ${fmt(physicalKind)} · System ${fmt(systemKind)}`};
+  }):[{item:data.chocItem,qty:diff,units:'lb',lpn:'',reason:`Chocolate adjustment · ${data.line} · Physical ${fmt(physical)} · System ${fmt(system)}`}];
+  poAutoReplace(`chocolate|${data.date}|${data.shift}|${data.line}`,'adj',entries);
   document.getElementById('nb-choc').textContent = (getReports().filter(r=>r.module==='chocolate').length);
 }
 
@@ -2588,7 +2999,9 @@ function updateChocolateReport(total, sys, diff){
   setTxt('chRptShift', document.getElementById('chShift')?.value || '—');
   setTxt('chRptLine', document.getElementById('chLine')?.value || '—');
   setTxt('chRptItem', document.getElementById('chItem')?.value || '—');
-  setTxt('chRptChoc', document.getElementById('chChocItem')?.value || '—');
+  const isPretzel=(document.getElementById('chLine')?.value||'').startsWith('Pretzel');
+  const darkItem=document.getElementById('chChocItem')?.value||'—',milkItem=document.getElementById('chChocItemMilk')?.value||'—';
+  setTxt('chRptChoc', isPretzel?`${darkItem} Dark + ${milkItem} Milk`:darkItem);
   setTxt('chRptTotal', `${fmt(total)} lbs`);
   setTxt('chRptSystem', `${fmt(sys)} lbs`);
   setTxt('chRptDiff', `${diff>0?'+':''}${fmt(diff)} lbs`);
@@ -2596,8 +3009,9 @@ function updateChocolateReport(total, sys, diff){
   const body = document.getElementById('chRptBody');
   if(!body) return;
   body.innerHTML = '';
-  document.querySelectorAll('#chBody tr').forEach(tr => {
-    const area = tr.cells[0]?.childNodes[0]?.textContent?.trim() || tr.cells[0]?.textContent?.trim() || '';
+  document.querySelectorAll('#chBody tr,#chDarkBody tr,#chMilkBody tr').forEach(tr => {
+    const baseArea = tr.cells[0]?.childNodes[0]?.textContent?.trim() || tr.cells[0]?.textContent?.trim() || '';
+    const area = tr.dataset.kind ? `${tr.dataset.kind} · ${baseArea}` : baseArea;
     const fixed = tr.dataset.fixed || '';
     const input = tr.querySelector('.ch-input')?.value || '';
     const mode = tr.dataset.mode || '';
@@ -2622,13 +3036,62 @@ function ingStatus(pct,totalAdjustment=0){
   if(pct <= .08) return {label:'Attention',cls:'att-bg'};
   return {label:'Critical',cls:'crit-bg'};
 }
+function ingPctClass(pct){ return pct<=.05?'good-bg':pct<=.08?'att-bg':'crit-bg'; }
 function ingInput(id){ return parseFloat(document.getElementById(id)?.value)||0; }
+function ingMatchKey(value){ return String(value??'').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,''); }
 function ingBomFor(fg,id){
-  return Number(window.SHIFTHUB_INGREDIENT_DATA?.bom?.[`${String(fg).trim()}|${String(id).trim()}`] || 0);
+  const bom=window.SHIFTHUB_INGREDIENT_DATA?.bom||{};
+  const direct=bom[`${String(fg).trim()}|${String(id).trim()}`];
+  if(Number(direct)>0) return Number(direct);
+  const fgKey=ingMatchKey(fg),itemKey=ingMatchKey(id);
+  const match=Object.entries(bom).find(([key])=>{
+    const [keyFg,keyItem]=key.split('|');
+    return ingMatchKey(keyFg)===fgKey&&ingMatchKey(keyItem)===itemKey;
+  });
+  return Number(match?.[1]||0);
 }
-function ingAutoConfigure(){
+function ingItemMatchesFg(fg,id){
+  if(ingBomFor(fg,id)>0) return true;
+  // The original BOM groups both physical pistachio sizes under item 10221.
+  if(String(id)==='10223'&&ingBomFor(fg,'10221')>0) return true;
+  return false;
+}
+function ingAvailableItemsForFg(fg){ return ING_ITEMS.filter(i=>ingItemMatchesFg(fg,i.id)).map(i=>i.id); }
+function ingCompatibleFgs(items=ingSelectedItems()){
+  return (window.SHIFTHUB_INGREDIENT_DATA?.finishedGoods||[]).filter(fg=>items.every(id=>ingItemMatchesFg(fg.id,id)));
+}
+function setMatchStatus(id,kind,message){
+  const el=document.getElementById(id); if(!el) return;
+  el.className=`match-status ${kind}`;
+  el.textContent=message;
+}
+function updateIngMatchStatus(){
+  const fg=document.getElementById('ingFgItem')?.value||'',items=ingSelectedItems().filter(Boolean);
+  const fgMeta=(window.SHIFTHUB_INGREDIENT_DATA?.finishedGoods||[]).find(x=>String(x.id)===String(fg));
+  if(!fg||!items.length){ setMatchStatus('ingMatchStatus','match-review','Select an ingredient and FG to verify the BOM match.'); return false; }
+  const missing=items.filter(id=>!ingItemMatchesFg(fg,id));
+  if(missing.length){
+    setMatchStatus('ingMatchStatus','match-error',`Mismatch: FG ${fg} (${fgMeta?.desc||'unknown product'}) does not use ingredient ${missing.join(' + ')} in the loaded BOM.`);
+    return false;
+  }
+  const exact=items.filter(id=>ingBomFor(fg,id)>0),family=items.filter(id=>!exact.includes(id));
+  const note=family.length?` Pistachio size ${family.join(', ')} is confirmed by the shared pistachio family; enter its BOM manually if required.`:'';
+  setMatchStatus('ingMatchStatus','match-ok',`BOM match confirmed: ${items.join(' + ')} ↔ FG ${fg} — ${fgMeta?.desc||''}.${note}`);
+  return true;
+}
+function ingTemplateChanged(){ ingIngredientChanged(); }
+function ingIngredientChanged(){
+  const candidates=ingCompatibleFgs();
+  const fgSelect=document.getElementById('ingFgItem');
+  if(candidates.length&&(!fgSelect.value||!candidates.some(x=>String(x.id)===String(fgSelect.value)))) fgSelect.value=candidates[0].id;
+  syncSearchableSelect('ingItem','ingItemSearch');
+  syncSearchableSelect('ingFgItem','ingFgItemSearch');
+  buildIngRows();
+  updateIngMatchStatus();
+}
+function ingAutoConfigure(silent=false){
   const fg = document.getElementById('ingFgItem').value;
-  const available = ING_ITEMS.filter(i => ingBomFor(fg,i.id)>0).map(i=>i.id);
+  const available = ingAvailableItemsForFg(fg);
   const template = document.getElementById('ingTemplate');
   if(available.includes('21084') && available.includes('10088')) template.value='smore';
   else if(available.includes('10221') && available.includes('10223')) template.value='pistachio';
@@ -2638,9 +3101,14 @@ function ingAutoConfigure(){
     const match=available[0];
     if(match) document.getElementById('ingItem').value=match;
   }
+  syncSearchableSelect('ingFgItem','ingFgItemSearch');
+  syncSearchableSelect('ingItem','ingItemSearch');
   buildIngRows();
-  if(!available.length) toast('No BOM ingredient found for this finished good. Select the ingredient and enter BOM manually.');
-  else toast(`BOM loaded automatically for ${fg}`);
+  updateIngMatchStatus();
+  if(!silent){
+    if(!available.length) toast('No BOM ingredient found for this finished good. Select the ingredient and enter BOM manually.');
+    else toast(`BOM match loaded automatically for ${fg}`);
+  }
 }
 function buildIngRows() {
   const t = document.getElementById('ingTemplate').value;
@@ -2651,25 +3119,25 @@ function buildIngRows() {
     const ing = getIng(document.getElementById('ingItem').value);
     rows = [
       [ing.id,`PALLET WITHOUT LABEL ${ing.id||''}`,0,ing.pal,'pal'],
-      [ing.id,`TOTAL IN BAND PER PIECE AFTER ENROBER`,0,ing.band,'fixed'],
-      [ing.id,`BED BEFORE ENROBER`,0,ing.bed,'fixed'],
+      [ing.id,`TOTAL IN BAND PER PIECE AFTER ENROBER`,1,ing.band,'fixed'],
+      [ing.id,`BED BEFORE ENROBER`,1,ing.bed,'fixed'],
       [ing.id,`BOXES / TOTES ON THE FLOOR`,0,1,'count']
     ];
   } else if(t==='pecan') {
-    rows = [['10024','PALLET WITHOUT LABEL 10024',0,80,'pal'],['10024','TOTAL PECAN IN BAND PER PIECE 10024',0,160,'fixed'],['10024','BED',0,800,'fixed'],['10024','BOXES / TOTES ON THE FLOOR 10024',0,1,'count']];
+    rows = [['10024','PALLET WITHOUT LABEL 10024',0,80,'pal'],['10024','TOTAL PECAN IN BAND PER PIECE 10024',1,160,'fixed'],['10024','BED',1,800,'fixed'],['10024','BOXES / TOTES ON THE FLOOR 10024',0,1,'count']];
   } else if(t==='smore') {
     const g=getIng('21084'), m=getIng('10088');
     rows = [
       ['21084','FG PALLET WITHOUT LABEL 21084',0,g.pal,'pal'],['10088','FG PALLET WITHOUT LABEL 10088',0,m.pal,'pal'],
-      ['21084','TOTAL IN BAND PER PIECE 21084',0,g.band,'fixed'],['10088','TOTAL IN BAND PER PIECE 10088',0,m.band,'fixed'],
-      ['21084','BED 21084',0,g.bed,'fixed'],['10088','BED 10088',0,m.bed,'fixed'],
+      ['21084','TOTAL IN BAND PER PIECE 21084',1,g.band,'fixed'],['10088','TOTAL IN BAND PER PIECE 10088',1,m.band,'fixed'],
+      ['21084','BED 21084',1,g.bed,'fixed'],['10088','BED 10088',1,m.bed,'fixed'],
       ['21084','TOTE ON THE FLOOR 21084',0,1,'count'],['10088','BOXES ON THE FLOOR 10088',0,15,'count']
     ];
   } else {
     rows = [
       ['10221','PALLET WITHOUT LABEL 10221',0,88,'pal'],['10223','PALLET WITHOUT LABEL 10223',0,35,'pal'],
-      ['10221','TOTAL PISTACHIO IN BAND PER PIECE 10221',0,467,'fixed'],['10223','TOTAL PISTACHIO IN BAND PER PIECE 10223',0,187,'fixed'],
-      ['10221','BED',0,1600,'fixed'],['10221','BOXES ON THE FLOOR 10221',0,25,'count'],['10223','BOXES ON THE FLOOR 10223',0,25,'count']
+      ['10221','TOTAL PISTACHIO IN BAND PER PIECE 10221',1,467,'fixed'],['10223','TOTAL PISTACHIO IN BAND PER PIECE 10223',1,187,'fixed'],
+      ['10221','BED',1,1600,'fixed'],['10221','BOXES ON THE FLOOR 10221',0,25,'count'],['10223','BOXES ON THE FLOOR 10223',0,25,'count']
     ];
   }
   const selected=ingSelectedItems();
@@ -2678,86 +3146,131 @@ function buildIngRows() {
     const defaultBom=autoBom||(id==='10205'?'0.4295':id==='10088'?'0.25051':id==='21084'?'0.16816':'');
     return {id,s,name:ing.name||'Ingredient',defaultBom};
   });
-  const physicalTable=stage=>`<div class="tbl-wrap"><table class="pouch-clean-table">
-    <thead><tr><th>Ingredient</th><th>Physical Detail</th><th>Qty</th><th>Lbs / Unit</th><th>Total lbs</th></tr></thead>
-    <tbody>${rows.map(([item,detail,qty,fixed])=>`<tr class="ing-physical-row" data-item="${item}" data-stage="${stage}" data-fixed="${fixed}" data-detail="${detail}">
-      <td><strong>${item}</strong></td><td>${detail}</td><td><input type="number" step="any" class="ing-stage-qty" value="${qty}" oninput="calcIng()"></td><td class="mono">${fmt(fixed)}</td><td><input class="ing-stage-lbs" value="0" readonly></td>
-    </tr>`).join('')}</tbody></table></div>`;
-  const stageInputs=stage=>`<div class="g2" style="margin:10px 0">${meta.map(m=>`
-    <div class="card" style="margin:0"><div class="card-head" style="padding:8px 10px"><strong>${m.id} — ${m.name}</strong></div><div class="card-body" style="padding:10px">
-      <div class="g2"><div class="field"><label>Qty in System</label><input type="number" step="any" id="ing-${stage}-sys-${m.s}" placeholder="System lbs" oninput="calcIng()"></div>
-      <div class="field"><label>${stage==='mid'?'SafetyChain Scrap':'Additional Scrap Since Mid'}</label><input type="number" step="any" min="0" id="ing-${stage}-scrap-${m.s}" placeholder="Positive amount" oninput="calcIng()"></div></div>
-    </div></div>`).join('')}</div>`;
-  const resultTable=stage=>{
-    const fields=[['Completion','completion'],['Qty in System','system'],['Qty in Physical','physical'],['Scrap Reported','scrap'],['PA','pa'],['Total Adjustment','total'],['Adjustment %','pct']];
-    return `<div class="tbl-wrap"><table class="pouch-clean-table"><thead><tr><th>Field</th>${meta.map(m=>`<th>${m.id}<br><small>${m.name}</small></th>`).join('')}</tr></thead><tbody>
-      ${fields.map(([label,key])=>`<tr><th>${label}</th>${meta.map(m=>`<td><input id="ing-${stage}-view-${key}-${m.s}" readonly></td>`).join('')}</tr>`).join('')}
-      <tr><th>Status</th>${meta.map(m=>`<td><div id="ing-${stage}-status-${m.s}" class="pouch-clean-note good-bg">Acceptable</div></td>`).join('')}</tr>
-    </tbody></table></div>`;
+  const physicalTable=(stage,m)=>{
+    const itemRows=rows.filter(([item])=>item===m.id);
+    return `<div class="ing-step ing-step-physical">
+      <div class="ing-step-head"><span class="ing-step-number">1</span><span>Physical Inventory</span></div>
+      <details class="ing-breakdown" open>
+        <summary>Edit physical breakdown · Pallets + Band + Bed + Boxes / Totes</summary>
+        <div class="ing-physical-wrap"><table class="ing-physical-table">
+          <thead><tr><th>Physical Detail</th><th>Qty</th><th>Lbs / Unit</th><th>Total lbs</th></tr></thead>
+          <tbody>${itemRows.map(([item,detail,qty,fixed,mode])=>`<tr class="ing-physical-row" data-item="${item}" data-stage="${stage}" data-mode="${mode}" data-fixed="${fixed}" data-detail="${detail}">
+            <td>${detail}</td>
+            <td><input type="number" step="any" class="ing-stage-qty ing-entry-input" value="${qty}" oninput="calcIng()" aria-label="Physical quantity for ${detail}"></td>
+            <td>${mode==='count'
+              ? `<input type="number" step="any" class="ing-unit-lbs ing-entry-input" value="${fixed}" oninput="calcIng()" aria-label="Editable lbs per box or tote">`
+              : `<span class="ing-fixed-value">${fmt(fixed)}</span><span class="ing-fixed-note">Predetermined</span>`}</td>
+            <td><input class="ing-stage-lbs ing-calculated-input" value="0" readonly aria-label="Calculated total pounds for ${detail}"></td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+      </details>
+      <div class="ing-physical-total"><span>Total Physical Inventory</span><output id="ing-${stage}-physical-total-${m.s}">0.00 lbs</output></div>
+    </div>`;
   };
-  const reportTable=(stage,title)=>`<div class="pouch-clean-section">
-    <div class="pouch-clean-section-title">${title}</div>${physicalTable(stage)}${stageInputs(stage)}
-    ${resultTable(stage)}
+  const systemInputs=(stage,m)=>`<div class="ing-step ing-step-system">
+    <div class="ing-step-head"><span class="ing-step-number">2</span><span>System &amp; SafetyChain</span></div>
+    <div class="ing-system-grid">
+      <div class="field"><label>Qty in System</label><input class="ing-entry-input" type="number" step="any" id="ing-${stage}-sys-${m.s}" placeholder="System lbs" oninput="calcIng()"></div>
+      <div class="field"><label>${stage==='mid'?'SafetyChain Scrap':'Additional Scrap Since Mid'}</label><input class="ing-entry-input" type="number" step="any" min="0" id="ing-${stage}-scrap-${m.s}" placeholder="Positive amount" oninput="calcIng()"></div>
+      <div class="field"><label>System After Scrap</label><input class="ing-auto-callout" id="ing-${stage}-system-after-scrap-${m.s}" value="0.00" readonly></div>
+    </div>
   </div>`;
+  const resultTable=(stage,m)=>{
+    const fields=[
+      ['Completion — Bags / Units','completion',''],['Pounds (Completion × BOM)','pounds',''],['Qty in System','system',''],['Qty in Physical','physical',''],
+      ['Scrap Reported','scrap','ing-result-scrap'],['Scrap %','scrapPct','ing-result-pct'],['Production Adjustment','pa','ing-result-pa'],['Production Adjustment %','paPct','ing-result-pct'],
+      ['Total Adjustment','total','ing-result-total'],['Adjustment %','pct','ing-result-pct']
+    ];
+    return `<div class="ing-step ing-step-result">
+      <div class="ing-step-head"><span class="ing-step-number">3</span><span>Automatic Result</span></div>
+      <div class="ing-result-wrap"><table class="ing-result-table"><tbody>
+        ${fields.map(([label,key,rowClass])=>`<tr class="${rowClass}"><th>${label}</th><td><input id="ing-${stage}-view-${key}-${m.s}" readonly></td></tr>`).join('')}
+        <tr><th>Status</th><td class="ing-status-cell"><div id="ing-${stage}-status-${m.s}" class="pouch-clean-note good-bg">Acceptable</div></td></tr>
+      </tbody></table></div>
+    </div>`;
+  };
+  const ingredientCard=(stage,m)=>`<article class="ing-ingredient-card" data-ingredient="${m.id}">
+    <div class="ing-ingredient-title"><strong>${m.id} — ${m.name}</strong><span>BOM: <b id="ing-${stage}-bom-label-${m.s}">${m.defaultBom||'0'}</b> lbs / completion</span></div>
+    ${physicalTable(stage,m)}
+    ${systemInputs(stage,m)}
+    ${resultTable(stage,m)}
+  </article>`;
+  const reportTable=(stage,title,description)=>`<section class="ing-workflow-stage">
+    <div class="ing-stage-header ${stage==='end'?'end':''}">
+      <div><strong>${title}</strong><small>${description}</small></div>
+      <div class="ing-stage-completion">Completion: <span id="ing-${stage}-completion-chip">0.00</span></div>
+    </div>
+    <div class="ing-ingredient-cards">${meta.map(m=>ingredientCard(stage,m)).join('')}</div>
+  </section>`;
   document.getElementById('ingSummary').innerHTML=`<div class="card" style="margin:0 0 16px">
-    <div class="card-head" style="padding:10px 14px"><span class="card-title">Combined Ingredient Report — ${meta.map(m=>m.id).join(' + ')}</span></div>
+    <div class="card-head" style="padding:10px 14px"><span class="card-title">Ingredient Adjustment Report — ${meta.map(m=>m.id).join(' + ')}</span></div>
     <div class="card-body" style="padding:12px">
-      <div class="g2" style="margin-bottom:12px">${meta.map(m=>`<div class="field"><label>BOM ${m.id} — lbs / Completion</label><input type="number" step="any" id="ing-bom-${m.s}" value="${m.defaultBom}" placeholder="BOM" oninput="calcIng()"></div>`).join('')}</div>
-      <div class="ingredient-report-stack" style="display:grid;grid-template-columns:minmax(0,1fr);gap:16px">
-        ${reportTable('mid','Mid Shift — All Ingredients')}
-        ${reportTable('end','End of Shift — All Ingredients · Cumulative')}
-        <div class="pouch-clean-comments"><div class="pouch-clean-comments-title">Status</div>
-          <div class="pouch-legend-row"><div class="pouch-legend-label good-bg">Acceptable</div><div class="pouch-legend-text">&lt;=5%</div></div>
-          <div class="pouch-legend-row"><div class="pouch-legend-label att-bg">Attention</div><div class="pouch-legend-text">&gt;5% and &lt;=8%</div></div>
-          <div class="pouch-legend-row"><div class="pouch-legend-label crit-bg">Critical</div><div class="pouch-legend-text">&gt;8%</div></div>
-          <div class="pouch-legend-row"><div class="pouch-legend-label adjusted-in-bg">Adjusted IN</div><div class="pouch-legend-text">Positive adjustment</div></div>
-        </div>
+      <div class="section-label" style="margin-top:0">Ingredient Setup</div>
+      <div class="ing-bom-grid">${meta.map(m=>`<div class="ing-bom-card"><div><strong>${m.id} — ${m.name}</strong><small>BOM in lbs per completed bag / unit</small></div><input type="number" step="any" id="ing-bom-${m.s}" value="${m.defaultBom}" placeholder="BOM" oninput="calcIng()"></div>`).join('')}</div>
+      <div class="ing-workflow-stack">
+        ${reportTable('mid','Mid Shift','Enter the actual Mid physical count, NetSuite quantity and SafetyChain scrap.')}
+        ${reportTable('end','End of Shift — Cumulative','Enter the actual End physical/system count plus additional Completion and Scrap since Mid.')}
+      </div>
+      <div class="ing-legend-bar" aria-label="Ingredient adjustment status legend">
+        <div class="ing-legend-item"><strong class="good-bg">Acceptable</strong><span>≤5%</span></div>
+        <div class="ing-legend-item"><strong class="att-bg">Attention</strong><span>&gt;5% and ≤8%</span></div>
+        <div class="ing-legend-item"><strong class="crit-bg">Critical</strong><span>&gt;8%</span></div>
+        <div class="ing-legend-item"><strong class="adjusted-in-bg">Adjusted IN</strong><span>Positive adjustment</span></div>
       </div>
     </div></div>`;
+  if(typeof updateIngMatchStatus==='function') updateIngMatchStatus();
   calcIng();
 }
 function getIngData(){
   const rows=Array.from(document.querySelectorAll('.ing-physical-row')).map(tr=>({
-    item:tr.dataset.item,stage:tr.dataset.stage,detail:tr.dataset.detail||'',fixed:parseFloat(tr.dataset.fixed)||0,
+    item:tr.dataset.item,stage:tr.dataset.stage,detail:tr.dataset.detail||'',fixed:parseFloat(tr.querySelector('.ing-unit-lbs')?.value??tr.dataset.fixed)||0,
     qty:tr.querySelector('.ing-stage-qty')?.value||'',lbs:parseFloat((tr.querySelector('.ing-stage-lbs')?.value||'0').replace(/,/g,''))||0
   }));
-  const midCompletion=ingInput('ingMidCompletion'),endCompletion=ingInput('ingEndCompletion');
+  const midCompletion=ingInput('ingMidCompletion'),endAdditionalCompletion=ingInput('ingEndCompletion'),endCompletion=midCompletion+endAdditionalCompletion;
   const midIngredients=[],endIngredients=[];
   ingSelectedItems().forEach(id=>{
     const s=ingSafe(id),name=(ING_ITEMS.find(i=>i.id===id)||{}).name||'',bom=ingInput(`ing-bom-${s}`);
     const midPhysical=rows.filter(r=>r.item===id&&r.stage==='mid').reduce((a,r)=>a+r.lbs,0),midSystem=ingInput(`ing-mid-sys-${s}`),midScrapReported=Math.abs(ingInput(`ing-mid-scrap-${s}`));
-    const midPA=midPhysical-midSystem,midScrap=-midScrapReported,midTotal=midPA+midScrap,midExpected=midCompletion*bom*-1,midPct=Math.abs(midExpected)?Math.abs(midTotal/midExpected):0;
-    const mid={id,name,bom,physical:midPhysical,system:midSystem,scrapReported:midScrapReported,scrapDisplay:midScrap,productionAdjustment:midPA,totalAdjustment:midTotal,expected:midExpected,pct:midPct,status:ingStatus(midPct,midTotal)};
+    const midSystemAfterScrap=midSystem-midScrapReported,midPA=midPhysical-midSystemAfterScrap,midScrap=-midScrapReported,midTotal=midPA+midScrap,midExpected=midCompletion*bom*-1;
+    const midScrapPct=Math.abs(midExpected)?Math.abs(midScrap/midExpected):0,midPAPct=Math.abs(midExpected)?Math.abs(midPA/midExpected):0,midPct=Math.abs(midExpected)?Math.abs(midTotal/midExpected):1;
+    const mid={id,name,bom,physical:midPhysical,system:midSystem,systemAfterScrap:midSystemAfterScrap,scrapReported:midScrapReported,scrapDisplay:midScrap,productionAdjustment:midPA,totalAdjustment:midTotal,expected:midExpected,scrapPct:midScrapPct,paPct:midPAPct,pct:midPct,status:ingStatus(midPct,midTotal)};
     const endPhysical=rows.filter(r=>r.item===id&&r.stage==='end').reduce((a,r)=>a+r.lbs,0),endSystem=ingInput(`ing-end-sys-${s}`),endAdditionalScrap=Math.abs(ingInput(`ing-end-scrap-${s}`));
-    const endCurrentPA=endPhysical-endSystem,endPA=midPA+endCurrentPA,endScrap=-(midScrapReported+endAdditionalScrap),endTotal=endPA+endScrap,endExpected=endCompletion*bom*-1,endPct=Math.abs(endExpected)?Math.abs(endTotal/endExpected):0;
-    const end={id,name,bom,physical:endPhysical,system:endSystem,additionalScrap:endAdditionalScrap,scrapReported:midScrapReported+endAdditionalScrap,scrapDisplay:endScrap,currentProductionAdjustment:endCurrentPA,productionAdjustment:endPA,totalAdjustment:endTotal,expected:endExpected,pct:endPct,status:ingStatus(endPct,endTotal)};
+    const endSystemAfterScrap=endSystem-endAdditionalScrap,endCurrentPA=endPhysical-endSystemAfterScrap,endPA=midPA+endCurrentPA,endScrap=-(midScrapReported+endAdditionalScrap),endTotal=endPA+endScrap,endExpected=endCompletion*bom*-1;
+    const endScrapPct=Math.abs(endExpected)?Math.abs(endScrap/endExpected):0,endPAPct=Math.abs(endExpected)?Math.abs(endPA/endExpected):0,endPct=Math.abs(endExpected)?Math.abs(endTotal/endExpected):1;
+    const end={id,name,bom,physical:endPhysical,system:endSystem,systemAfterScrap:endSystemAfterScrap,additionalCompletion:endAdditionalCompletion,additionalScrap:endAdditionalScrap,scrapReported:midScrapReported+endAdditionalScrap,scrapDisplay:endScrap,currentProductionAdjustment:endCurrentPA,productionAdjustment:endPA,totalAdjustment:endTotal,expected:endExpected,scrapPct:endScrapPct,paPct:endPAPct,pct:endPct,status:ingStatus(endPct,endTotal)};
     midIngredients.push(mid);endIngredients.push(end);
   });
-  return {date:document.getElementById('ingDate').value,shift:document.getElementById('ingShift').value,report:'Mid + End',line:document.getElementById('ingLine').value,template:document.getElementById('ingTemplate').value,fgItem:document.getElementById('ingFgItem').value,lpn:document.getElementById('ingLP').value.trim(),expiration:document.getElementById('ingExpiration').value,rows,mid:{completion:midCompletion,ingredients:midIngredients},end:{completion:endCompletion,ingredients:endIngredients},completion:endCompletion,ingredients:endIngredients};
+  return {date:document.getElementById('ingDate').value,shift:document.getElementById('ingShift').value,report:'Mid + End',line:document.getElementById('ingLine').value,template:document.getElementById('ingTemplate').value,fgItem:document.getElementById('ingFgItem').value,rows,mid:{completion:midCompletion,ingredients:midIngredients},end:{completion:endCompletion,additionalCompletion:endAdditionalCompletion,ingredients:endIngredients},completion:endCompletion,ingredients:endIngredients};
 }
 function calcIng() {
   document.querySelectorAll('.ing-physical-row').forEach(tr => {
-    const f=parseFloat(tr.dataset.fixed)||0,q=parseFloat(tr.querySelector('.ing-stage-qty').value)||0;
+    const f=parseFloat(tr.querySelector('.ing-unit-lbs')?.value??tr.dataset.fixed)||0,q=parseFloat(tr.querySelector('.ing-stage-qty').value)||0;
     tr.querySelector('.ing-stage-lbs').value=fmt(q*f);
   });
   const data=getIngData();
+  const midChip=document.getElementById('ing-mid-completion-chip'),endChip=document.getElementById('ing-end-completion-chip');
+  if(midChip) midChip.textContent=fmt(data.mid.completion);
+  if(endChip) endChip.textContent=fmt(data.end.completion);
   data.mid.ingredients.forEach((mid,index)=>{
     const end=data.end.ingredients[index],s=ingSafe(mid.id);
     const render=(stage,i,completion)=>{
       const set=(field,value)=>{const el=document.getElementById(`ing-${stage}-view-${field}-${s}`);if(el)el.value=value;};
-      set('completion',fmt(completion));set('system',fmt(i.system));set('physical',fmt(i.physical));set('scrap',`${i.scrapDisplay>0?'+':''}${fmt(i.scrapDisplay)}`);set('pa',`${i.productionAdjustment>0?'+':''}${fmt(i.productionAdjustment)}`);set('total',`${i.totalAdjustment>0?'+':''}${fmt(i.totalAdjustment)}`);set('pct',(i.pct*100).toFixed(1)+'%');
-      ['scrap','pa','total','pct'].forEach(field=>{const el=document.getElementById(`ing-${stage}-view-${field}-${s}`);if(el){el.classList.remove('good-bg','att-bg','crit-bg','adjusted-in-bg','pouch-positive','pouch-negative');if(field==='scrap')el.classList.add('pouch-negative');else if(field==='pa')el.classList.add(i.productionAdjustment>=0?'pouch-positive':'pouch-negative');else el.classList.add(i.status.cls);}});
+      set('completion',fmt(completion));set('pounds',`${i.expected>0?'+':''}${fmt(i.expected)}`);set('system',fmt(i.system));set('physical',fmt(i.physical));set('scrap',`${i.scrapDisplay>0?'+':''}${fmt(i.scrapDisplay)}`);set('scrapPct',(i.scrapPct*100).toFixed(1)+'%');set('pa',`${i.productionAdjustment>0?'+':''}${fmt(i.productionAdjustment)}`);set('paPct',(i.paPct*100).toFixed(1)+'%');set('total',`${i.totalAdjustment>0?'+':''}${fmt(i.totalAdjustment)}`);set('pct',(i.pct*100).toFixed(1)+'%');
+      const physicalTotal=document.getElementById(`ing-${stage}-physical-total-${s}`);if(physicalTotal)physicalTotal.textContent=`${fmt(i.physical)} lbs`;
+      const systemAfterScrap=document.getElementById(`ing-${stage}-system-after-scrap-${s}`);if(systemAfterScrap)systemAfterScrap.value=fmt(i.systemAfterScrap);
+      const bomLabel=document.getElementById(`ing-${stage}-bom-label-${s}`);if(bomLabel)bomLabel.textContent=String(i.bom||0);
+      ['scrap','scrapPct','pa','paPct','total','pct'].forEach(field=>{const el=document.getElementById(`ing-${stage}-view-${field}-${s}`);if(el){el.classList.remove('good-bg','att-bg','crit-bg','adjusted-in-bg','pouch-positive','pouch-negative');if(field==='scrap')el.classList.add('pouch-negative');else if(field==='pa')el.classList.add(i.productionAdjustment>=0?'pouch-positive':'pouch-negative');else if(field==='scrapPct')el.classList.add(ingPctClass(i.scrapPct));else if(field==='paPct')el.classList.add(ingPctClass(i.paPct));else el.classList.add(i.status.cls);}});
       const note=document.getElementById(`ing-${stage}-status-${s}`);if(note){note.textContent=i.status.label;note.className='pouch-clean-note '+i.status.cls;}
     };
     render('mid',mid,data.mid.completion);render('end',end,data.end.completion);
   });
 }
-function resetIng() { ['ingMidCompletion','ingEndCompletion','ingLP','ingExpiration'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); buildIngRows(); toast('Ingredients reset'); }
+function resetIng() { ['ingMidCompletion','ingEndCompletion'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); buildIngRows(); toast('Ingredients reset'); }
 function saveIng() {
   const data=getIngData();
   saveReport({id:String(Date.now()),module:'ingredients',date:data.date,shift:data.shift,building:'L1',operator:document.getElementById('ingEmployee').value.trim(),data,savedAt:new Date().toISOString()});
   poSyncContext(document.getElementById('ingEmployee').value.trim(),data.date,data.shift,data.line);
-  poAutoReplace(`ingredients|${data.date}|${data.shift}|${data.line}`,'adj',data.end.ingredients.map(i=>({item:i.id,qty:i.totalAdjustment,units:'lb',lpn:data.lpn,reason:`Ingredient adjustment · ${data.line} · Physical ${fmt(i.physical)} · System ${fmt(i.system)} · Scrap ${fmt(i.scrapDisplay)} · PA ${fmt(i.productionAdjustment)} · Exp ${data.expiration||'—'}`})));
+  poAutoReplace(`ingredients|${data.date}|${data.shift}|${data.line}`,'adj',data.end.ingredients.map(i=>({item:i.id,qty:i.totalAdjustment,units:'lb',lpn:'',reason:`Ingredient adjustment · ${data.line} · Physical ${fmt(i.physical)} · System ${fmt(i.system)} · Scrap ${fmt(i.scrapDisplay)} · Production Adjustment ${fmt(i.productionAdjustment)}`})));
 }
 
 // ══════════════════════ SCHEDULE & PALLET CONTROL ══════════════════════
@@ -2922,9 +3435,69 @@ function savePalletChecklist(){
   saveReport({id:String(Date.now()),module:'pallets',date:document.getElementById('palDate').value,shift:document.getElementById('palShift').value,building:'L1',operator:document.getElementById('palEmployee').value.trim(),data:{area:document.getElementById('palArea').value,employee:document.getElementById('palEmployee').value,context:getShiftTaskContext(),tasks,notes:document.getElementById('palNotes').value},savedAt:new Date().toISOString()});
 }
 // ══════════════════════ POUCHES ══════════════════════
+const PCH_MATCH_STOP=new Set(['pkg','package','packaging','pouch','bag','pet','jar','label','tray','case','shipping','box','display','count','cnt','ct','flow','wrap','wrapped','recyclable','master','overbox','headercard','generic','printed','print','piece','pieces','single','the','and','for','of','with','without','version','volume','oz','lb','lbs','g']);
+const PCH_MATCH_BRANDS=new Set(['cpk','mmk','her','kkl','prs','utt','fad','srs','mel','bet','tar','lov','mrc','trj','fea','jjo','beq','cco','unr']);
+const PCH_PRODUCT_WORDS=new Set(['pretzel','pistachio','almond','pecan','smore','brookie','macadamia','marshmallow','cookie','cookies','caramel','cashew','popcorn','truffle','toffee','cracker']);
+function pchNormalizeWord(word){
+  const map={dk:'dark',mk:'milk',choc:'chocolate',car:'caramel',truf:'truffle',fd:'fad',srs:'srs'};
+  return map[word]||word;
+}
+function pchMatchTokens(text){
+  return String(text||'').normalize('NFKD').toLowerCase().replace(/[^a-z0-9.]+/g,' ').trim().split(/\s+/).map(pchNormalizeWord).filter(w=>w&&!PCH_MATCH_STOP.has(w)&&!/^v\d+$/.test(w)&&!/^\d+(?:\.\d+)?$/.test(w));
+}
+function pchMeasurements(text){
+  const rows=[]; const re=/(\d+(?:\.\d+)?)\s*(oz|lbs?|g|ct|count)\b/gi; let m;
+  while((m=re.exec(String(text||'')))) rows.push({value:Number(m[1]),unit:m[2].toLowerCase().replace('count','ct').replace('lbs','lb')});
+  return rows;
+}
+function scorePouchFgMatch(pouchDesc,fgDesc){
+  const pouchTokens=pchMatchTokens(pouchDesc),fgTokens=pchMatchTokens(fgDesc),pouchSet=new Set(pouchTokens),fgSet=new Set(fgTokens);
+  let score=0;
+  [...pouchSet].filter(t=>fgSet.has(t)).forEach(t=>{ score+=PCH_PRODUCT_WORDS.has(t)?5:(t.length>=5?2:1); });
+  const pouchBrand=pouchTokens.find(t=>PCH_MATCH_BRANDS.has(t)),fgBrand=fgTokens.find(t=>PCH_MATCH_BRANDS.has(t));
+  if(pouchBrand&&fgBrand) score+=pouchBrand===fgBrand?7:-8;
+  const pouchColor=['milk','dark','white'].find(t=>pouchSet.has(t)),fgColor=['milk','dark','white'].find(t=>fgSet.has(t));
+  if(pouchColor&&fgColor) score+=pouchColor===fgColor?3:-6;
+  const a=pchMeasurements(pouchDesc),b=pchMeasurements(fgDesc);
+  const exactMeasure=a.some(x=>b.some(y=>x.unit===y.unit&&Math.abs(x.value-y.value)<.02));
+  const conflictingMeasure=!exactMeasure&&a.some(x=>b.some(y=>x.unit===y.unit&&Math.abs(x.value-y.value)>=.02));
+  if(exactMeasure) score+=9; else if(conflictingMeasure) score-=7;
+  if(![...pouchSet].some(t=>PCH_PRODUCT_WORDS.has(t))) score-=5;
+  return score;
+}
+function pchFgCandidates(){
+  const pouch=POUCH_ITEMS.find(p=>String(p.id)===String(document.getElementById('pchItem')?.value));
+  const fgs=(window.SHIFTHUB_INGREDIENT_DATA?.finishedGoods||[]).filter(x=>/^3/.test(String(x.id)));
+  return {pouch,ranked:fgs.map(fg=>({fg,score:scorePouchFgMatch(pouch?.desc,fg.desc)})).sort((a,b)=>b.score-a.score||String(a.fg.id).localeCompare(String(b.fg.id)))};
+}
+function pchUpdateFgMatch(autoSelect=true){
+  const {pouch,ranked}=pchFgCandidates(),top=ranked[0],select=document.getElementById('pchFgItem');
+  if(!pouch){ setMatchStatus('pchMatchStatus','match-review','Select a packaging item to find its matching FG.'); return; }
+  if(!top||top.score<9){
+    setMatchStatus('pchMatchStatus','match-review',`Manual review: ${pouch.id} — ${pouch.desc} is generic or has no reliable FG match.`);
+    return;
+  }
+  if(autoSelect&&select){select.value=top.fg.id;syncSearchableSelect('pchFgItem','pchFgItemSearch');}
+  pchValidateFgMatch();
+}
+function pchValidateFgMatch(){
+  const {pouch,ranked}=pchFgCandidates(),top=ranked[0],selectedId=document.getElementById('pchFgItem')?.value;
+  const selected=ranked.find(x=>String(x.fg.id)===String(selectedId));
+  syncSearchableSelect('pchFgItem','pchFgItemSearch');
+  if(!pouch||!top||top.score<9){
+    setMatchStatus('pchMatchStatus','match-review',pouch?`Manual review: ${pouch.id} — ${pouch.desc} has no reliable FG match.`:'Select a packaging item to find its matching FG.');
+  } else if(selected&&selected.score>=9&&selected.score>=top.score-1){
+    setMatchStatus('pchMatchStatus','match-ok',`Product match confirmed: ${pouch.id} — ${pouch.desc} ↔ FG ${selected.fg.id} — ${selected.fg.desc}.`);
+  } else {
+    setMatchStatus('pchMatchStatus','match-error',`Mismatch: selected FG ${selectedId||'—'} does not match this packaging. Suggested FG: ${top.fg.id} — ${top.fg.desc}.`);
+  }
+  calcPchAll();
+}
 function pchUpdateDesc() {
   const item = POUCH_ITEMS.find(p => String(p.id) === String(document.getElementById('pchItem').value));
   document.getElementById('pchDesc').value = item ? item.desc : '';
+  syncSearchableSelect('pchItem','pchItemSearch');
+  pchUpdateFgMatch(true);
   calcPchAll();
 }
 function pchNumber(n){ n = Number(n); if(!Number.isFinite(n)) return 0; return Math.round((n + Number.EPSILON) * 100) / 100; }
@@ -2940,6 +3513,7 @@ function pchStatusFromTotal(totalAdjustment, pctAbs){
   if(pctAbs <= .08) return {label:'Attention', cls:'att-bg'};
   return {label:'Critical', cls:'crit-bg'};
 }
+function pchPctClass(pctAbs){ return pctAbs<=.05?'good-bg':pctAbs<=.08?'att-bg':'crit-bg'; }
 
 function pchSectionData(section, midData){
   const cap = section === 'mid' ? 'Mid' : 'End';
@@ -2947,7 +3521,7 @@ function pchSectionData(section, midData){
   const report = section === 'mid' ? 'Mid Shift' : 'End of Shift';
 
   const completionInput = val('Completion');
-  const completion = completionInput;
+  const completion = section === 'end' ? pchNumber((midData?.completion || 0) + completionInput) : completionInput;
   const system = val('Sistema');
   const physical = val('Fisico');
 
@@ -2959,25 +3533,30 @@ function pchSectionData(section, midData){
   const scrapDisplay = -scrapReported;
 
   // Excel logic:
-  // PA = Physical - (System - Scrap Reported)
+  // Production Adjustment = Physical - (System - Scrap Reported)
   const paInput = physical - (system - scrapReportedInput);
   const pa = section === 'end' ? pchNumber((midData?.pa || 0) + paInput) : paInput;
 
-  // Total Adjustment = Scrap + PA, signed. Equivalent to Physical - System.
+  // Total Adjustment = Scrap + Production Adjustment, signed. Equivalent to Physical - System.
   const totalAdjustmentInput = -scrapReportedInput + paInput;
   const totalAdjustment = scrapDisplay + pa;
 
   // Use absolute completion for the denominator because some Excel rows can carry negative completion.
   const denominator = Math.abs(completion);
-  const adjPctSigned = denominator ? totalAdjustment / denominator : 0;
-  const adjPctAbs = denominator ? Math.abs(totalAdjustment / denominator) : 0;
+  const scrapPctSigned = denominator ? scrapDisplay / denominator : 0;
+  const scrapPctAbs = denominator ? Math.abs(scrapDisplay / denominator) : 0;
+  const paPctSigned = denominator ? pa / denominator : 0;
+  const paPctAbs = denominator ? Math.abs(pa / denominator) : 0;
+  const adjPctSigned = denominator ? totalAdjustment / denominator : 1;
+  const adjPctAbs = denominator ? Math.abs(totalAdjustment / denominator) : 1;
   const status = pchStatusFromTotal(totalAdjustment, adjPctAbs);
 
-  return {section, cap, report, completionInput, additionalCompletion:section === 'end' ? completionInput : 0, completion, system, physical, scrapReportedInput,additionalScrap:section==='end'?scrapReportedInput:0,scrapReported,scrapDisplay,paInput,additionalPA:section==='end'?paInput:0,pa,totalAdjustmentInput,additionalTotalAdjustment:section==='end'?totalAdjustmentInput:0,totalAdjustment,adjPctSigned,adjPctAbs,status};
+  return {section, cap, report, completionInput, additionalCompletion:section === 'end' ? completionInput : 0, completion, system, physical, scrapReportedInput,additionalScrap:section==='end'?scrapReportedInput:0,scrapReported,scrapDisplay,scrapPctSigned,scrapPctAbs,paInput,additionalPA:section==='end'?paInput:0,pa,paPctSigned,paPctAbs,totalAdjustmentInput,additionalTotalAdjustment:section==='end'?totalAdjustmentInput:0,totalAdjustment,adjPctSigned,adjPctAbs,status};
 }
 
 function updatePouchSharedHeader(){
   pchSetText('pchViewItem', document.getElementById('pchItem')?.value || '—');
+  pchSetText('pchViewFg', document.getElementById('pchFgItem')?.value || '—');
   pchSetText('pchViewShift', (document.getElementById('pchShift')?.value || '').replace('Shift ', '') || '—');
   pchSetText('pchViewLine', document.getElementById('pchLine')?.value || '—');
   pchSetText('pchViewBom', document.getElementById('pchBom')?.value || '1');
@@ -2989,11 +3568,13 @@ function updatePouchSection(prefix, d){
   pchSetView(`${prefix}ViewSystem`, pchFormat(d.system));
   pchSetView(`${prefix}ViewPhysical`, pchFormat(d.physical));
   pchSetView(`${prefix}ViewScrap`, pchFormatSigned(d.scrapDisplay));
+  pchSetView(`${prefix}ViewScrapPct`, (d.scrapPctAbs*100).toFixed(1) + '%');
   pchSetView(`${prefix}ViewPA`, pchFormatSigned(d.pa));
+  pchSetView(`${prefix}ViewPAPct`, (d.paPctAbs*100).toFixed(1) + '%');
   pchSetView(`${prefix}ViewTotalAdj`, pchFormatSigned(d.totalAdjustment));
-  pchSetView(`${prefix}ViewAdjPct`, Math.round(d.adjPctSigned * 100) + '%');
+  pchSetView(`${prefix}ViewAdjPct`, (d.adjPctAbs * 100).toFixed(1) + '%');
 
-  [`${prefix}ViewScrap`,`${prefix}ViewPA`,`${prefix}ViewTotalAdj`,`${prefix}ViewAdjPct`].forEach(id => {
+  [`${prefix}ViewScrap`,`${prefix}ViewScrapPct`,`${prefix}ViewPA`,`${prefix}ViewPAPct`,`${prefix}ViewTotalAdj`,`${prefix}ViewAdjPct`].forEach(id => {
     const el = document.getElementById(id);
     if(!el) return;
     el.classList.remove('pouch-positive','pouch-negative','good-bg','att-bg','crit-bg','adjusted-in-bg');
@@ -3001,9 +3582,13 @@ function updatePouchSection(prefix, d){
 
   const scrapEl = document.getElementById(`${prefix}ViewScrap`);
   if(scrapEl) scrapEl.classList.add('pouch-negative');
+  const scrapPctEl = document.getElementById(`${prefix}ViewScrapPct`);
+  if(scrapPctEl) scrapPctEl.classList.add(pchPctClass(d.scrapPctAbs));
 
   const paEl = document.getElementById(`${prefix}ViewPA`);
   if(paEl) paEl.classList.add(pchSignedClass(d.pa));
+  const paPctEl = document.getElementById(`${prefix}ViewPAPct`);
+  if(paPctEl) paPctEl.classList.add(pchPctClass(d.paPctAbs));
 
   const totalEl = document.getElementById(`${prefix}ViewTotalAdj`);
   const pctEl = document.getElementById(`${prefix}ViewAdjPct`);
@@ -3014,8 +3599,8 @@ function updatePouchSection(prefix, d){
 
   const preview = document.getElementById(`${prefix}ReportPreview`);
   if(preview){
-    const completionNote = d.section === 'end' ? ` Final Completion: ${pchFormat(d.completion)} (not added to Mid Shift). Cumulative Scrap: ${pchFormatSigned(d.scrapDisplay)}. Cumulative PA: ${pchFormatSigned(d.pa)}.` : ` Completion: ${pchFormat(d.completion)}.`;
-    preview.value = `${d.report} Pouches.${completionNote} Qty in System: ${pchFormat(d.system)} Qty in Physical: ${pchFormat(d.physical)} Scrap: ${pchFormatSigned(d.scrapDisplay)} PA: ${pchFormatSigned(d.pa)} Total Adjustment: ${pchFormatSigned(d.totalAdjustment)} Adjustment %: ${Math.round(d.adjPctSigned*100)}% Status: ${d.status.label}`;
+    const completionNote = d.section === 'end' ? ` Cumulative Completion: ${pchFormat(d.completion)} (Mid + End additional ${pchFormat(d.additionalCompletion)}). Cumulative Scrap: ${pchFormatSigned(d.scrapDisplay)}. Cumulative Production Adjustment: ${pchFormatSigned(d.pa)}.` : ` Completion: ${pchFormat(d.completion)}.`;
+    preview.value = `${d.report} Pouches.${completionNote} Qty in System: ${pchFormat(d.system)} Qty in Physical: ${pchFormat(d.physical)} Scrap: ${pchFormatSigned(d.scrapDisplay)} (${(d.scrapPctAbs*100).toFixed(1)}%) Production Adjustment: ${pchFormatSigned(d.pa)} (${(d.paPctAbs*100).toFixed(1)}%) Total Adjustment: ${pchFormatSigned(d.totalAdjustment)} Adjustment %: ${(d.adjPctAbs*100).toFixed(1)}% Status: ${d.status.label}`;
   }
 }
 
@@ -3032,7 +3617,7 @@ function updatePouchGrandTotals(mid, end){
   pchSetText('pchGrandScrapImpact', pchFormatSigned(totalScrap));
   pchSetText('pchGrandPAImpact', pchFormatSigned(totalPA));
   pchSetText('pchGrandTotalImpact', pchFormatSigned(grandTotalAdjustment));
-  pchSetText('pchGrandAdjPct', Math.round(grandPctSigned * 100) + '%');
+  pchSetText('pchGrandAdjPct', (grandPctAbs * 100).toFixed(1) + '%');
 
   ['pchGrandScrapImpact','pchGrandPAImpact','pchGrandTotalImpact','pchGrandAdjPct'].forEach(id => {
     const el = document.getElementById(id);
@@ -3068,7 +3653,7 @@ function calcPchAll(){
 }
 
 function resetPch(){
-  ['pchMidCompletion','pchMidSistema','pchMidFisico','pchMidScrapUsed','pchEndCompletion','pchEndSistema','pchEndFisico','pchEndScrapUsed','pchMidComments','pchEndComments','pchLP','pchExpiration'].forEach(id => {
+  ['pchMidCompletion','pchMidSistema','pchMidFisico','pchMidScrapUsed','pchEndCompletion','pchEndSistema','pchEndFisico','pchEndScrapUsed','pchMidComments','pchEndComments'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
@@ -3078,7 +3663,6 @@ function resetPch(){
 function savePch(){
   const mid = pchSectionData('mid');
   const end = pchSectionData('end', mid);
-  const lpn=document.getElementById('pchLP').value.trim(),expiration=document.getElementById('pchExpiration').value;
   saveReport({
     id:String(Date.now()),
     module:'pouches',
@@ -3087,11 +3671,11 @@ function savePch(){
     building:'L1',
     operator:document.getElementById('pchEmployee').value.trim(),
     item:document.getElementById('pchItem').value,
-    data:{mid,end,lpn,expiration},
+    data:{fgItem:document.getElementById('pchFgItem')?.value||'',mid,end},
     savedAt:new Date().toISOString()
   });
   poSyncContext(document.getElementById('pchEmployee').value.trim(),document.getElementById('pchDate').value,document.getElementById('pchShift').value,document.getElementById('pchLine').value);
-  poAutoReplace(`pouches|${document.getElementById('pchDate').value}|${document.getElementById('pchShift').value}|${document.getElementById('pchItem').value}`,'adj',[{item:document.getElementById('pchItem').value,qty:end.totalAdjustment,units:'each',lpn,reason:`Pouch adjustment · ${document.getElementById('pchLine').value} · Physical ${pchFormat(end.physical)} · System ${pchFormat(end.system)} · Scrap ${pchFormatSigned(end.scrapDisplay)} · PA ${pchFormatSigned(end.pa)} · Exp ${expiration||'—'}`}]);
+  poAutoReplace(`pouches|${document.getElementById('pchDate').value}|${document.getElementById('pchShift').value}|${document.getElementById('pchItem').value}`,'adj',[{item:document.getElementById('pchItem').value,qty:end.totalAdjustment,units:'each',lpn:'',reason:`Pouch adjustment · FG ${document.getElementById('pchFgItem')?.value||'—'} · ${document.getElementById('pchLine').value} · Physical ${pchFormat(end.physical)} · System ${pchFormat(end.system)} · Scrap ${pchFormatSigned(end.scrapDisplay)} · Production Adjustment ${pchFormatSigned(end.pa)}`}]);
   document.getElementById('nb-pch').textContent = getReports().filter(r=>r.module==='pouches').length;
 }
 // ══════════════════════ CYCLE COUNT ══════════════════════
@@ -3160,14 +3744,13 @@ function ccParseData(data,sourceName=''){
     lp:ccFindCol(headers,['LP Number','LP #','License Plate']),
     bin:ccFindCol(headers,['Bin (if bin empty then search code)','Bin']),
     status:ccFindCol(headers,['Status']),
-    qty:ccFindCol(headers,['On Hand','Available']),
-    expiration:ccFindCol(headers,['Expiration Date'])
+    qty:ccFindCol(headers,['On Hand','Available'])
   };
   if(col.item<0||col.lp<0||col.bin<0||col.qty<0)throw new Error(`Required columns missing. Found: ${headers.filter(Boolean).join(', ')}`);
   ccRows=data.slice(1).filter(r=>ccText(r[col.item])&&ccText(r[col.lp])).map((r,index)=>({
     key:index,item:ccText(r[col.item]),desc:col.desc>=0?ccText(r[col.desc]):'',lot:col.lot>=0?ccText(r[col.lot]):'',
     lp:ccText(r[col.lp]).toUpperCase(),bin:ccText(r[col.bin]),systemStatus:col.status>=0?ccText(r[col.status]):'',
-    systemQty:ccNumber(r[col.qty]),expiration:col.expiration>=0?ccText(r[col.expiration]).slice(0,10):'',
+    systemQty:ccNumber(r[col.qty]),
     result:'pending',actualLocation:'',actualQty:'',note:''
   }));
   if(!ccRows.length)throw new Error('No valid LP rows found.');
@@ -3205,7 +3788,7 @@ function ccRender(){
     return `<tr class="cc-row-${r.result}">
       <td data-label="LP"><strong class="mono">${esc(r.lp)}</strong><div style="font-size:10px;color:var(--ink3)">${esc(r.systemStatus)}</div></td>
       <td data-label="Item / Description"><strong class="mono">${esc(r.item)}</strong><div style="font-size:10px;color:var(--ink3)">${esc(r.desc)}</div></td>
-      <td data-label="Inventory Lot"><span class="mono">${esc(r.lot||'—')}</span><div style="font-size:10px;color:var(--ink3)">${esc(r.expiration||'')}</div></td>
+      <td data-label="Inventory Lot"><span class="mono">${esc(r.lot||'—')}</span></td>
       <td data-label="System Location">${esc(r.bin||'—')}</td>
       <td data-label="System Qty" class="mono">${fmt(r.systemQty)}</td>
       <td data-label="Result"><select class="cc-status" onchange="ccUpdate(${r.key},'result',this.value)">
@@ -3777,7 +4360,6 @@ function parseKitchenData(data){
   // Inventory Number lives in the "Lot Number" column (e.g. "0061811881"), so it must be matched first.
   // Falling back to Bin only happens if no real Lot Number column exists in the file.
   const iInventoryNumber = kitFindCol(headers, ['Lot Number','Inventory Number','Inventory #','Inventory Num','Inventory No','Inv Number','Inv #','Bin Number','Bin #','Bin']);
-  const iExpiration = kitFindCol(headers, ['Expiration Date','Expiration','Expiry Date','Exp Date']);
   const iLP = kitFindCol(headers, ['LP Number','LP #','LP','License Plate','License Plate Number']);
   // Prefer On Hand for exact inventory balance. Available can be lower/different if inventory is allocated.
   const iQty = kitFindCol(headers, ['Sum of On Hand','On Hand','On Hand Qty','Quantity On Hand','Qty On Hand','Qty','Quantity','Sum of Available','Available']);
@@ -3795,7 +4377,6 @@ function parseKitchenData(data){
       item:String(r[iItem] || '').trim(),
       desc:iDesc !== -1 ? String(r[iDesc] || '').trim() : '',
       inventoryNumber:String(r[iInventoryNumber] || '').trim(),
-      expirationDate:iExpiration !== -1 ? kitFormatExcelDate(r[iExpiration]) : '',
       systemLP:String(r[iLP] || '').trim(),
       systemQtyText:kitCleanNum(r[iQty]),
       systemQty:parseFloat(kitCleanNum(r[iQty]))
@@ -3832,7 +4413,6 @@ function renderKitchenTable(){
       <td class="mono">${kitEscape(row.item)}</td>
       <td>${kitEscape(row.desc)}</td>
       <td class="mono">${kitEscape(row.inventoryNumber)}</td>
-      <td>${kitEscape(row.expirationDate)}</td>
       <td class="mono"><strong>${kitEscape(row.systemLP)}</strong></td>
       <td class="mono">${kitFormatExact(row.systemQtyText)}</td>
       <td><input type="number" step="any" inputmode="decimal" oninput="setKitchenValue(${row.key}, 'physicalQty', this.value)"></td>
@@ -3881,25 +4461,28 @@ function updateKitchenRow(key){
     diffCell.style.fontWeight = 'normal';
   }
 
-  tr.classList.remove('kit-review-row','kit-adjust-row');
+  tr.classList.remove('kit-row-adjust','kit-row-no-adjust','kit-row-verify-label','kit-row-verify-adjust');
 
-  if(data.lpMatch === 'No'){
-    reviewCell.innerHTML = '<span class="kit-no">REVIEW LP</span>';
-    tr.classList.add('kit-review-row');
-  } else if(data.adjust === ''){
+  if(!data.lpMatch || !data.adjust){
     reviewCell.innerHTML = '<span class="kit-pending">PENDING</span>';
-  } else if(data.adjust === 'Yes'){
-    reviewCell.innerHTML = '<span class="kit-yes">ADJUST</span>';
-    tr.classList.add('kit-adjust-row');
-  } else if(data.adjust === 'No'){
+  } else if(data.lpMatch === 'Yes' && data.adjust === 'Yes'){
+    reviewCell.innerHTML = '<span class="kit-no">ADJUST</span>';
+    tr.classList.add('kit-row-adjust');
+  } else if(data.lpMatch === 'Yes' && data.adjust === 'No'){
     reviewCell.innerHTML = '<span class="kit-yes">NO ADJUST</span>';
-  } else {
-    reviewCell.textContent = '—';
+    tr.classList.add('kit-row-no-adjust');
+  } else if(data.lpMatch === 'No' && data.adjust === 'No'){
+    reviewCell.innerHTML = '<span class="kit-pending">VERIFY LP + PRINT LABEL</span>';
+    tr.classList.add('kit-row-verify-label');
+  } else if(data.lpMatch === 'No' && data.adjust === 'Yes'){
+    reviewCell.innerHTML = '<span style="color:#c2410c;font-weight:900">VERIFY LP + ADJUST</span>';
+    tr.classList.add('kit-row-verify-adjust');
   }
 }
 
 function updateKitchenSummary(){
   let yes=0, no=0, pendingLP=0, counted=0, adjustYes=0, adjustNo=0, adjustPending=0, totalIncrease=0, totalRemove=0;
+  let red=0,green=0,yellow=0,orange=0;
 
   kitRows.forEach(row => {
     const d = kitPhysical[row.key] || {};
@@ -3922,7 +4505,13 @@ function updateKitchenSummary(){
     if(d.adjust === 'Yes') adjustYes++;
     else if(d.adjust === 'No') adjustNo++;
     else adjustPending++;
+
+    if(d.lpMatch === 'Yes' && d.adjust === 'Yes') red++;
+    else if(d.lpMatch === 'Yes' && d.adjust === 'No') green++;
+    else if(d.lpMatch === 'No' && d.adjust === 'No') yellow++;
+    else if(d.lpMatch === 'No' && d.adjust === 'Yes') orange++;
   });
+  const pendingSelection = kitRows.length - red - green - yellow - orange;
 
   const s = document.getElementById('kitSummary');
   if(!s) return;
@@ -3930,13 +4519,15 @@ function updateKitchenSummary(){
   s.innerHTML = `
     <div class="kit-summary-grid">
       <div class="kit-summary-card"><div class="label">Counted</div><div class="value">${counted}/${kitRows.length}</div></div>
-      <div class="kit-summary-card"><div class="label">LP Review</div><div class="value kit-no">${no}</div></div>
-      <div class="kit-summary-card"><div class="label">Adjust Yes</div><div class="value kit-yes">${adjustYes}</div></div>
-      <div class="kit-summary-card"><div class="label">Adjust Pending</div><div class="value kit-pending">${adjustPending}</div></div>
+      <div class="kit-summary-card" style="background:#fee2e2"><div class="label">Red · Adjust</div><div class="value kit-no">${red}</div></div>
+      <div class="kit-summary-card" style="background:#dcfce7"><div class="label">Green · No Adjust</div><div class="value kit-yes">${green}</div></div>
+      <div class="kit-summary-card" style="background:#fef9c3"><div class="label">Yellow · Verify + Label</div><div class="value kit-pending">${yellow}</div></div>
+      <div class="kit-summary-card" style="background:#ffedd5"><div class="label">Orange · Verify + Adjust</div><div class="value" style="color:#c2410c">${orange}</div></div>
     </div>
+    <strong>Counted:</strong> ${counted}/${kitRows.length} |
     <strong>LP Match Yes:</strong> ${yes} |
-    <strong>LP Pending:</strong> ${pendingLP} |
-    <strong>Adjust No:</strong> ${adjustNo}
+    <strong>LP Review:</strong> ${no} |
+    <strong>Pending Selection:</strong> ${pendingSelection}
     <br>
     <strong>Total Increase:</strong> <span class="kit-yes">${kitFormatExact(totalIncrease)}</span> |
     <strong>Total Remove:</strong> <span class="kit-no">${kitFormatExact(totalRemove)}</span>
@@ -3955,20 +4546,21 @@ function getKitchenRowsForExport(){
     const diff = !isNaN(pqty) ? kitDecimalSubtract(d.physicalQty, row.systemQtyText) : '';
 
     let review = '';
-    if(d.lpMatch === 'No') review = 'REVIEW LP';
-    else if(!d.adjust) review = 'PENDING';
-    else if(d.adjust === 'Yes') review = 'ADJUST';
-    else if(d.adjust === 'No') review = 'NO ADJUST';
+    if(!d.lpMatch || !d.adjust) review = 'PENDING';
+    else if(d.lpMatch === 'Yes' && d.adjust === 'Yes') review = 'ADJUST';
+    else if(d.lpMatch === 'Yes' && d.adjust === 'No') review = 'NO ADJUST';
+    else if(d.lpMatch === 'No' && d.adjust === 'No') review = 'VERIFY LP + PRINT LABEL';
+    else if(d.lpMatch === 'No' && d.adjust === 'Yes') review = 'VERIFY LP + ADJUST';
 
-    return {area, shift, date, preparedBy, item:row.item, desc:row.desc, inventoryNumber:row.inventoryNumber, expirationDate:row.expirationDate, systemLP:row.systemLP, systemQty:row.systemQtyText, physicalQty:d.physicalQty || '', difference:diff, lpMatch:d.lpMatch || '', adjust:d.adjust || '', review, notes:d.notes || ''};
+    return {area, shift, date, preparedBy, item:row.item, desc:row.desc, inventoryNumber:row.inventoryNumber, systemLP:row.systemLP, systemQty:row.systemQtyText, physicalQty:d.physicalQty || '', difference:diff, lpMatch:d.lpMatch || '', adjust:d.adjust || '', review, notes:d.notes || ''};
   });
 }
 
 function exportKitchenCSV(){
-  const output = [['Area','Shift','Date','Prepared By','Item','Description','Inventory Number (System Lot)','Expiration Date','System LP','System Qty','Physical Qty','Difference','LP Match','Adjust?','Review Needed','Notes']];
+  const output = [['Area','Shift','Date','Prepared By','Item','Description','Inventory Number (System Lot)','System LP','System Qty','Physical Qty','Difference','LP Match','Adjust?','Required Action','Notes']];
 
   getKitchenRowsForExport().forEach(r => {
-    output.push([r.area,r.shift,r.date,r.preparedBy,r.item,r.desc,r.inventoryNumber,r.expirationDate,r.systemLP,kitFormatExact(r.systemQty),r.physicalQty,r.difference === '' ? '' : kitFormatExact(r.difference),r.lpMatch,r.adjust,r.review,r.notes]);
+    output.push([r.area,r.shift,r.date,r.preparedBy,r.item,r.desc,r.inventoryNumber,r.systemLP,kitFormatExact(r.systemQty),r.physicalQty,r.difference === '' ? '' : kitFormatExact(r.difference),r.lpMatch,r.adjust,r.review,r.notes]);
   });
 
   const csv = output.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
@@ -3984,27 +4576,29 @@ async function exportKitchenWord(){
   }
 
   const rows = getKitchenRowsForExport();
-  const cols = [900,1700,1600,1300,1400,1200,1200,1100,1000,1200,1600];
+  const cols = [900,1700,1600,1400,1200,1200,1100,1000,1000,2200];
   const tw = 14000;
-  const header = wRow(['Item','Description','System Lot','Expiration','System LP','System Qty','Physical','Difference','LP Match','Adjust','Review'].map((h,i)=>thCell(h,cols[i])).join(''));
+  const header = wRow(['Item','Description','System Lot','System LP','System Qty','Physical','Difference','LP Match','Adjust','Required Action'].map((h,i)=>thCell(h,cols[i])).join(''));
 
-  const bodyRows = rows.map((r,i) => wRow([r.item,r.desc,r.inventoryNumber,r.expirationDate,r.systemLP,kitFormatExact(r.systemQty),r.physicalQty,r.difference === '' ? '' : kitFormatExact(r.difference),r.lpMatch,r.adjust,r.review].map((v,ci)=>tdCell(v || '—', cols[ci], i%2===1)).join(''))).join('');
+  const bodyRows = rows.map((r,i) => wRow([r.item,r.desc,r.inventoryNumber,r.systemLP,kitFormatExact(r.systemQty),r.physicalQty,r.difference === '' ? '' : kitFormatExact(r.difference),r.lpMatch,r.adjust,r.review].map((v,ci)=>tdCell(v || '—', cols[ci], i%2===1)).join(''))).join('');
 
   const counted = rows.filter(r => r.physicalQty !== '').length;
-  const reviewLP = rows.filter(r => r.review === 'REVIEW LP').length;
-  const adjustYes = rows.filter(r => r.adjust === 'Yes').length;
-  const adjustPending = rows.filter(r => !r.adjust).length;
+  const redCount = rows.filter(r => r.review === 'ADJUST').length;
+  const greenCount = rows.filter(r => r.review === 'NO ADJUST').length;
+  const yellowCount = rows.filter(r => r.review === 'VERIFY LP + PRINT LABEL').length;
+  const orangeCount = rows.filter(r => r.review === 'VERIFY LP + ADJUST').length;
+  const pendingCount = rows.filter(r => r.review === 'PENDING').length;
 
   const preCols=[1200,2200,1800,4400];
   const preHeader=wRow(['Item','LP','Physical Qty','Notes'].map((h,i)=>thCell(h,preCols[i])).join(''));
   const preBody=preKitchenRows.map((r,i)=>wRow([r.item,r.lp,kitFormatExact(r.qty),r.notes||'—'].map((v,ci)=>tdCell(v,preCols[ci],i%2===1)).join(''))).join('');
   const preSection=preKitchenRows.length ? wSec('Pre-Kitchen Physical Inventory — No File') + wPara(`Physical rows: ${preKitchenRows.length} · Unique items: ${new Set(preKitchenRows.map(r=>r.item)).size} · Unique LPs: ${new Set(preKitchenRows.map(r=>r.lp)).size}`, {size:18,color:'555555'}) + wTable(4,preCols,preHeader+preBody,9600) : '';
-  const verificationSection=rows.length ? wSec('Inventory LP Verification Table') + wTable(11, cols, header + bodyRows, tw) : '';
+  const verificationSection=rows.length ? wSec('Inventory LP Verification Table') + wTable(10, cols, header + bodyRows, tw) : '';
 
   const docBody =
     wHdr(`Kitchen / Inventory LP Verification — ${document.getElementById('kitDate')?.value || ''}`) +
     wPara(`Area: ${document.getElementById('kitArea')?.value || ''}   Shift: ${document.getElementById('kitShift')?.value || ''}   Prepared By: ${document.getElementById('kitPreparedBy')?.value || ''}`, {size:18,color:'555555'}) +
-    wPara(`Summary: Pre-Kitchen ${preKitchenRows.length} · System Counted ${counted}/${rows.length} · Review LP ${reviewLP} · Adjust Yes ${adjustYes} · Adjust Pending ${adjustPending}`, {size:18,color:'555555'}) +
+    wPara(`Summary: Pre-Kitchen ${preKitchenRows.length} · System Counted ${counted}/${rows.length} · Red Adjust ${redCount} · Green No Adjust ${greenCount} · Yellow Verify + Label ${yellowCount} · Orange Verify + Adjust ${orangeCount} · Pending ${pendingCount}`, {size:18,color:'555555'}) +
     preSection + verificationSection;
 
   const blob = await buildDocx(docBody, true);
@@ -4017,7 +4611,7 @@ function saveKitchen(){
 
   saveReport({id:String(Date.now()), module:'kitchen', date:data.date, shift:data.shift, building:data.building, operator:data.operator, data, savedAt:new Date().toISOString()});
   poSyncContext(data.operator,data.date,data.shift,data.area);
-  poAutoReplace(`kitchen|${data.date}|${data.shift}|${data.area}`,'cycle',data.rows.filter(r=>r.physicalQty!==''||r.lpMatch||r.adjust).map(r=>({item:r.item,lpn:r.systemLP,found:r.lpMatch==='No'?'NO':'YES',detail:`Kitchen inventory · Lot ${r.inventoryNumber||'—'} · Exp ${r.expirationDate||'—'} · System ${r.systemQty||'—'} · Physical ${r.physicalQty||'—'} · Difference ${r.difference===''?'—':r.difference} · ${r.review||'Reviewed'}${r.notes?` · ${r.notes}`:''}`})));
+  poAutoReplace(`kitchen|${data.date}|${data.shift}|${data.area}`,'cycle',data.rows.filter(r=>r.physicalQty!==''||r.lpMatch||r.adjust).map(r=>({item:r.item,lpn:r.systemLP,found:r.lpMatch==='No'?'NO':'YES',detail:`Kitchen inventory · Lot ${r.inventoryNumber||'—'} · System ${r.systemQty||'—'} · Physical ${r.physicalQty||'—'} · Difference ${r.difference===''?'—':r.difference} · ${r.review||'Reviewed'}${r.notes?` · ${r.notes}`:''}`})));
   poAutoReplace(`prekitchen|${data.date}|${data.shift}|${data.area}`,'cycle',data.preKitchen.map(r=>({item:r.item,lpn:r.systemLP,found:'YES',detail:`Pre-Kitchen physical inventory · Physical ${r.physicalQty}${r.notes?` · ${r.notes}`:''}`})));
 
   const badge = document.getElementById('nb-kit');
@@ -4089,10 +4683,10 @@ function parseKitchenCSVLine(line){
 
 function loadKitchenSample(){
   const sample = [
-    ['Item','Description','Inventory Number','Expiration Date','LP Number','Sum of On Hand'],
-    ['10024','PECAN','LOT-PEC-001','6/15/2026','R123456','800.25'],
-    ['21084','GRAHAM','LOT-GRA-002','7/10/2026','R654321','450.50'],
-    ['10088','MARSHMALLOW','LOT-MAR-003','8/1/2026','R777888','300.00']
+    ['Item','Description','Inventory Number','LP Number','Sum of On Hand'],
+    ['10024','PECAN','LOT-PEC-001','R123456','800.25'],
+    ['21084','GRAHAM','LOT-GRA-002','R654321','450.50'],
+    ['10088','MARSHMALLOW','LOT-MAR-003','R777888','300.00']
   ];
   parseKitchenData(sample);
 }
@@ -4242,21 +4836,26 @@ async function exportChocWord() {
 
   let total = 0;
   data.rows.forEach(r => { total += parseFloat(String(r.qty||'0').replace(/,/g,'')) || 0; });
-  const sys = parseFloat(data.system)||0;
-  const diff = total - sys;
+  const isPretzel=data.line.startsWith('Pretzel');
+  const groups=isPretzel?['DARK','MILK'].map(kind=>{
+    const physical=data.rows.filter(r=>r.kind===kind).reduce((sum,r)=>sum+(parseFloat(String(r.qty||'0').replace(/,/g,''))||0),0);
+    const system=parseFloat(kind==='DARK'?data.system:data.systemMilk)||0;
+    return {kind,item:kind==='DARK'?data.chocItem:data.chocItemMilk,physical,system,diff:physical-system};
+  }):[{kind:'CHOCOLATE',item:data.chocItem,physical:total,system:parseFloat(data.system)||0,diff:total-(parseFloat(data.system)||0)}];
 
-  const sumCols=[3600,3200,7600];
-  const sumHeader=wHeaderRow(['Total Physical','System Quantity','Required Action'].map((h,i)=>thCell(h,sumCols[i])).join(''));
-  const sumRow=wRow([
-    tdCell(`${fmt(total)} lbs`,sumCols[0],false,{bold:true,center:true}),
-    tdCell(`${fmt(sys)} lbs`,sumCols[1],false,{bold:true,center:true}),
-    wordToneCell(diff,wordAdjustment(diff,fmt,' lbs'),sumCols[2],false)
-  ].join(''));
+  const sumCols=[2400,3000,3000,6000];
+  const sumHeader=wHeaderRow(['Chocolate','Total Physical','System Quantity','Required Action'].map((h,i)=>thCell(h,sumCols[i])).join(''));
+  const sumRows=groups.map((g,i)=>wRow([
+    tdCell(`${g.kind} · ${g.item}`,sumCols[0],i%2===1,{bold:true,center:true}),
+    tdCell(`${fmt(g.physical)} lbs`,sumCols[1],i%2===1,{bold:true,center:true}),
+    tdCell(`${fmt(g.system)} lbs`,sumCols[2],i%2===1,{bold:true,center:true}),
+    wordToneCell(g.diff,wordAdjustment(g.diff,fmt,' lbs'),sumCols[3],i%2===1)
+  ].join(''))).join('');
   const body = wHdr(`Chocolate Adjustment — ${data.line}`) +
-    wPara(`Date: ${data.date}   Shift: ${data.shift}   Running Item: ${data.item}   Chocolate Item: ${data.chocItem}   LP: ${data.lpn||'—'}   Expiration: ${data.expiration||'—'}`,{size:18,color:'555555'}) +
+    wPara(`Date: ${data.date}   Shift: ${data.shift}   Running Item: ${data.item}   Chocolate Item: ${isPretzel?`${data.chocItem} Dark + ${data.chocItemMilk} Milk`:data.chocItem}`,{size:18,color:'555555'}) +
     wTable(5,cols,hdr+rows,tw) +
     wSec('Summary — Green = Add / Red = Remove') +
-    wTable(3,sumCols,sumHeader+sumRow,tw);
+    wTable(4,sumCols,sumHeader+sumRows,tw);
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `Chocolate_${data.date}.docx`);
   toast('✅ Chocolate exported!');
@@ -4272,15 +4871,16 @@ async function exportIngWord() {
   const grouped={};
   data.rows.forEach(r=>{const key=`${r.item}|${r.detail}|${r.fixed}`;grouped[key] ||= {item:r.item,detail:r.detail,fixed:r.fixed,mid:null,end:null};grouped[key][r.stage]=r;});
   const rows = Object.values(grouped).map((r,i)=>wRow([r.item,r.detail,`${r.mid?.qty||'—'} / ${fmt(r.mid?.lbs||0)}`,`${r.end?.qty||'—'} / ${fmt(r.end?.lbs||0)}`,r.fixed].map((v,ci)=>tdCell(v,cols[ci],i%2===1)).join(''))).join('');
-  const summaryCols=[1700,1400,1400,1400,1200,1500,1500,1700,1200,1400];
-  const summaryHeader=wHeaderRow(['Stage','Completion','Physical','System','BOM','Scrap','PA','Total Adj.','Adj. %','Status'].map((h,i)=>thCell(h,summaryCols[i])).join(''));
+  const summaryCols=[1700,1300,1500,1700,1000,1700,1000,1800,1000,1400];
+  const summaryHeader=wHeaderRow(['Stage','Completion','Pounds','Scrap','Scrap %','Production Adjustment','Production Adjustment %','Total Adj.','Adj. %','Status'].map((h,i)=>thCell(h,summaryCols[i])).join(''));
   const summaries = data.mid.ingredients.map((mid,index) => {
     const end=data.end.ingredients[index];
     const stageRow=(label,completion,d,even)=>wRow([
       tdCell(label,summaryCols[0],even,{bold:true}),tdCell(fmt(completion),summaryCols[1],even,{center:true}),
-      tdCell(fmt(d.physical),summaryCols[2],even,{center:true}),tdCell(fmt(d.system),summaryCols[3],even,{center:true}),
-      tdCell(fmt(d.bom),summaryCols[4],even,{center:true}),wordToneCell(d.scrapDisplay,wordAdjustment(d.scrapDisplay,fmt,' lbs'),summaryCols[5],even),
-      wordToneCell(d.productionAdjustment,wordAdjustment(d.productionAdjustment,fmt,' lbs'),summaryCols[6],even),
+      tdCell(fmt(d.expected),summaryCols[2],even,{center:true}),wordToneCell(d.scrapDisplay,wordAdjustment(d.scrapDisplay,fmt,' lbs'),summaryCols[3],even),
+      tdCell(`${(d.scrapPct*100).toFixed(1)}%`,summaryCols[4],even,{bold:true,center:true}),
+      wordToneCell(d.productionAdjustment,wordAdjustment(d.productionAdjustment,fmt,' lbs'),summaryCols[5],even),
+      tdCell(`${(d.paPct*100).toFixed(1)}%`,summaryCols[6],even,{bold:true,center:true}),
       wordToneCell(d.totalAdjustment,wordAdjustment(d.totalAdjustment,fmt,' lbs'),summaryCols[7],even),
       tdCell(`${(d.pct*100).toFixed(1)}%`,summaryCols[8],even,{bold:true,center:true}),wordStatusCell(d.status.label,summaryCols[9],even)
     ].join(''));
@@ -4288,7 +4888,7 @@ async function exportIngWord() {
   }
   ).join('');
   const body = wHdr('Ingredients Adjustment — L1') +
-    wPara(`Date: ${data.date}   Shift: ${data.shift}   Report: ${data.report}   Line: ${data.line}   FG Item: ${data.fgItem||'—'}   LP: ${data.lpn||'—'}   Expiration: ${data.expiration||'—'}`,{size:18,color:'555555'}) +
+    wPara(`Date: ${data.date}   Shift: ${data.shift}   Report: ${data.report}   Line: ${data.line}   FG Item: ${data.fgItem||'—'}`,{size:18,color:'555555'}) +
     wPara('Print key: GREEN = quantity to add. RED = quantity to remove. Every colored value also includes a written action.',{size:18,bold:true,color:'334155'})+
     wTable(5,cols,hdr+rows,tw) + summaries;
   const blob = await buildDocx(body, true);
@@ -4306,6 +4906,7 @@ async function exportPchWord() {
   calcPchAll();
   const date = document.getElementById('pchDate').value;
   const item = document.getElementById('pchItem').value;
+  const fgItem = document.getElementById('pchFgItem')?.value || '—';
   const desc = document.getElementById('pchDesc').value;
   const mid = pchSectionData('mid');
   const end = pchSectionData('end', mid);
@@ -4325,12 +4926,15 @@ async function exportPchWord() {
     const rows = [
       {field:'Report',value:d.report,notes:'',status:''},
       {field:'Item',value:item,notes:desc,status:''},
+      {field:'Matched FG',value:fgItem,notes:'Verified product match',status:''},
       {field:'Completion',value:pchFormat(d.completion),notes:'Production recorded in NetSuite',status:''},
       {field:'Qty in System',value:pchFormat(d.system),notes:'Before applying scrap',status:''},
       {field:'Qty in Physical',value:pchFormat(d.physical),notes:'Real physical count',status:''},
       {field:'Scrap Reported',value:wordAdjustment(d.scrapDisplay,pchFormat),tone:d.scrapDisplay,notes:'Reported by Production',status:''},
-      {field:'PA',value:wordAdjustment(d.pa,pchFormat),tone:d.pa,notes:'Physical - (System - Scrap)',status:''},
-      {field:'Total Adjustment',value:wordAdjustment(d.totalAdjustment,pchFormat),tone:d.totalAdjustment,notes:'Scrap + PA',status:`${Math.round(d.adjPctSigned*100)}% · ${d.status.label}`}
+      {field:'Scrap %',value:`${(d.scrapPctAbs*100).toFixed(1)}%`,notes:'Scrap / Completion',status:''},
+      {field:'Production Adjustment',value:wordAdjustment(d.pa,pchFormat),tone:d.pa,notes:'Physical - (System - Scrap)',status:''},
+      {field:'Production Adjustment %',value:`${(d.paPctAbs*100).toFixed(1)}%`,notes:'Production Adjustment / Completion',status:''},
+      {field:'Total Adjustment',value:wordAdjustment(d.totalAdjustment,pchFormat),tone:d.totalAdjustment,notes:'Scrap + Production Adjustment',status:`${Math.round(d.adjPctAbs*100)}% · ${d.status.label}`}
     ].map((r,i)=>wRow([
       tdCell(r.field,cols[0],i%2===1,{bold:true}),
       r.tone===undefined?tdCell(r.value||'—',cols[1],i%2===1,{center:true}):wordToneCell(r.tone,r.value,cols[1],i%2===1),
@@ -4341,15 +4945,15 @@ async function exportPchWord() {
   };
 
   const totalCols=[3200,3200,4200,3800];
-  const totalHeader=wHeaderRow(['Scrap','PA','Grand Adjustment','Grand Status'].map((h,i)=>thCell(h,totalCols[i])).join(''));
+  const totalHeader=wHeaderRow(['Scrap','Production Adjustment','Grand Adjustment','Grand Status'].map((h,i)=>thCell(h,totalCols[i])).join(''));
   const totalRow=wRow([
     wordToneCell(totalScrap,wordAdjustment(totalScrap,pchFormat),totalCols[0],false),
     wordToneCell(totalPA,wordAdjustment(totalPA,pchFormat),totalCols[1],false),
     wordToneCell(grandTotalAdjustment,wordAdjustment(grandTotalAdjustment,pchFormat),totalCols[2],false),
-    wordStatusCell(`${Math.round(grandPctSigned*100)}% · ${grandStatus.label}`,totalCols[3],false)
+    wordStatusCell(`${Math.round(Math.abs(grandPctSigned)*100)}% · ${grandStatus.label}`,totalCols[3],false)
   ].join(''));
   const body = wHdr(`Pouches Adjustments — ${date}`) +
-    wPara(`Shift: ${document.getElementById('pchShift').value}   Line: ${document.getElementById('pchLine').value}   LP: ${document.getElementById('pchLP').value||'—'}   Expiration: ${document.getElementById('pchExpiration').value||'—'}`,{size:18,color:'555555'}) +
+    wPara(`Shift: ${document.getElementById('pchShift').value}   Line: ${document.getElementById('pchLine').value}   Matched FG: ${fgItem}`,{size:18,color:'555555'}) +
     mkSection(mid, 'Mid Shift') +
     wPara(document.getElementById('pchMidReportPreview').value,{size:18,color:'555555'}) +
     mkSection(end, 'End of Shift') +
@@ -4592,8 +5196,9 @@ window.addEventListener('DOMContentLoaded', init);
   function buildChocolate(){
     if(typeof calcChoc==='function') calcChoc();
     const rows=[]; let total=0;
-    document.querySelectorAll('#chBody tr').forEach(tr=>{
-      const area = tr.cells[0]?.childNodes[0]?.textContent?.trim() || tr.cells[0]?.textContent?.trim() || '—';
+    document.querySelectorAll('#chBody tr,#chDarkBody tr,#chMilkBody tr').forEach(tr=>{
+      const baseArea = tr.cells[0]?.childNodes[0]?.textContent?.trim() || tr.cells[0]?.textContent?.trim() || '—';
+      const area = tr.dataset.kind?`${tr.dataset.kind} · ${baseArea}`:baseArea;
       const fixed = tr.dataset.fixed || '0';
       const input = tr.querySelector('.ch-input')?.value || '—';
       const mode = tr.dataset.mode || '—';
@@ -4601,9 +5206,10 @@ window.addEventListener('DOMContentLoaded', init);
       total += num(qty);
       rows.push([esc(area),money(fixed),esc(input),esc(mode),money(qty)]);
     });
-    const sys=num(text('chSystem')); const diff=total-sys;
+    const isPretzel=text('chLine').startsWith('Pretzel');
+    const sys=num(text('chSystem'))+(isPretzel?num(text('chSystemMilk')):0); const diff=total-sys;
     return sheetHTML('chocolate','Chocolate Adjustment',
-      [['Date',text('chDate')||today()],['Shift',text('chShift')||'—'],['Line',text('chLine')||'—'],['Running Item',text('chItem')||'—'],['Chocolate',text('chChocItem')||'—']],
+      [['Date',text('chDate')||today()],['Shift',text('chShift')||'—'],['Line',text('chLine')||'—'],['Running Item',text('chItem')||'—'],['Chocolate',isPretzel?`${text('chChocItem')} Dark + ${text('chChocItemMilk')} Milk`:text('chChocItem')||'—']],
       ['Area / Tank','Fixed Weight','Input','Mode','Total lbs'],rows,
       [['Total Physical Inventory',`${money(total)} lbs`],['System Qty',`${money(sys)} lbs`],['Adjustment Needed',`${diff>=0?'+':''}${money(diff)} lbs`,diff>=0?'ops-positive':'ops-negative'],['Status',Math.abs(diff)>0?'Adjustment':'OK',Math.abs(diff)>0?'ops-status-review':'ops-status-ok']],
       'Chocolate compact report preview. Word export is formatted in landscape.' );
@@ -4620,18 +5226,18 @@ window.addEventListener('DOMContentLoaded', init);
     const issueRows=[]; const normalRows=[];
     data.forEach(r=>{
       if(r.physicalQty !== '') counted++;
-      if(r.review==='REVIEW LP') review++;
+      if((r.review||'').startsWith('VERIFY LP')) review++;
       if(r.adjust==='Yes') adjust++;
       const d=num(r.difference); if(d>0) increase+=d; if(d<0) remove+=Math.abs(d);
       const row=[esc(r.item),esc(r.desc||'—'),esc(r.inventoryNumber||'—'),esc(r.systemLP||'—'),exact(r.systemQty),esc(r.physicalQty||'—'),d>=0?`<span class="ops-positive">${exact(r.difference || '0')}</span>`:`<span class="ops-negative">${exact(r.difference)}</span>`,esc(r.lpMatch||'—'),esc(r.adjust||'—'),esc(r.review||'—')];
-      ((r.review==='REVIEW LP'||r.adjust==='Yes'||d!==0)?issueRows:normalRows).push(row);
+      ((r.review!=='NO ADJUST'||d!==0)?issueRows:normalRows).push(row);
     });
     const rows = issueRows.concat(normalRows).slice(0,22);
     return sheetHTML('kitchen','Kitchen LP Verification Report',
       [['Date',text('kitDate')||today()],['Area',text('kitArea')||'—'],['Shift',text('kitShift')||'—'],['Prepared By',text('kitPreparedBy')||'—'],['Rows',`${data.length}`]],
-      ['Item','Description','System Lot','System LP','System Qty','Physical','Diff','LP Match','Adjust','Review'],rows,
+      ['Item','Description','System Lot','System LP','System Qty','Physical','Diff','LP Match','Adjust','Required Action'],rows,
       [['Counted',`${counted}/${data.length}`],['LP Issues',review,review?'ops-status-review':'ops-status-ok'],['Adjustments',adjust,adjust?'ops-status-review':'ops-status-ok'],['Net Variance',`${increase-remove>=0?'+':''}${money(increase-remove)}`,increase-remove>=0?'ops-positive':'ops-negative']],
-      data.length>22 ? `Showing priority rows first (${rows.length} of ${data.length}) to keep the report on one page.` : 'Kitchen report is formatted to stay on one landscape page.');
+      data.length>22 ? `Showing rows that require action first (${rows.length} of ${data.length}) to keep the report on one page.` : 'Kitchen report is formatted to stay on one landscape page.');
   }
 
   function buildIngredients(){
@@ -4649,10 +5255,9 @@ window.addEventListener('DOMContentLoaded', init);
       const i=x.i,cls=i.status?.label==='Critical'?'ops-status-critical':i.status?.label==='Attention'?'ops-status-review':'ops-status-ok';
       const signedVal=n=>`${n>0?'+':''}${money(n)}`;
       return `<tr>
-        <td>${esc(x.label)} · ${esc(i.id)}</td><td>${money(i.physical)}</td><td>${money(i.system)}</td>
-        <td>${money(i.bom)}</td><td>${money(x.completion)}</td><td>${signedVal(i.scrapDisplay)}</td>
-        <td class="${i.productionAdjustment>=0?'ops-positive':'ops-negative'}">${signedVal(i.productionAdjustment)}</td>
-        <td class="${i.totalAdjustment>=0?'ops-positive':'ops-negative'}">${signedVal(i.totalAdjustment)}</td>
+        <td>${esc(x.label)} · ${esc(i.id)}</td><td>${money(x.completion)}</td><td>${signedVal(i.expected)}</td><td>${signedVal(i.scrapDisplay)}</td>
+        <td>${(i.scrapPct*100).toFixed(1)}%</td><td class="${i.productionAdjustment>=0?'ops-positive':'ops-negative'}">${signedVal(i.productionAdjustment)}</td>
+        <td>${(i.paPct*100).toFixed(1)}%</td><td class="${i.totalAdjustment>=0?'ops-positive':'ops-negative'}">${signedVal(i.totalAdjustment)}</td>
         <td>${(i.pct*100).toFixed(1)}%</td><td class="${cls}">${esc(i.status?.label||'—')}</td>
       </tr>`;
       });
@@ -4661,29 +5266,29 @@ window.addEventListener('DOMContentLoaded', init);
       <div class="ops-sheet-title">Ingredient Adjustment Report</div>
       <div class="ops-sheet-meta">${metaHTML}</div>
       <table class="ops-sheet-table"><thead><tr><th>Ingredient</th><th>Physical Detail</th><th>Mid Qty / lbs</th><th>End Qty / lbs</th><th>Lbs / Unit</th></tr></thead><tbody>${bodyHTML}</tbody></table>
-      <table class="ops-sheet-table"><thead><tr><th>Ingredient</th><th>Physical</th><th>NetSuite</th><th>BOM</th><th>Completion</th><th>Scrap</th><th>Prod. Adj.</th><th>Total Adj.</th><th>Adj. %</th><th>Status</th></tr></thead><tbody>${summaryRows}</tbody></table>
-      <div class="ops-sheet-note"><span>End Completion is the final total and is not added to Mid. End Scrap, PA and Total Adjustment are cumulative.</span><span>Signature: ____________________</span></div>
+      <table class="ops-sheet-table"><thead><tr><th>Ingredient</th><th>Completion</th><th>Pounds</th><th>Scrap</th><th>Scrap %</th><th>Production Adjustment</th><th>Production Adjustment %</th><th>Total Adj.</th><th>Adj. %</th><th>Status</th></tr></thead><tbody>${summaryRows}</tbody></table>
+      <div class="ops-sheet-note"><span>End is cumulative: Mid + additional End Completion, Scrap and Production Adjustment. Pounds = Completion × BOM.</span><span>Signature: ____________________</span></div>
     </div>`;
   }
 
   function pchData(section, midCompletion){
     if(typeof pchSectionData==='function') return pchSectionData(section, midCompletion);
-    return {completion:0,system:0,physical:0,scrapDisplay:0,pa:0,totalAdjustment:0,adjPctSigned:0,status:{label:'—'}};
+    return {completion:0,system:0,physical:0,scrapDisplay:0,scrapPctAbs:0,pa:0,paPctAbs:0,totalAdjustment:0,adjPctAbs:0,status:{label:'—'}};
   }
   function signed(n){ n=num(n); return (n>0?'+':'')+intf(n); }
   function buildPouches(){
     if(typeof calcPchAll==='function') calcPchAll();
     const mid=pchData('mid'), end=pchData('end',mid);
     const rows=[
-      ['Mid Shift',intf(mid.completion),intf(mid.system),intf(mid.physical),signed(mid.scrapDisplay),signed(mid.pa),signed(mid.totalAdjustment),Math.round((mid.adjPctSigned||0)*100)+'%',esc(mid.status?.label||'—')],
-      ['End of Shift',intf(end.completion),intf(end.system),intf(end.physical),signed(end.scrapDisplay),signed(end.pa),signed(end.totalAdjustment),Math.round((end.adjPctSigned||0)*100)+'%',esc(end.status?.label||'—')]
+      ['Mid Shift',intf(mid.completion),intf(mid.system),intf(mid.physical),signed(mid.scrapDisplay),(mid.scrapPctAbs*100).toFixed(1)+'%',signed(mid.pa),(mid.paPctAbs*100).toFixed(1)+'%',signed(mid.totalAdjustment),Math.round((mid.adjPctAbs||0)*100)+'%',esc(mid.status?.label||'—')],
+      ['End of Shift',intf(end.completion),intf(end.system),intf(end.physical),signed(end.scrapDisplay),(end.scrapPctAbs*100).toFixed(1)+'%',signed(end.pa),(end.paPctAbs*100).toFixed(1)+'%',signed(end.totalAdjustment),Math.round((end.adjPctAbs||0)*100)+'%',esc(end.status?.label||'—')]
     ];
     const grandScrap=end.scrapDisplay, grandPA=end.pa, grandAdj=end.totalAdjustment;
     const denom=Math.abs(end.completion||mid.completion); const pct=denom?grandAdj/denom:0;
     return sheetHTML('pouches','Pouch Adjustment Report',
-      [['Date',text('pchDate')||today()],['Shift',text('pchShift')||'—'],['Line',text('pchLine')||'—'],['Item',text('pchItem')||'—'],['BOM',text('pchBom')||'1']],
-      ['Section','Completion','System','Physical','Scrap','PA','Total Adj','Adj %','Status'],rows,
-      [['Total Scrap',signed(grandScrap),'ops-negative'],['Total PA',signed(grandPA),grandPA>=0?'ops-positive':'ops-negative'],['Net Adjustment',signed(grandAdj),grandAdj>=0?'ops-positive':'ops-negative'],['Grand Adj %',Math.round(pct*100)+'%',Math.abs(pct)<=.05?'ops-status-ok':Math.abs(pct)<=.08?'ops-status-review':'ops-status-critical']],
+      [['Date',text('pchDate')||today()],['Shift',text('pchShift')||'—'],['Line',text('pchLine')||'—'],['Item',text('pchItem')||'—'],['Matched FG',text('pchFgItem')||'—'],['BOM',text('pchBom')||'1']],
+      ['Section','Completion','System','Physical','Scrap','Scrap %','Production Adjustment','Production Adjustment %','Total Adj','Adj %','Status'],rows,
+      [['Total Scrap',signed(grandScrap),'ops-negative'],['Total Production Adjustment',signed(grandPA),grandPA>=0?'ops-positive':'ops-negative'],['Net Adjustment',signed(grandAdj),grandAdj>=0?'ops-positive':'ops-negative'],['Grand Adj %',Math.round(Math.abs(pct)*100)+'%',Math.abs(pct)<=.05?'ops-status-ok':Math.abs(pct)<=.08?'ops-status-review':'ops-status-critical']],
       `Description: ${text('pchDesc')||'—'} | Mid Notes: ${text('pchMidComments')||'—'} | End Notes: ${text('pchEndComments')||'—'}`);
   }
 
