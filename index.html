@@ -320,7 +320,7 @@ body.ims-app-locked > :not(#imsAuthRoot):not(script) {
 
 .ims-user-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1.4fr) minmax(130px, .8fr) 130px 100px auto;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(130px, .7fr) minmax(250px, 1.25fr) 90px auto;
   align-items: center;
   gap: 10px;
   padding: 12px;
@@ -6049,6 +6049,15 @@ window.addEventListener('DOMContentLoaded', init);
     'chEmployee', 'kitPreparedBy', 'ingEmployee', 'pchEmployee',
     'palEmployee', 'ccEmployee', 'poOp', 'dlTL'
   ];
+  const FULL_CONTROL_ROLES = new Set([
+    'admin',
+    'scheduling_planning_supervision',
+    'ims_supervisor_systems'
+  ]);
+  const LOGIC_CONTROL_ROLES = new Set([
+    'supervisor',
+    ...FULL_CONTROL_ROLES
+  ]);
 
   let client;
   let session = null;
@@ -6164,14 +6173,14 @@ window.addEventListener('DOMContentLoaded', init);
 
       <div id="imsUsersDialog" class="ims-dialog-backdrop">
         <section class="ims-dialog">
-          <div class="ims-dialog-head"><div><h2>Manage IMS users</h2><small>Administrators only</small></div><button class="ims-auth-secondary" type="button" data-close-dialog="imsUsersDialog">Close</button></div>
+          <div class="ims-dialog-head"><div><h2>Manage IMS users</h2><small>Full-control roles only</small></div><button class="ims-auth-secondary" type="button" data-close-dialog="imsUsersDialog">Close</button></div>
           <div class="ims-dialog-body">
             <form id="imsCreateUserForm" class="ims-user-create-grid">
               <div class="ims-auth-field"><label for="imsUserName">Full name</label><input id="imsUserName" required></div>
               <div class="ims-auth-field"><label for="imsUserUsername">IMS username</label><input id="imsUserUsername" required maxlength="32" placeholder="JDOE"></div>
               <div class="ims-auth-field"><label for="imsUserEmail">Email</label><input id="imsUserEmail" type="email" required></div>
               <div class="ims-auth-field"><label for="imsUserPassword">Temporary password</label><input id="imsUserPassword" type="password" required minlength="8"></div>
-              <div class="ims-auth-field"><label for="imsUserRole">Role</label><select id="imsUserRole"><option value="employee">Employee</option><option value="supervisor">Team Lead</option><option value="admin">Administrator</option></select></div>
+              <div class="ims-auth-field"><label for="imsUserRole">Role</label><select id="imsUserRole"><option value="employee">Employee</option><option value="supervisor">Team Lead</option><option value="scheduling_planning_supervision">Scheduling &amp; Planning Supervision</option><option value="ims_supervisor_systems">Inventory Management System Supervisor Systems</option><option value="admin">Administrator</option></select></div>
               <button class="ims-auth-primary" type="submit">Create and activate</button>
             </form>
             <div id="imsUsersMessage" class="ims-auth-message"></div>
@@ -6452,9 +6461,9 @@ window.addEventListener('DOMContentLoaded', init);
     accountButton.hidden = false;
     accountButton.textContent = `👤 ${label}`;
     byId('imsCloudStatus').hidden = false;
-    const canManage = profile.role === 'admin';
+    const canManage = hasFullControl();
     byId('imsUsersButton').hidden = !canManage;
-    const canLead = profile.role === 'admin' || profile.role === 'supervisor';
+    const canLead = hasLogicControl();
     byId('imsLogicButton').hidden = !canLead;
     if (canLead) {
       safeCall('unlockDashboard');
@@ -6709,7 +6718,15 @@ window.addEventListener('DOMContentLoaded', init);
   }
 
   function isLead() {
-    return Boolean(profile && profile.active && (profile.role === 'supervisor' || profile.role === 'admin'));
+    return hasLogicControl();
+  }
+
+  function hasFullControl() {
+    return Boolean(profile && profile.active && FULL_CONTROL_ROLES.has(profile.role));
+  }
+
+  function hasLogicControl() {
+    return Boolean(profile && profile.active && LOGIC_CONTROL_ROLES.has(profile.role));
   }
 
   function normalizeLogicConfig(raw) {
@@ -6934,14 +6951,14 @@ window.addEventListener('DOMContentLoaded', init);
   }
 
   async function openUsersDialog() {
-    if (!profile || profile.role !== 'admin') return;
+    if (!hasFullControl()) return;
     openDialog('imsUsersDialog');
     await loadUsers();
   }
 
   async function createManagedUser(event) {
     event.preventDefault();
-    if (!profile || profile.role !== 'admin') return;
+    if (!hasFullControl()) return;
     const fullName = clean(byId('imsUserName').value);
     const imsUsername = normalizeUsername(byId('imsUserUsername').value);
     const email = clean(byId('imsUserEmail').value).toLowerCase();
@@ -6991,13 +7008,17 @@ window.addEventListener('DOMContentLoaded', init);
       list.innerHTML = `<div class="ims-auth-message is-error">${escapeHtml(error.message)}</div>`;
       return;
     }
-    list.innerHTML = data.map(user => `
+    list.innerHTML = data.map(user => {
+      const isCurrentAccount = user.id === session.user.id;
+      return `
       <div class="ims-user-row" data-user-id="${escapeHtml(user.id)}">
         <div><strong>${escapeHtml(user.full_name || 'Unnamed')}</strong><small>${escapeHtml(user.email || '')}</small></div>
-        <div><strong>${escapeHtml(user.ims_username || '—')}</strong><small>IMS username</small></div>
-        <select aria-label="Role" data-user-role>
+        <div><strong>${escapeHtml(user.ims_username || '—')}</strong><small>${isCurrentAccount ? 'Current account · role protected' : 'IMS username'}</small></div>
+        <select aria-label="Role" data-user-role ${isCurrentAccount ? 'disabled title="Your own role is protected"' : ''}>
           <option value="employee" ${user.role === 'employee' ? 'selected' : ''}>Employee</option>
           <option value="supervisor" ${user.role === 'supervisor' ? 'selected' : ''}>Team Lead</option>
+          <option value="scheduling_planning_supervision" ${user.role === 'scheduling_planning_supervision' ? 'selected' : ''}>Scheduling &amp; Planning Supervision</option>
+          <option value="ims_supervisor_systems" ${user.role === 'ims_supervisor_systems' ? 'selected' : ''}>Inventory Management System Supervisor Systems</option>
           <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrator</option>
         </select>
         <span class="ims-active-pill ${user.active ? 'is-active' : 'is-inactive'}">${user.active ? 'Active' : 'Inactive'}</span>
@@ -7005,7 +7026,8 @@ window.addEventListener('DOMContentLoaded', init);
           <button class="ims-auth-secondary" type="button" data-user-toggle>${user.active ? 'Deactivate' : 'Activate'}</button>
           <button class="ims-auth-secondary" type="button" data-user-reset>Reset</button>
         </div>
-      </div>`).join('') || '<div>No users yet.</div>';
+      </div>`;
+    }).join('') || '<div>No users yet.</div>';
 
     list.querySelectorAll('[data-user-role]').forEach(select => select.addEventListener('change', updateUserRole));
     list.querySelectorAll('[data-user-toggle]').forEach(button => button.addEventListener('click', toggleUser));
@@ -7013,13 +7035,20 @@ window.addEventListener('DOMContentLoaded', init);
   }
 
   async function updateUserRole(event) {
+    if (!hasFullControl()) return;
     const row = event.target.closest('[data-user-id]');
+    if (row.dataset.userId === session.user.id) {
+      setMessage('imsUsersMessage', 'Your own role is protected. Another full-control user must change it.', 'error');
+      await loadUsers();
+      return;
+    }
     const { error } = await client.from('ims_profiles').update({ role: event.target.value, updated_at: new Date().toISOString() }).eq('id', row.dataset.userId);
     setMessage('imsUsersMessage', error ? error.message : 'Role updated.', error ? 'error' : 'success');
     if (error) await loadUsers();
   }
 
   async function toggleUser(event) {
+    if (!hasFullControl()) return;
     const row = event.target.closest('[data-user-id]');
     const isActive = row.querySelector('.ims-active-pill').classList.contains('is-active');
     if (row.dataset.userId === session.user.id && isActive) {
@@ -7032,6 +7061,7 @@ window.addEventListener('DOMContentLoaded', init);
   }
 
   async function resetManagedUserPassword(event) {
+    if (!hasFullControl()) return;
     const row = event.target.closest('[data-user-id]');
     const email = clean(row.querySelector('small').textContent);
     const redirectTo = `${location.origin}${location.pathname}`;
@@ -7040,7 +7070,13 @@ window.addEventListener('DOMContentLoaded', init);
   }
 
   function roleLabel(role) {
-    return ({ employee: 'Employee', supervisor: 'Team Lead', admin: 'Administrator' })[role] || role;
+    return ({
+      employee: 'Employee',
+      supervisor: 'Team Lead',
+      scheduling_planning_supervision: 'Scheduling & Planning Supervision',
+      ims_supervisor_systems: 'Inventory Management System Supervisor Systems',
+      admin: 'Administrator'
+    })[role] || role;
   }
 
   function openDialog(id) { byId(id).classList.add('is-visible'); }
