@@ -7,6 +7,576 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IMS Tool — Operations</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f3b23c'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Arial,sans-serif' font-size='21' font-weight='800' fill='%232d1a00'%3EIMS%3C/text%3E%3C/svg%3E">
+<style id="ims-auth-styles">
+:root {
+  --ims-auth-navy: #16243a;
+  --ims-auth-blue: #2563eb;
+  --ims-auth-gold: #f3b23c;
+}
+
+body.ims-app-locked {
+  overflow: hidden;
+}
+
+body.ims-app-locked > :not(#imsAuthRoot):not(script) {
+  pointer-events: none;
+  user-select: none;
+}
+
+.ims-auth-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(243,178,60,.22), transparent 32%),
+    radial-gradient(circle at 85% 80%, rgba(37,99,235,.18), transparent 34%),
+    linear-gradient(145deg, #eef3f9, #f8fafc 58%, #edf2f7);
+}
+
+.ims-auth-root.is-visible {
+  display: flex;
+}
+
+.ims-auth-card {
+  width: min(460px, 100%);
+  background: #fff;
+  border: 1px solid #d7dde8;
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .18);
+  overflow: hidden;
+}
+
+.ims-auth-head {
+  padding: 26px 28px 22px;
+  color: #fff;
+  background: linear-gradient(135deg, #101b2d, #263b5c);
+}
+
+.ims-auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ims-auth-logo {
+  width: 52px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #2d1a00;
+  background: var(--ims-auth-gold);
+  font-weight: 900;
+}
+
+.ims-auth-head h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -.4px;
+}
+
+.ims-auth-head p {
+  margin: 5px 0 0;
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.ims-auth-body {
+  padding: 26px 28px 28px;
+}
+
+.ims-auth-view[hidden] {
+  display: none;
+}
+
+.ims-auth-body h2 {
+  margin: 0 0 5px;
+  color: #172033;
+  font-size: 21px;
+}
+
+.ims-auth-subtitle {
+  margin: 0 0 20px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ims-auth-field {
+  margin-top: 14px;
+}
+
+.ims-auth-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+
+.ims-auth-field input,
+.ims-auth-field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #172033;
+  font: inherit;
+  font-size: 15px;
+}
+
+.ims-auth-field input:focus,
+.ims-auth-field select:focus {
+  outline: 3px solid rgba(37,99,235,.14);
+  border-color: var(--ims-auth-blue);
+}
+
+.ims-auth-primary,
+.ims-auth-secondary,
+.ims-auth-link {
+  cursor: pointer;
+  font: inherit;
+}
+
+.ims-auth-primary {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 20px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ims-auth-blue);
+  color: #fff;
+  font-weight: 800;
+}
+
+.ims-auth-primary:disabled {
+  cursor: wait;
+  opacity: .62;
+}
+
+.ims-auth-secondary {
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #fff;
+  color: #24344f;
+  font-weight: 700;
+}
+
+.ims-auth-danger {
+  border-color: #fecaca;
+  color: #b91c1c;
+  background: #fff7f7;
+}
+
+.ims-auth-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.ims-auth-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.ims-auth-message {
+  display: none;
+  margin-top: 15px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 13px;
+}
+
+.ims-auth-message.is-error {
+  display: block;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.ims-auth-message.is-success {
+  display: block;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.ims-auth-note {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #fde68a;
+  border-radius: 9px;
+  background: #fffbeb;
+  color: #854d0e;
+  font-size: 12px;
+}
+
+.ims-cloud-status {
+  padding: 6px 9px;
+  border: 1px solid #d7dde8;
+  border-radius: 999px;
+  color: #64748b;
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ims-cloud-status.is-saved {
+  border-color: #bbf7d0;
+  color: #047857;
+  background: #ecfdf5;
+}
+
+.ims-cloud-status.is-error {
+  border-color: #fecaca;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.ims-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15,23,42,.56);
+}
+
+.ims-dialog-backdrop.is-visible {
+  display: flex;
+}
+
+.ims-dialog {
+  width: min(820px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 30px 80px rgba(15,23,42,.28);
+}
+
+.ims-dialog-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.ims-dialog-head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.ims-dialog-body {
+  padding: 20px;
+}
+
+.ims-user-create-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.ims-user-create-grid .ims-auth-field {
+  margin: 0;
+}
+
+.ims-user-create-grid .ims-auth-primary {
+  align-self: end;
+  margin: 0;
+}
+
+.ims-user-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.ims-user-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(130px, .8fr) 130px 100px auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.ims-user-row strong,
+.ims-user-row small {
+  display: block;
+}
+
+.ims-user-row small {
+  color: #64748b;
+}
+
+.ims-user-row select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.ims-active-pill {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ims-active-pill.is-active {
+  color: #047857;
+}
+
+.ims-active-pill.is-inactive {
+  color: #b91c1c;
+}
+
+.ch-fixed-input {
+  width: 100%;
+  min-width: 82px;
+  padding: 8px 9px;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #92400e;
+  font: inherit;
+  font-weight: 900;
+  text-align: right;
+}
+
+.ch-fixed-input:focus {
+  outline: 3px solid rgba(245,158,11,.2);
+  border-color: #d97706;
+}
+
+.ims-logic-dialog {
+  width: min(1180px, 100%);
+}
+
+.ims-logic-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 12px;
+}
+
+.ims-logic-meta strong {
+  margin-right: auto;
+  font-size: 13px;
+}
+
+.ims-logic-meta span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.ims-logic-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.ims-logic-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.ims-logic-card-head {
+  display: flex;
+  gap: 10px;
+  min-height: 70px;
+}
+
+.ims-logic-card-head h3,
+.ims-logic-section-head h3 {
+  margin: 0;
+  color: #172033;
+  font-size: 17px;
+}
+
+.ims-logic-card-head p,
+.ims-logic-section-head p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ims-logic-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  flex: 0 0 38px;
+  place-items: center;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e2e8f0;
+  font-size: 20px;
+}
+
+.ims-logic-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 10px;
+}
+
+.ims-logic-value-field {
+  grid-column: 1 / -1;
+}
+
+.ims-logic-card .ims-auth-primary {
+  margin-top: auto;
+  transform: translateY(10px);
+}
+
+.ims-logic-monitor {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ims-logic-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.ims-logic-section-head input[type="search"] {
+  width: min(340px, 100%);
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  font: inherit;
+}
+
+.ims-logic-rule-list,
+.ims-logic-audit {
+  display: grid;
+  gap: 8px;
+}
+
+.ims-logic-rule,
+.ims-logic-audit-row {
+  display: grid;
+  grid-template-columns: 100px minmax(220px, 1fr) minmax(90px, auto) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.ims-logic-rule strong,
+.ims-logic-rule small,
+.ims-logic-audit-row strong,
+.ims-logic-audit-row small {
+  display: block;
+}
+
+.ims-logic-rule small,
+.ims-logic-audit-row small {
+  margin-top: 3px;
+  color: #64748b;
+}
+
+.ims-logic-rule output {
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.ims-logic-module {
+  width: max-content;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ims-logic-module.is-chocolate { background: #fef3c7; color: #92400e; }
+.ims-logic-module.is-ingredients { background: #dcfce7; color: #166534; }
+.ims-logic-module.is-pouches { background: #dbeafe; color: #1e40af; }
+
+.ims-logic-change {
+  color: #334155;
+  font-weight: 800;
+  text-align: right;
+}
+
+.ims-logic-empty {
+  padding: 18px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  color: #64748b;
+  background: #f8fafc;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .ims-auth-root { padding: 12px; }
+  .ims-auth-head, .ims-auth-body { padding-left: 20px; padding-right: 20px; }
+  .ims-user-create-grid { grid-template-columns: 1fr; }
+  .ims-user-row { grid-template-columns: 1fr; }
+  .ims-logic-editor-grid { grid-template-columns: 1fr; }
+  .ims-logic-fields { grid-template-columns: 1fr; }
+  .ims-logic-value-field { grid-column: auto; }
+  .ims-logic-section-head { align-items: stretch; flex-direction: column; }
+  .ims-logic-rule, .ims-logic-audit-row { grid-template-columns: 1fr; }
+  .ims-logic-rule output, .ims-logic-change { text-align: left; }
+  .ims-cloud-status { display: none; }
+  #imsAccountButton { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+}
+
+</style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
@@ -1912,8 +2482,9 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
     <div class="guide-step"><h4>🏷 Hershey Lot Code</h4><p>Selecciona fabricación, empaque, designador de equipo/matriz, turno y hora. La herramienta genera el lote con la tabla oficial de 2026. Expiración: avanza 11 meses y usa el día 30 del mes resultante; si no existe, usa el último día válido. Ejemplo: 7/29/2026 → 6/30/2027. Verifica siempre designador y turno contra la orden.</p></div>
     <div class="guide-step"><h4>🗓 Schedule y ✅ Shift Tasks</h4><p>Schedule muestra la asignación semanal. Shift Tasks crea el checklist según turno, área, empaque, ingrediente especial y estado de línea. Las tareas están divididas en Before the Shift, Start of Shift, During/Mid Shift y End of Shift. Al marcar una tarea se agrega inmediatamente al borrador de PASOS; al desmarcarla se retira.</p></div>
     <div class="guide-step"><h4>🔄 Automatic PASOS Drafts</h4><p>Al guardar Chocolate, Ingredients, Pouches, Kitchen o Cycle Count, la herramienta transfiere el resumen y los detalles disponibles a PASOS. Las tareas marcadas como completadas también se agregan. Revisa el borrador de PASOS antes de guardarlo o descargarlo.</p></div>
+    <div class="guide-step"><h4>🧠 Logic Control — Team Leads</h4><p>Team Leads y Administrators pueden aprobar valores predeterminados de Chocolate, BOM de Ingredients y BOM de Pouches. Cada cambio guarda quién lo hizo, la fecha, el valor anterior y el nuevo. En Chocolate, el peso por caja también puede modificarse únicamente para el conteo abierto sin alterar el valor predeterminado global.</p></div>
     <div class="guide-step"><h4>🧾 PASOS / Pass Off y exportación</h4><p>Las pestañas separan Adjustments, Scrap, Movements, Cycle Count y Completed Tasks. Las entradas automáticas son borradores editables: revísalas, elimina lo incorrecto y agrega información manual cuando haga falta. Save guarda el Pass Off; Word descarga el reporte. Reset borra el borrador visible, por lo que debe usarse únicamente después de entregar el turno.</p></div>
-    <div class="guide-step"><h4>💾 Save, ↺ Reset y Word</h4><p><strong>Save</strong> registra el módulo y actualiza PASOS. Guardar nuevamente el mismo reporte automático reemplaza sus entradas para evitar duplicados. <strong>Reset</strong> limpia el módulo actual. <strong>Word</strong> descarga el reporte para enviar o archivar. Los datos guardados permanecen en este navegador y dispositivo.</p></div>
+    <div class="guide-step"><h4>💾 Save, ↺ Reset y Word</h4><p><strong>Save</strong> registra el módulo y actualiza PASOS. Guardar nuevamente el mismo reporte automático reemplaza sus entradas para evitar duplicados. <strong>Reset</strong> limpia el módulo actual. <strong>Word</strong> descarga el reporte para enviar o archivar. El borrador se guarda automáticamente en la cuenta IMS y puede continuarse desde otro dispositivo.</p></div>
     <div class="guide-step"><h4>English quick reference</h4><p>Use Shift Tasks as the shift workflow. Confirm work orders, item, expiration and lot; complete initial physical inventories, chocolate, QC-approved labels and kitchen adjustment; complete mid-shift pouch/special-ingredient adjustments; repeat kitchen and final adjustments two hours before shift end; finish SafetyChain scrap, Pass Off, scans, reports and Teams screenshots.</p></div>
   </div>
 </div>
@@ -1928,6 +2499,10 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
     </div>
   </div>
   <div class="topbar-right">
+    <div id="imsCloudStatus" class="ims-cloud-status" hidden>Connecting…</div>
+    <button id="imsLogicButton" class="btn btn-outline btn-sm" type="button" hidden>🧠 Logic Control</button>
+    <button id="imsUsersButton" class="btn btn-outline btn-sm" type="button" hidden>👥 Users</button>
+    <button id="imsAccountButton" class="btn btn-outline btn-sm" type="button" hidden>👤 Account</button>
     <button class="btn btn-outline btn-sm" onclick="openGuide()">📖 Guide</button>
     <div class="clock-box">
       <div id="clock">--:--:--</div>
@@ -2056,7 +2631,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
         <div class="field"><label id="chSystemLabel">Total in System (lbs)</label><input type="number" id="chSystem" placeholder="e.g. 16638" oninput="calcChoc()"></div>
         <div class="field" id="chSystemMilkGroup" style="display:none"><label>Milk Total in System (Pretzel)</label><input type="number" id="chSystemMilk" placeholder="Milk system lbs" oninput="calcChoc()"></div>
       </div>
-      <div class="help-box"><strong>Important note:</strong> Only <strong>ENROBERS AND PIPES</strong> and <strong>BED</strong> default to <strong>100%</strong>. Tanks / AD / Decorators / Morcos must be entered manually. FG Pallets = pallet count. Boxes on the Floor = box count.</div>
+      <div class="help-box"><strong>Important note:</strong> Only <strong>ENROBERS AND PIPES</strong> and <strong>BED</strong> default to <strong>100%</strong>. Tanks / AD / Decorators / Morcos must be entered manually. FG Pallets = pallet count. For <strong>Boxes on the Floor</strong>, enter the box count and edit <strong>lbs per box</strong> when the box is not the standard weight. Team Leads manage permanent defaults in <strong>Logic Control</strong>.</div>
       <div class="tbl-wrap" id="chSingleTableWrap">
         <table id="chTable">
           <thead><tr><th>Area / Tank</th><th>Fixed Weight (lbs)</th><th>Physical Input</th><th>Mode</th><th>Total lbs</th></tr></thead>
@@ -2917,6 +3492,62 @@ function resetDaily() { buildDailyShifts(); toast('Daily Report reset'); }
 function saveDaily() { saveReport({id:String(Date.now()),module:'daily',date:document.getElementById('dlDate').value,shift:'All',building:document.getElementById('dlBuilding').value,data:getDailyData(),savedAt:new Date().toISOString()}); }
 
 // ══════════════════════ CHOCOLATE ══════════════════════
+window.IMS_LOGIC_CONFIG = window.IMS_LOGIC_CONFIG || {
+  version:1,
+  chocolate:{weights:{}},
+  ingredients:{bom:{}},
+  pouches:{bom:{}}
+};
+function imsLogicNumber(value){
+  const number=Number(value);
+  return Number.isFinite(number)&&number>=0?number:null;
+}
+function imsChocolateRuleKey(line,item,kind,area){
+  return [line||'*',item||'*',kind||'SINGLE',area||''].map(value=>String(value).trim()).join('|');
+}
+function imsChocolateWeight(line,item,kind,area,fallback){
+  const weights=window.IMS_LOGIC_CONFIG?.chocolate?.weights||{};
+  const keys=[
+    imsChocolateRuleKey(line,item,kind,area),
+    imsChocolateRuleKey(line,'*',kind,area),
+    imsChocolateRuleKey('*','*',kind,area)
+  ];
+  for(const key of keys){
+    const configured=imsLogicNumber(weights[key]);
+    if(configured!==null) return configured;
+  }
+  return imsLogicNumber(fallback)??0;
+}
+function imsIngredientBom(fg,item){
+  const bom=window.IMS_LOGIC_CONFIG?.ingredients?.bom||{};
+  const exact=imsLogicNumber(bom[`${String(fg).trim()}|${String(item).trim()}`]);
+  return exact!==null&&exact>0?exact:0;
+}
+function imsPouchBom(item,fg,fallback=1){
+  const bom=window.IMS_LOGIC_CONFIG?.pouches?.bom||{};
+  const keys=[`${String(item||'').trim()}|${String(fg||'').trim()}`,`${String(item||'').trim()}|*`];
+  for(const key of keys){
+    const configured=imsLogicNumber(bom[key]);
+    if(configured!==null&&configured>0) return configured;
+  }
+  return imsLogicNumber(fallback)??1;
+}
+window.imsApplyLogicConfig=function(config,options={}){
+  const source=config&&typeof config==='object'?config:{};
+  window.IMS_LOGIC_CONFIG={
+    version:Number(source.version)||1,
+    chocolate:{weights:{...(source.chocolate?.weights||{})}},
+    ingredients:{bom:{...(source.ingredients?.bom||{})}},
+    pouches:{bom:{...(source.pouches?.bom||{})}},
+    updatedAt:source.updatedAt||source.updated_at||null,
+    updatedBy:source.updatedBy||source.updated_by||null
+  };
+  if(options.rebuild!==false){
+    if(document.getElementById('chBody')) buildChocRows();
+    if(document.getElementById('ingSummary')) buildIngRows();
+    if(document.getElementById('pchBom')) pchApplyConfiguredBom();
+  }
+};
 function buildChocRows() {
   const line = document.getElementById('chLine').value;
   const isPretzel=line.startsWith('Pretzel');
@@ -2937,9 +3568,12 @@ function buildChocRows() {
     const darkRows=[...base,['ENROBERS AND PIPES',400,'pct'],['BED',prod.pretzelDarkBed??prod.bed??0,'pct'],['FG PALLETS WITHOUT LABEL',prod.pretzelDarkPal??prod.chocPal??0,'count'],['BOXES ON THE FLOOR',50,'count']];
     const milkRows=[...base,['ENROBERS AND PIPES',100,'pct'],['BED',prod.pretzelMilkBed??prod.bed??0,'pct'],['FG PALLETS WITHOUT LABEL',prod.pretzelMilkPal??prod.chocPal??0,'count'],['BOXES ON THE FLOOR',50,'count']];
     const render=(kind,areas)=>areas.map(([name,weight,mode])=>{
+      weight=imsChocolateWeight(line,document.getElementById('chItem').value,kind,name,weight);
       const defaultVal=(name==='ENROBERS AND PIPES'||name==='BED')?'100':'';
       const modeTag=mode==='count'?'<span class="tag tag-blue">×</span>':'<span class="tag tag-amber">%</span>';
-      return `<tr data-kind="${kind}" data-mode="${mode}" data-fixed="${weight}"><td>${name}</td><td class="mono fixed-cell">${fmt(weight)}</td><td><input type="number" step="any" class="ch-input" value="${defaultVal}" oninput="calcChoc()" placeholder="${mode==='count'?'Count':'Percent'}"></td><td>${modeTag}</td><td class="mono ch-qty pos">0.00</td></tr>`;
+      const editableBox=name.includes('BOXES');
+      const fixedCell=editableBox?`<input type="number" min="0" step="any" class="ch-fixed-input" value="${weight}" oninput="calcChoc()" aria-label="Editable pounds per box">`:fmt(weight);
+      return `<tr data-kind="${kind}" data-mode="${mode}" data-fixed="${weight}"><td>${name}${editableBox?'<div class="mono" style="font-size:10px;color:var(--ink3);margin-top:3px">Editable lbs per box for this count</div>':''}</td><td class="mono fixed-cell">${fixedCell}</td><td><input type="number" step="any" class="ch-input" value="${defaultVal}" oninput="calcChoc()" placeholder="${mode==='count'?'Count':'Percent'}"></td><td>${modeTag}</td><td class="mono ch-qty pos">0.00</td></tr>`;
     }).join('');
     document.getElementById('chBody').innerHTML='';
     document.getElementById('chDarkBody').innerHTML=render('DARK',darkRows);
@@ -2955,14 +3589,17 @@ function buildChocRows() {
     let fw = weight;
     if(name.startsWith('BED')) fw = prod.bed||0;
     if(name.startsWith('FG PALLET')) fw = prod.chocPal||0;
+    fw=imsChocolateWeight(line,document.getElementById('chItem').value,'SINGLE',name,fw);
     const modeTag = mode==='pct'?'<span class="tag tag-amber">%</span>':mode==='count'?'<span class="tag tag-blue">×</span>':'<span class="tag tag-green">fixed</span>';
     const autoDefault100 = name.startsWith('ENROBERS AND PIPES') || name.startsWith('BED');
     const hint = autoDefault100 ? 'Default 100% — modify only if line ended / return was made' : (mode==='count'?'# boxes':'# pallets / %');
     const defaultVal = autoDefault100 ? '100' : '';
     const note = autoDefault100 ? '<div class="mono" style="font-size:10px;color:var(--ink3);margin-top:3px">Default 100%. Modify only if line ended production / return was made.</div>' : '';
-    return `<tr data-mode="${mode}" data-fixed="${fw}">
+    const editableBox=name.includes('BOXES');
+    const fixedCell=editableBox?`<input type="number" min="0" step="any" class="ch-fixed-input" value="${fw}" oninput="calcChoc()" aria-label="Editable pounds per box">`:fmt(fw);
+    return `<tr data-kind="SINGLE" data-mode="${mode}" data-fixed="${fw}">
       <td>${name}${note}</td>
-      <td class="mono fixed-cell">${fmt(fw)}</td>
+      <td class="mono fixed-cell">${fixedCell}${editableBox?'<div class="mono" style="font-size:10px;color:var(--ink3);margin-top:3px">Editable for this count</div>':''}</td>
       <td><input type="number" step="any" class="ch-input" value="${defaultVal}" oninput="calcChoc()" placeholder="${hint}"></td>
       <td>${modeTag}</td>
       <td class="mono ch-qty pos">0.00</td>
@@ -2973,7 +3610,8 @@ function buildChocRows() {
 function calcChoc() {
   let total = 0, darkTotal=0, milkTotal=0;
   document.querySelectorAll('#chBody tr,#chDarkBody tr,#chMilkBody tr').forEach(tr => {
-    const mode = tr.dataset.mode, fw = parseFloat(tr.dataset.fixed)||0;
+    const mode = tr.dataset.mode, fw = parseFloat(tr.querySelector('.ch-fixed-input')?.value??tr.dataset.fixed)||0;
+    tr.dataset.fixed=String(fw);
     const inp = parseFloat(tr.querySelector('.ch-input').value)||0;
     let lbs = 0;
     if(mode==='pct') lbs = fw * (inp > 1 ? inp/100 : inp);
@@ -3009,7 +3647,7 @@ function calcChoc() {
 function getChocData() {
   const rows = [];
   document.querySelectorAll('#chBody tr,#chDarkBody tr,#chMilkBody tr').forEach(tr => {
-    rows.push({area:tr.cells[0].textContent,kind:tr.dataset.kind||'', fixed:tr.dataset.fixed, input:tr.querySelector('.ch-input').value, mode:tr.dataset.mode, qty:tr.querySelector('.ch-qty').textContent});
+    rows.push({area:tr.cells[0].childNodes[0]?.textContent?.trim()||tr.cells[0].textContent,kind:tr.dataset.kind||'', fixed:tr.querySelector('.ch-fixed-input')?.value??tr.dataset.fixed, input:tr.querySelector('.ch-input').value, mode:tr.dataset.mode, qty:tr.querySelector('.ch-qty').textContent});
   });
   return {date:document.getElementById('chDate').value,shift:document.getElementById('chShift').value,line:document.getElementById('chLine').value,item:document.getElementById('chItem').value,chocItem:document.getElementById('chChocItem').value,chocItemMilk:document.getElementById('chChocItemMilk').value,system:document.getElementById('chSystem').value,systemMilk:document.getElementById('chSystemMilk').value,rows};
 }
@@ -3077,6 +3715,8 @@ function ingPctClass(pct){ return pct<=.05?'good-bg':pct<=.08?'att-bg':'crit-bg'
 function ingInput(id){ return parseFloat(document.getElementById(id)?.value)||0; }
 function ingMatchKey(value){ return String(value??'').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,''); }
 function ingBomFor(fg,id){
+  const configured=imsIngredientBom(fg,id);
+  if(configured>0) return configured;
   const bom=window.SHIFTHUB_INGREDIENT_DATA?.bom||{};
   const direct=bom[`${String(fg).trim()}|${String(id).trim()}`];
   if(Number(direct)>0) return Number(direct);
@@ -3528,13 +4168,21 @@ function pchValidateFgMatch(){
   } else {
     setMatchStatus('pchMatchStatus','match-error',`Mismatch: selected FG ${selectedId||'—'} does not match this packaging. Suggested FG: ${top.fg.id} — ${top.fg.desc}.`);
   }
+  pchApplyConfiguredBom();
   calcPchAll();
+}
+function pchApplyConfiguredBom(){
+  const item=document.getElementById('pchItem')?.value||'';
+  const fg=document.getElementById('pchFgItem')?.value||'';
+  const field=document.getElementById('pchBom');
+  if(field) field.value=imsPouchBom(item,fg,1);
 }
 function pchUpdateDesc() {
   const item = POUCH_ITEMS.find(p => String(p.id) === String(document.getElementById('pchItem').value));
   document.getElementById('pchDesc').value = item ? item.desc : '';
   syncSearchableSelect('pchItem','pchItemSearch');
   pchUpdateFgMatch(true);
+  pchApplyConfiguredBom();
   calcPchAll();
 }
 function pchNumber(n){ n = Number(n); if(!Number.isFinite(n)) return 0; return Math.round((n + Number.EPSILON) * 100) / 100; }
@@ -3578,8 +4226,10 @@ function pchSectionData(section, midData){
   const totalAdjustmentInput = -scrapReportedInput + paInput;
   const totalAdjustment = scrapDisplay + pa;
 
-  // Use absolute completion for the denominator because some Excel rows can carry negative completion.
-  const denominator = Math.abs(completion);
+  // Packaging usage is Completion × BOM. With the original 1 Ea BOM this matches
+  // the Excel report; an approved Team Lead BOM changes the percentage denominator.
+  const bom = Math.abs(parseFloat(document.getElementById('pchBom')?.value) || 1);
+  const denominator = Math.abs(completion * bom);
   const scrapPctSigned = denominator ? scrapDisplay / denominator : 0;
   const scrapPctAbs = denominator ? Math.abs(scrapDisplay / denominator) : 0;
   const paPctSigned = denominator ? pa / denominator : 0;
@@ -3588,7 +4238,7 @@ function pchSectionData(section, midData){
   const adjPctAbs = denominator ? Math.abs(totalAdjustment / denominator) : 1;
   const status = pchStatusFromTotal(totalAdjustment, adjPctAbs);
 
-  return {section, cap, report, completionInput, additionalCompletion:section === 'end' ? completionInput : 0, completion, system, physical, scrapReportedInput,additionalScrap:section==='end'?scrapReportedInput:0,scrapReported,scrapDisplay,scrapPctSigned,scrapPctAbs,paInput,additionalPA:section==='end'?paInput:0,pa,paPctSigned,paPctAbs,totalAdjustmentInput,additionalTotalAdjustment:section==='end'?totalAdjustmentInput:0,totalAdjustment,adjPctSigned,adjPctAbs,status};
+  return {section, cap, report, completionInput, additionalCompletion:section === 'end' ? completionInput : 0, completion, bom, expectedUsage:denominator, system, physical, scrapReportedInput,additionalScrap:section==='end'?scrapReportedInput:0,scrapReported,scrapDisplay,scrapPctSigned,scrapPctAbs,paInput,additionalPA:section==='end'?paInput:0,pa,paPctSigned,paPctAbs,totalAdjustmentInput,additionalTotalAdjustment:section==='end'?totalAdjustmentInput:0,totalAdjustment,adjPctSigned,adjPctAbs,status};
 }
 
 function updatePouchSharedHeader(){
@@ -4124,7 +4774,8 @@ function setReports(r) { localStorage.setItem('shifthub_pro_v1', JSON.stringify(
 function saveReport(report) { const arr=getReports(); arr.push(report); setReports(arr); toast('💾 Report saved'); renderDash(); renderPublicLeaderboard(); }
 
 // ══════════════════════ DASHBOARD ══════════════════════
-const tlUnlocked = false;
+let tlUnlocked = false;
+window.unlockDashboard = function(){ tlUnlocked = true; };
 function renderDash() {
   if(!tlUnlocked) {
     document.getElementById('dashList').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--ink3)">Dashboard locked. Enter Team Lead PIN ****.</div>';
@@ -5369,6 +6020,1066 @@ window.addEventListener('DOMContentLoaded', init);
   document.addEventListener('DOMContentLoaded',()=>{ ensureReports(); setTimeout(opsRefreshReports,400); });
   window.addEventListener('load',()=>setTimeout(opsRefreshReports,600));
 })();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script id="ims-auth-sync">
+/* IMS Tool authentication and cross-device synchronization.
+   The publishable key is intentionally safe for browser use. Access is protected
+   by Supabase Auth and the Row Level Security policies in supabase/migrations. */
+(function () {
+  'use strict';
+
+  const IMS_CONFIG = Object.freeze({
+    url: 'https://xgaznfxqdozvklmaodsx.supabase.co',
+    publishableKey: 'sb_publishable_bpEIeuOytiuRP8eEHpBHkA_xbW1odPY'
+  });
+
+  const STORAGE_KEYS = [
+    'shifthub_pro_v1',
+    'shifthub_po_draft_v1',
+    'shifthub_cc_history_v1',
+    'shifthub_pre_kitchen_v1'
+  ];
+  const STRUCTURAL_FIELDS = [
+    'chLine', 'chItem', 'ingLine', 'ingTemplate', 'ingItem', 'ingFgItem',
+    'pchLine', 'pchItem', 'pchFgItem', 'palShift', 'palAssignment', 'kitArea'
+  ];
+  const EMPLOYEE_FIELDS = [
+    'chEmployee', 'kitPreparedBy', 'ingEmployee', 'pchEmployee',
+    'palEmployee', 'ccEmployee', 'poOp', 'dlTL'
+  ];
+
+  let client;
+  let session = null;
+  let profile = null;
+  let cloudReady = false;
+  let dirty = false;
+  let saveTimer = null;
+  let saveInFlight = false;
+  let authMode = 'login';
+  let logicPollTimer = null;
+  let logicConfig = {
+    version: 1,
+    chocolate: { weights: {} },
+    ingredients: { bom: {} },
+    pouches: { bom: {} }
+  };
+
+  window.IMSCloud = {
+    get session() { return session; },
+    get profile() { return profile; },
+    saveNow: () => saveCloudState(true),
+    openUsers: () => openUsersDialog(),
+    openLogic: () => openLogicDialog(),
+    signOut: () => signOut()
+  };
+
+  function byId(id) { return document.getElementById(id); }
+  function clean(value) { return String(value || '').trim(); }
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[c]));
+  }
+
+  function authMarkup() {
+    return `
+      <div id="imsAuthRoot" class="ims-auth-root is-visible" aria-live="polite">
+        <section class="ims-auth-card" aria-label="IMS account access">
+          <div class="ims-auth-head">
+            <div class="ims-auth-brand">
+              <div class="ims-auth-logo">IMS</div>
+              <div><h1>IMS Tool</h1><p>Secure operations workspace</p></div>
+            </div>
+          </div>
+          <div class="ims-auth-body">
+            <form id="imsLoginView" class="ims-auth-view">
+              <h2>Sign in</h2>
+              <p class="ims-auth-subtitle">Use the account assigned by your IMS administrator.</p>
+              <div class="ims-auth-field"><label for="imsLoginEmail">Email</label><input id="imsLoginEmail" type="email" autocomplete="username" required placeholder="employee@company.com"></div>
+              <div class="ims-auth-field"><label for="imsLoginPassword">Password</label><input id="imsLoginPassword" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••"></div>
+              <button id="imsLoginSubmit" class="ims-auth-primary" type="submit">Sign in</button>
+              <div class="ims-auth-actions">
+                <button id="imsForgotButton" class="ims-auth-link" type="button">Forgot password?</button>
+                <button id="imsBootstrapButton" class="ims-auth-link" type="button" hidden>First-time setup</button>
+              </div>
+              <div id="imsLoginMessage" class="ims-auth-message"></div>
+            </form>
+
+            <form id="imsResetView" class="ims-auth-view" hidden>
+              <h2>Reset password</h2>
+              <p class="ims-auth-subtitle">We will send a secure recovery link to your email.</p>
+              <div class="ims-auth-field"><label for="imsResetEmail">Email</label><input id="imsResetEmail" type="email" required placeholder="employee@company.com"></div>
+              <button class="ims-auth-primary" type="submit">Send recovery link</button>
+              <div class="ims-auth-actions"><button class="ims-auth-link" type="button" data-auth-back>Back to sign in</button></div>
+              <div id="imsResetMessage" class="ims-auth-message"></div>
+            </form>
+
+            <form id="imsNewPasswordView" class="ims-auth-view" hidden>
+              <h2>Choose a new password</h2>
+              <p class="ims-auth-subtitle">Use at least eight characters.</p>
+              <div class="ims-auth-field"><label for="imsNewPassword">New password</label><input id="imsNewPassword" type="password" required minlength="8" autocomplete="new-password"></div>
+              <div class="ims-auth-field"><label for="imsNewPasswordConfirm">Confirm password</label><input id="imsNewPasswordConfirm" type="password" required minlength="8" autocomplete="new-password"></div>
+              <button class="ims-auth-primary" type="submit">Save new password</button>
+              <div id="imsNewPasswordMessage" class="ims-auth-message"></div>
+            </form>
+
+            <form id="imsBootstrapView" class="ims-auth-view" hidden>
+              <h2>Create first administrator</h2>
+              <p class="ims-auth-subtitle">This option works only while the project has no administrator.</p>
+              <div class="ims-auth-field"><label for="imsBootstrapName">Full name</label><input id="imsBootstrapName" required placeholder="Full name"></div>
+              <div class="ims-auth-field"><label for="imsBootstrapUsername">IMS username</label><input id="imsBootstrapUsername" required maxlength="32" placeholder="JPACHECO"></div>
+              <div class="ims-auth-field"><label for="imsBootstrapEmail">Email</label><input id="imsBootstrapEmail" type="email" required placeholder="admin@company.com"></div>
+              <div class="ims-auth-field"><label for="imsBootstrapPassword">Password</label><input id="imsBootstrapPassword" type="password" required minlength="8" autocomplete="new-password"></div>
+              <button class="ims-auth-primary" type="submit">Create administrator</button>
+              <div class="ims-auth-actions"><button class="ims-auth-link" type="button" data-auth-back>Back to sign in</button></div>
+              <div class="ims-auth-note">Create this account before sharing the site link. Once an administrator exists, this setup closes automatically.</div>
+              <div id="imsBootstrapMessage" class="ims-auth-message"></div>
+            </form>
+
+            <div id="imsPendingView" class="ims-auth-view" hidden>
+              <h2>Account awaiting activation</h2>
+              <p class="ims-auth-subtitle">Your email is verified, but an IMS administrator must activate your account.</p>
+              <button id="imsPendingRefresh" class="ims-auth-primary" type="button">Check again</button>
+              <div class="ims-auth-actions"><button id="imsPendingSignout" class="ims-auth-link" type="button">Sign out</button></div>
+              <div id="imsPendingMessage" class="ims-auth-message"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="imsAccountDialog" class="ims-dialog-backdrop">
+        <section class="ims-dialog" style="width:min(520px,100%)">
+          <div class="ims-dialog-head"><h2>IMS account</h2><button class="ims-auth-secondary" type="button" data-close-dialog="imsAccountDialog">Close</button></div>
+          <div class="ims-dialog-body">
+            <div id="imsAccountIdentity"></div>
+            <div class="ims-auth-actions" style="margin-top:22px">
+              <button id="imsAccountSave" class="ims-auth-secondary" type="button">Save now</button>
+              <button id="imsAccountSignout" class="ims-auth-secondary ims-auth-danger" type="button">Sign out</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="imsUsersDialog" class="ims-dialog-backdrop">
+        <section class="ims-dialog">
+          <div class="ims-dialog-head"><div><h2>Manage IMS users</h2><small>Administrators only</small></div><button class="ims-auth-secondary" type="button" data-close-dialog="imsUsersDialog">Close</button></div>
+          <div class="ims-dialog-body">
+            <form id="imsCreateUserForm" class="ims-user-create-grid">
+              <div class="ims-auth-field"><label for="imsUserName">Full name</label><input id="imsUserName" required></div>
+              <div class="ims-auth-field"><label for="imsUserUsername">IMS username</label><input id="imsUserUsername" required maxlength="32" placeholder="JDOE"></div>
+              <div class="ims-auth-field"><label for="imsUserEmail">Email</label><input id="imsUserEmail" type="email" required></div>
+              <div class="ims-auth-field"><label for="imsUserPassword">Temporary password</label><input id="imsUserPassword" type="password" required minlength="8"></div>
+              <div class="ims-auth-field"><label for="imsUserRole">Role</label><select id="imsUserRole"><option value="employee">Employee</option><option value="supervisor">Team Lead</option><option value="admin">Administrator</option></select></div>
+              <button class="ims-auth-primary" type="submit">Create and activate</button>
+            </form>
+            <div id="imsUsersMessage" class="ims-auth-message"></div>
+            <div id="imsUserList" class="ims-user-list"><div>Loading users…</div></div>
+          </div>
+        </section>
+      </div>
+
+      <div id="imsLogicDialog" class="ims-dialog-backdrop">
+        <section class="ims-dialog ims-logic-dialog">
+          <div class="ims-dialog-head">
+            <div><h2>Logic Control</h2><small>Team Leads only · approved defaults and BOM monitoring</small></div>
+            <button class="ims-auth-secondary" type="button" data-close-dialog="imsLogicDialog">Close</button>
+          </div>
+          <div class="ims-dialog-body">
+            <div id="imsLogicMeta" class="ims-logic-meta">Loading approved logic…</div>
+            <div id="imsLogicMessage" class="ims-auth-message"></div>
+
+            <div class="ims-logic-editor-grid">
+              <form id="imsChocolateLogicForm" class="ims-logic-card">
+                <div class="ims-logic-card-head"><span class="ims-logic-icon">🍫</span><div><h3>Chocolate</h3><p>Default pounds for any physical area. Box weight remains editable per count.</p></div></div>
+                <div class="ims-logic-fields">
+                  <div class="ims-auth-field"><label for="imsLogicChLine">Line</label><select id="imsLogicChLine"><option>Sollich 2</option><option>Sollich 3</option><option>Pretzel — Dark + Milk</option><option value="*">All lines</option></select></div>
+                  <div class="ims-auth-field"><label for="imsLogicChItem">Running item</label><input id="imsLogicChItem" list="imsLogicProductList" placeholder="* = all items" value="*"></div>
+                  <div class="ims-auth-field"><label for="imsLogicChKind">Chocolate side</label><select id="imsLogicChKind"><option value="SINGLE">Single</option><option value="DARK">Dark</option><option value="MILK">Milk</option></select></div>
+                  <div class="ims-auth-field"><label for="imsLogicChArea">Physical area</label><input id="imsLogicChArea" list="imsLogicChocolateAreaList" value="BOXES ON THE FLOOR" required></div>
+                  <div class="ims-auth-field ims-logic-value-field"><label for="imsLogicChWeight">Default lbs / unit</label><input id="imsLogicChWeight" type="number" min="0" step="any" required placeholder="50"></div>
+                </div>
+                <button class="ims-auth-primary" type="submit">Save chocolate default</button>
+              </form>
+
+              <form id="imsIngredientLogicForm" class="ims-logic-card">
+                <div class="ims-logic-card-head"><span class="ims-logic-icon">🥜</span><div><h3>Ingredients</h3><p>BOM pounds consumed by each completed FG bag or unit.</p></div></div>
+                <div class="ims-logic-fields">
+                  <div class="ims-auth-field"><label for="imsLogicIngFg">Finished good</label><input id="imsLogicIngFg" list="imsLogicFgList" required placeholder="30809"></div>
+                  <div class="ims-auth-field"><label for="imsLogicIngItem">Ingredient item</label><input id="imsLogicIngItem" list="imsLogicIngredientList" required placeholder="10206"></div>
+                  <div class="ims-auth-field ims-logic-value-field"><label for="imsLogicIngBom">BOM lbs / completion</label><input id="imsLogicIngBom" type="number" min="0.000001" step="any" required placeholder="0.36096"></div>
+                </div>
+                <button class="ims-auth-primary" type="submit">Save ingredient BOM</button>
+              </form>
+
+              <form id="imsPouchLogicForm" class="ims-logic-card">
+                <div class="ims-logic-card-head"><span class="ims-logic-icon">📦</span><div><h3>Pouches</h3><p>BOM for the matched packaging item and finished good.</p></div></div>
+                <div class="ims-logic-fields">
+                  <div class="ims-auth-field"><label for="imsLogicPchItem">Packaging item</label><input id="imsLogicPchItem" list="imsLogicPouchList" required placeholder="41032"></div>
+                  <div class="ims-auth-field"><label for="imsLogicPchFg">Finished good</label><input id="imsLogicPchFg" list="imsLogicFgList" required placeholder="30809"></div>
+                  <div class="ims-auth-field ims-logic-value-field"><label for="imsLogicPchBom">BOM / completion</label><input id="imsLogicPchBom" type="number" min="0.000001" step="any" required value="1"></div>
+                </div>
+                <button class="ims-auth-primary" type="submit">Save pouch BOM</button>
+              </form>
+            </div>
+
+            <section class="ims-logic-monitor">
+              <div class="ims-logic-section-head"><div><h3>Approved rules</h3><p>These defaults are applied to every active user.</p></div><input id="imsLogicRuleSearch" type="search" placeholder="Search item, FG, area…"></div>
+              <div id="imsLogicRuleList" class="ims-logic-rule-list"></div>
+            </section>
+
+            <section class="ims-logic-monitor">
+              <div class="ims-logic-section-head"><div><h3>Recent changes</h3><p>Audit trail of Team Lead updates.</p></div><button id="imsLogicRefresh" class="ims-auth-secondary" type="button">Refresh</button></div>
+              <div id="imsLogicAudit" class="ims-logic-audit"><div>Loading history…</div></div>
+            </section>
+
+            <datalist id="imsLogicProductList"></datalist>
+            <datalist id="imsLogicFgList"></datalist>
+            <datalist id="imsLogicIngredientList"></datalist>
+            <datalist id="imsLogicPouchList"></datalist>
+            <datalist id="imsLogicChocolateAreaList">
+              <option value="MELTING TANK 1"></option><option value="MELTING TANK 2"></option><option value="MELTING TANK 3"></option>
+              <option value="AD3"></option><option value="AD4"></option><option value="AD5"></option><option value="AD6"></option>
+              <option value="MORCOS TANK"></option><option value="DECORATOR 1 (BIG)"></option><option value="DECORATOR 2 (SMALL)"></option>
+              <option value="ENROBERS AND PIPES"></option><option value="BED"></option><option value="FG PALLETS (WITHOUT LABEL)"></option>
+              <option value="FG PALLETS WITHOUT LABEL"></option><option value="BOXES ON THE FLOOR"></option>
+            </datalist>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function installMarkup() {
+    document.body.insertAdjacentHTML('beforeend', authMarkup());
+    document.body.classList.add('ims-app-locked');
+    bindAuthEvents();
+  }
+
+  function bindAuthEvents() {
+    byId('imsLoginView').addEventListener('submit', signIn);
+    byId('imsResetView').addEventListener('submit', sendPasswordReset);
+    byId('imsNewPasswordView').addEventListener('submit', setNewPassword);
+    byId('imsBootstrapView').addEventListener('submit', createFirstAdmin);
+    byId('imsForgotButton').addEventListener('click', () => showAuthView('reset'));
+    byId('imsBootstrapButton').addEventListener('click', () => showAuthView('bootstrap'));
+    document.querySelectorAll('[data-auth-back]').forEach(el => el.addEventListener('click', () => showAuthView('login')));
+    byId('imsPendingRefresh').addEventListener('click', () => authorizeSession(session));
+    byId('imsPendingSignout').addEventListener('click', signOut);
+    byId('imsAccountButton').addEventListener('click', openAccountDialog);
+    byId('imsUsersButton').addEventListener('click', openUsersDialog);
+    byId('imsLogicButton').addEventListener('click', openLogicDialog);
+    byId('imsAccountSave').addEventListener('click', () => saveCloudState(true));
+    byId('imsAccountSignout').addEventListener('click', signOut);
+    byId('imsCreateUserForm').addEventListener('submit', createManagedUser);
+    byId('imsChocolateLogicForm').addEventListener('submit', saveChocolateLogic);
+    byId('imsIngredientLogicForm').addEventListener('submit', saveIngredientLogic);
+    byId('imsPouchLogicForm').addEventListener('submit', savePouchLogic);
+    byId('imsLogicRuleSearch').addEventListener('input', renderLogicRules);
+    byId('imsLogicChLine').addEventListener('change', event => {
+      const kind = byId('imsLogicChKind');
+      if (event.target.value.startsWith('Pretzel') && kind.value === 'SINGLE') kind.value = 'DARK';
+      if (!event.target.value.startsWith('Pretzel') && kind.value !== 'SINGLE') kind.value = 'SINGLE';
+    });
+    byId('imsLogicRefresh').addEventListener('click', async () => { await loadLogicConfig(); await loadLogicAudit(); });
+    document.querySelectorAll('[data-close-dialog]').forEach(el => el.addEventListener('click', () => closeDialog(el.dataset.closeDialog)));
+    document.querySelectorAll('.ims-dialog-backdrop').forEach(el => el.addEventListener('click', event => {
+      if (event.target === el) closeDialog(el.id);
+    }));
+  }
+
+  function setMessage(id, message, type) {
+    const el = byId(id);
+    if (!el) return;
+    el.textContent = message || '';
+    el.className = 'ims-auth-message' + (message ? ` is-${type || 'success'}` : '');
+  }
+
+  function showAuthView(mode) {
+    authMode = mode;
+    const map = {
+      login: 'imsLoginView', reset: 'imsResetView', password: 'imsNewPasswordView',
+      bootstrap: 'imsBootstrapView', pending: 'imsPendingView'
+    };
+    Object.values(map).forEach(id => { byId(id).hidden = id !== map[mode]; });
+    byId('imsAuthRoot').classList.add('is-visible');
+    document.body.classList.add('ims-app-locked');
+  }
+
+  function hideAuth() {
+    byId('imsAuthRoot').classList.remove('is-visible');
+    document.body.classList.remove('ims-app-locked');
+  }
+
+  async function checkBootstrapAvailability() {
+    const { data, error } = await client.rpc('ims_setup_status');
+    if (!error) byId('imsBootstrapButton').hidden = Boolean(data && data.admin_exists);
+  }
+
+  async function signIn(event) {
+    event.preventDefault();
+    const button = byId('imsLoginSubmit');
+    button.disabled = true;
+    setMessage('imsLoginMessage', '', 'success');
+    const email = clean(byId('imsLoginEmail').value).toLowerCase();
+    const password = byId('imsLoginPassword').value;
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    button.disabled = false;
+    if (error) {
+      setMessage('imsLoginMessage', friendlyAuthError(error), 'error');
+      return;
+    }
+    await authorizeSession(data.session);
+  }
+
+  async function sendPasswordReset(event) {
+    event.preventDefault();
+    const email = clean(byId('imsResetEmail').value).toLowerCase();
+    const redirectTo = `${location.origin}${location.pathname}`;
+    const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) setMessage('imsResetMessage', friendlyAuthError(error), 'error');
+    else setMessage('imsResetMessage', 'Recovery email sent. Check your inbox.', 'success');
+  }
+
+  async function setNewPassword(event) {
+    event.preventDefault();
+    const password = byId('imsNewPassword').value;
+    const confirm = byId('imsNewPasswordConfirm').value;
+    if (password !== confirm) {
+      setMessage('imsNewPasswordMessage', 'The passwords do not match.', 'error');
+      return;
+    }
+    const { error } = await client.auth.updateUser({ password });
+    if (error) setMessage('imsNewPasswordMessage', friendlyAuthError(error), 'error');
+    else {
+      setMessage('imsNewPasswordMessage', 'Password updated. Opening IMS Tool…', 'success');
+      const result = await client.auth.getSession();
+      setTimeout(() => authorizeSession(result.data.session), 500);
+    }
+  }
+
+  async function createFirstAdmin(event) {
+    event.preventDefault();
+    const fullName = clean(byId('imsBootstrapName').value);
+    const imsUsername = normalizeUsername(byId('imsBootstrapUsername').value);
+    const email = clean(byId('imsBootstrapEmail').value).toLowerCase();
+    const password = byId('imsBootstrapPassword').value;
+    setMessage('imsBootstrapMessage', 'Creating the administrator…', 'success');
+    const { data, error } = await client.auth.signUp({
+      email, password,
+      options: { data: { full_name: fullName, ims_username: imsUsername } }
+    });
+    if (error) {
+      setMessage('imsBootstrapMessage', friendlyAuthError(error), 'error');
+      return;
+    }
+    if (data.session) {
+      const claim = await client.rpc('claim_first_admin');
+      if (claim.error || claim.data !== true) {
+        setMessage('imsBootstrapMessage', 'The account was created, but another administrator already exists.', 'error');
+        return;
+      }
+      await authorizeSession(data.session);
+    } else {
+      setMessage('imsBootstrapMessage', 'Account created. Open the confirmation email, then return here and sign in.', 'success');
+    }
+  }
+
+  function friendlyAuthError(error) {
+    const text = clean(error && error.message);
+    if (/invalid login/i.test(text)) return 'Incorrect email or password.';
+    if (/email not confirmed/i.test(text)) return 'Confirm your email before signing in.';
+    if (/already registered|already exists/i.test(text)) return 'An account already exists for this email.';
+    if (/password/i.test(text) && /least|short|characters/i.test(text)) return 'Use a password with at least eight characters.';
+    return text || 'Unable to complete the request.';
+  }
+
+  async function authorizeSession(nextSession) {
+    session = nextSession;
+    if (!session || !session.user) {
+      profile = null;
+      cloudReady = false;
+      showAuthView('login');
+      await checkBootstrapAvailability();
+      return;
+    }
+
+    let result = await client.from('ims_profiles').select('*').eq('id', session.user.id).maybeSingle();
+    if (result.error) {
+      setMessage('imsLoginMessage', `Account profile error: ${result.error.message}`, 'error');
+      showAuthView('login');
+      return;
+    }
+    profile = result.data;
+
+    if (profile && !profile.active) {
+      const claim = await client.rpc('claim_first_admin');
+      if (!claim.error && claim.data === true) {
+        result = await client.from('ims_profiles').select('*').eq('id', session.user.id).single();
+        profile = result.data;
+      }
+    }
+
+    if (!profile || !profile.active) {
+      showAuthView('pending');
+      setMessage('imsPendingMessage', profile ? `Signed in as ${session.user.email}.` : 'Waiting for your IMS profile.', 'success');
+      return;
+    }
+
+    await openWorkspace();
+  }
+
+  async function openWorkspace() {
+    hideAuth();
+    updateIdentityUI();
+    setCloudStatus('Loading saved work…');
+    await loadLogicConfig();
+    await restoreCloudState();
+    await syncReportsFromCloud();
+    fillEmployeeIdentity();
+    cloudReady = true;
+    setCloudStatus('Saved', 'saved');
+    installAutosaveListeners();
+    wrapReportSaving();
+    if (!logicPollTimer) logicPollTimer = setInterval(() => {
+      if (session && profile && profile.active) loadLogicConfig({ rebuild: false });
+    }, 60000);
+  }
+
+  function updateIdentityUI() {
+    const label = profile.full_name || profile.ims_username || session.user.email;
+    const accountButton = byId('imsAccountButton');
+    accountButton.hidden = false;
+    accountButton.textContent = `👤 ${label}`;
+    byId('imsCloudStatus').hidden = false;
+    const canManage = profile.role === 'admin';
+    byId('imsUsersButton').hidden = !canManage;
+    const canLead = profile.role === 'admin' || profile.role === 'supervisor';
+    byId('imsLogicButton').hidden = !canLead;
+    if (canLead) {
+      safeCall('unlockDashboard');
+      addDashboardNavigation();
+    }
+  }
+
+  function addDashboardNavigation() {
+    const nav = document.querySelector('.nav');
+    if (!nav || byId('imsDashboardNav')) return;
+    const button = document.createElement('button');
+    button.id = 'imsDashboardNav';
+    button.className = 'nav-btn';
+    button.innerHTML = '📊 Dashboard <span class="nav-badge">Lead</span>';
+    button.addEventListener('click', () => {
+      if (typeof window.switchPanel === 'function') window.switchPanel('dashboard', button);
+      if (typeof window.renderDash === 'function') window.renderDash();
+    });
+    nav.appendChild(button);
+  }
+
+  function fillEmployeeIdentity() {
+    const label = profile.full_name || profile.ims_username || session.user.email;
+    EMPLOYEE_FIELDS.forEach(id => {
+      const field = byId(id);
+      if (field && !clean(field.value)) {
+        field.value = label;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  }
+
+  function openAccountDialog() {
+    if (!profile) return;
+    byId('imsAccountIdentity').innerHTML = `
+      <h3 style="margin:0 0 8px">${escapeHtml(profile.full_name || 'IMS employee')}</h3>
+      <p style="margin:0;color:#64748b"><strong>${escapeHtml(profile.ims_username || 'No username')}</strong> · ${escapeHtml(session.user.email || '')}</p>
+      <p style="margin:10px 0 0;color:#64748b">Role: ${escapeHtml(roleLabel(profile.role))}</p>`;
+    openDialog('imsAccountDialog');
+  }
+
+  async function signOut() {
+    if (cloudReady) await saveCloudState(true);
+    await client.auth.signOut();
+    session = null;
+    profile = null;
+    cloudReady = false;
+    byId('imsAccountButton').hidden = true;
+    byId('imsUsersButton').hidden = true;
+    byId('imsLogicButton').hidden = true;
+    byId('imsCloudStatus').hidden = true;
+    closeDialog('imsAccountDialog');
+    closeDialog('imsUsersDialog');
+    closeDialog('imsLogicDialog');
+    showAuthView('login');
+    await checkBootstrapAvailability();
+  }
+
+  function fieldKey(el, index) {
+    if (el.id) return `id:${el.id}`;
+    const panel = el.closest('.panel');
+    return `idx:${panel ? panel.id : 'global'}:${index}:${el.tagName}:${el.type || ''}:${el.name || ''}`;
+  }
+
+  function appControls() {
+    return Array.from(document.querySelectorAll('input, select, textarea')).filter(el => !el.closest('#imsAuthRoot, #imsAccountDialog, #imsUsersDialog, #imsLogicDialog'));
+  }
+
+  function captureState() {
+    const controls = appControls();
+    const fields = {};
+    controls.forEach((el, index) => {
+      fields[fieldKey(el, index)] = {
+        value: el.value,
+        checked: Boolean(el.checked),
+        type: el.type || el.tagName.toLowerCase()
+      };
+    });
+    const storage = {};
+    STORAGE_KEYS.forEach(key => { storage[key] = localStorage.getItem(key); });
+    return {
+      version: 1,
+      saved_at: new Date().toISOString(),
+      fields,
+      storage
+    };
+  }
+
+  async function restoreCloudState() {
+    const { data, error } = await client.from('ims_workspace_state').select('state, updated_at').eq('user_id', session.user.id).maybeSingle();
+    if (error) {
+      setCloudStatus('Cloud load failed', 'error');
+      return;
+    }
+    if (!data || !data.state) {
+      dirty = true;
+      await saveCloudState(true);
+      return;
+    }
+    const snapshot = data.state;
+    if (snapshot.storage) {
+      STORAGE_KEYS.forEach(key => {
+        const value = snapshot.storage[key];
+        if (typeof value === 'string') localStorage.setItem(key, value);
+      });
+    }
+    await restoreFields(snapshot.fields || {});
+    reloadInMemoryDrafts();
+  }
+
+  async function restoreFields(fields) {
+    STRUCTURAL_FIELDS.forEach(id => {
+      const el = byId(id);
+      const saved = fields[`id:${id}`];
+      if (!el || !saved) return;
+      el.value = saved.value;
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await new Promise(resolve => setTimeout(resolve, 80));
+    const controls = appControls();
+    controls.forEach((el, index) => {
+      const saved = fields[fieldKey(el, index)] || (el.id ? fields[`id:${el.id}`] : null);
+      if (!saved) return;
+      if (el.type === 'checkbox' || el.type === 'radio') el.checked = Boolean(saved.checked);
+      else el.value = saved.value == null ? '' : saved.value;
+    });
+    controls.forEach(el => {
+      if (el.type === 'checkbox' || el.type === 'radio') el.dispatchEvent(new Event('change', { bubbles: true }));
+      else el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    ['calcChoc', 'calcIng', 'calcPchAll', 'updateKitchenSummary', 'updatePalletProgress', 'opsRefreshReports'].forEach(safeCall);
+  }
+
+  function reloadInMemoryDrafts() {
+    safeCall('poLoadDraft');
+    safeCall('renderPoTables');
+    safeCall('loadPreKitchenRows');
+    safeCall('renderPreKitchenRows');
+    safeCall('ccLoadHistory');
+    safeCall('ccRenderHistory');
+    safeCall('renderDash');
+  }
+
+  function safeCall(name) {
+    try { if (typeof window[name] === 'function') window[name](); } catch (_) {}
+  }
+
+  function setCloudStatus(text, state) {
+    const el = byId('imsCloudStatus');
+    if (!el) return;
+    el.hidden = false;
+    el.textContent = text;
+    el.className = 'ims-cloud-status' + (state ? ` is-${state}` : '');
+  }
+
+  function markDirty() {
+    if (!cloudReady || !profile || !profile.active) return;
+    dirty = true;
+    setCloudStatus('Unsaved changes');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveCloudState(false), 1400);
+  }
+
+  async function saveCloudState(force) {
+    if (!session || !profile || !profile.active || saveInFlight || (!dirty && !force)) return;
+    saveInFlight = true;
+    setCloudStatus('Saving…');
+    const state = captureState();
+    const { error } = await client.from('ims_workspace_state').upsert({
+      user_id: session.user.id,
+      state,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    saveInFlight = false;
+    if (error) {
+      dirty = true;
+      setCloudStatus('Save failed', 'error');
+    } else {
+      dirty = false;
+      setCloudStatus('Saved', 'saved');
+    }
+  }
+
+  function installAutosaveListeners() {
+    if (document.documentElement.dataset.imsAutosaveInstalled) return;
+    document.documentElement.dataset.imsAutosaveInstalled = '1';
+    document.addEventListener('input', markDirty, true);
+    document.addEventListener('change', markDirty, true);
+    document.addEventListener('click', event => {
+      if (event.target.closest('#imsAuthRoot, #imsAccountDialog, #imsUsersDialog, #imsLogicDialog')) return;
+      setTimeout(markDirty, 0);
+    }, true);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') saveCloudState(true);
+    });
+    setInterval(() => saveCloudState(false), 30000);
+  }
+
+  function wrapReportSaving() {
+    if (window.__imsReportWrapped || typeof window.saveReport !== 'function') return;
+    window.__imsReportWrapped = true;
+    const original = window.saveReport;
+    window.saveReport = function (report) {
+      report = Object.assign({}, report, {
+        imsUserId: session && session.user ? session.user.id : null,
+        imsUsername: profile ? profile.ims_username : null,
+        imsEmployee: profile ? profile.full_name : null
+      });
+      original(report);
+      saveReportToCloud(report);
+      markDirty();
+    };
+    uploadExistingReports();
+  }
+
+  async function saveReportToCloud(report) {
+    if (!session || !report) return;
+    const { error } = await client.from('ims_reports').upsert({
+      created_by: session.user.id,
+      report_id: String(report.id || Date.now()),
+      module: String(report.module || 'other'),
+      report_date: report.date || null,
+      shift: report.shift || null,
+      employee_name: profile.full_name || profile.ims_username || session.user.email,
+      report,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'created_by,report_id' });
+    if (error) setCloudStatus('Report sync failed', 'error');
+  }
+
+  async function uploadExistingReports() {
+    let reports = [];
+    try { reports = JSON.parse(localStorage.getItem('shifthub_pro_v1') || '[]'); } catch (_) {}
+    if (!Array.isArray(reports)) return;
+    for (const report of reports.slice(-250)) await saveReportToCloud(report);
+  }
+
+  async function syncReportsFromCloud() {
+    const { data, error } = await client.from('ims_reports').select('created_by, report_id, report, updated_at').order('updated_at', { ascending: true }).limit(1000);
+    if (error || !Array.isArray(data)) return;
+    let local = [];
+    try { local = JSON.parse(localStorage.getItem('shifthub_pro_v1') || '[]'); } catch (_) {}
+    if (!Array.isArray(local)) local = [];
+    const merged = new Map();
+    local.forEach(report => merged.set(`${report.imsUserId || session.user.id}:${report.id}`, report));
+    data.forEach(row => {
+      if (row.report) merged.set(`${row.created_by}:${row.report_id}`, row.report);
+    });
+    localStorage.setItem('shifthub_pro_v1', JSON.stringify(Array.from(merged.values())));
+    safeCall('renderDash');
+    safeCall('renderPublicLeaderboard');
+  }
+
+  function isLead() {
+    return Boolean(profile && profile.active && (profile.role === 'supervisor' || profile.role === 'admin'));
+  }
+
+  function normalizeLogicConfig(raw) {
+    const source = raw && typeof raw === 'object' ? raw : {};
+    return {
+      version: Number(source.version) || 1,
+      chocolate: { weights: Object.assign({}, source.chocolate && source.chocolate.weights || {}) },
+      ingredients: { bom: Object.assign({}, source.ingredients && source.ingredients.bom || {}) },
+      pouches: { bom: Object.assign({}, source.pouches && source.pouches.bom || {}) },
+      updatedAt: source.updatedAt || source.updated_at || null,
+      updatedBy: source.updatedBy || source.updated_by || null
+    };
+  }
+
+  async function loadLogicConfig(options) {
+    const rebuild = !options || options.rebuild !== false;
+    const { data, error } = await client.from('ims_logic_config').select('config, updated_at').eq('id', 'global').maybeSingle();
+    if (error) {
+      setMessage('imsLogicMessage', `Logic Control is not ready: ${error.message}`, 'error');
+      if (typeof window.imsApplyLogicConfig === 'function') window.imsApplyLogicConfig(logicConfig, { rebuild });
+      return false;
+    }
+    logicConfig = normalizeLogicConfig(data && data.config);
+    if (data && data.updated_at) logicConfig.updatedAt = data.updated_at;
+    if (typeof window.imsApplyLogicConfig === 'function') window.imsApplyLogicConfig(logicConfig, { rebuild });
+    renderLogicRules();
+    renderLogicMeta();
+    return true;
+  }
+
+  function logicSource(name) {
+    try {
+      if (name === 'products' && typeof PROD_ITEMS !== 'undefined') return PROD_ITEMS;
+      if (name === 'ingredients' && typeof ING_ITEMS !== 'undefined') return ING_ITEMS;
+      if (name === 'pouches' && typeof POUCH_ITEMS !== 'undefined') return POUCH_ITEMS;
+    } catch (_) {}
+    if (name === 'fg') return (window.SHIFTHUB_INGREDIENT_DATA && window.SHIFTHUB_INGREDIENT_DATA.finishedGoods || []).filter(item => /^3/.test(String(item.id)));
+    return [];
+  }
+
+  function fillLogicDatalist(id, items, descriptionKey) {
+    const list = byId(id);
+    if (!list) return;
+    list.innerHTML = items.map(item => `<option value="${escapeHtml(item.id)}" label="${escapeHtml(item[descriptionKey] || item.desc || item.name || '')}"></option>`).join('');
+  }
+
+  function populateLogicDatalists() {
+    fillLogicDatalist('imsLogicProductList', logicSource('products'), 'desc');
+    fillLogicDatalist('imsLogicFgList', logicSource('fg'), 'desc');
+    fillLogicDatalist('imsLogicIngredientList', logicSource('ingredients'), 'name');
+    fillLogicDatalist('imsLogicPouchList', logicSource('pouches'), 'desc');
+  }
+
+  async function openLogicDialog() {
+    if (!isLead()) return;
+    populateLogicDatalists();
+    openDialog('imsLogicDialog');
+    setMessage('imsLogicMessage', '', 'success');
+    await loadLogicConfig({ rebuild: false });
+    await loadLogicAudit();
+  }
+
+  function renderLogicMeta() {
+    const counts = {
+      chocolate: Object.keys(logicConfig.chocolate.weights).length,
+      ingredients: Object.keys(logicConfig.ingredients.bom).length,
+      pouches: Object.keys(logicConfig.pouches.bom).length
+    };
+    const updated = logicConfig.updatedAt ? new Date(logicConfig.updatedAt).toLocaleString() : 'No Team Lead changes yet';
+    const meta = byId('imsLogicMeta');
+    if (meta) meta.innerHTML = `<strong>${counts.chocolate + counts.ingredients + counts.pouches} approved overrides</strong><span>Chocolate ${counts.chocolate}</span><span>Ingredients ${counts.ingredients}</span><span>Pouches ${counts.pouches}</span><span>Last update: ${escapeHtml(updated)}</span>`;
+  }
+
+  function logicRules() {
+    const rules = [];
+    Object.entries(logicConfig.chocolate.weights).forEach(([key, value]) => {
+      const [line, item, kind, area] = key.split('|');
+      rules.push({ module: 'chocolate', key, value, title: `Chocolate · ${line} · ${kind}`, detail: `${item === '*' ? 'All running items' : `Item ${item}`} · ${area} · lbs/unit` });
+    });
+    Object.entries(logicConfig.ingredients.bom).forEach(([key, value]) => {
+      const [fg, item] = key.split('|');
+      rules.push({ module: 'ingredients', key, value, title: `Ingredient BOM · FG ${fg}`, detail: `Ingredient ${item} · lbs/completion` });
+    });
+    Object.entries(logicConfig.pouches.bom).forEach(([key, value]) => {
+      const [item, fg] = key.split('|');
+      rules.push({ module: 'pouches', key, value, title: `Pouch BOM · Item ${item}`, detail: `${fg === '*' ? 'All finished goods' : `FG ${fg}`} · units/completion` });
+    });
+    return rules.sort((a, b) => a.module.localeCompare(b.module) || a.key.localeCompare(b.key));
+  }
+
+  function renderLogicRules() {
+    const list = byId('imsLogicRuleList');
+    if (!list) return;
+    const query = clean(byId('imsLogicRuleSearch') && byId('imsLogicRuleSearch').value).toLowerCase();
+    const rules = logicRules().filter(rule => !query || `${rule.title} ${rule.detail} ${rule.key}`.toLowerCase().includes(query));
+    list.innerHTML = rules.map(rule => `
+      <div class="ims-logic-rule" data-logic-module="${rule.module}" data-logic-key="${escapeHtml(encodeURIComponent(rule.key))}">
+        <span class="ims-logic-module is-${rule.module}">${rule.module === 'chocolate' ? 'Chocolate' : rule.module === 'ingredients' ? 'Ingredient' : 'Pouch'}</span>
+        <div><strong>${escapeHtml(rule.title)}</strong><small>${escapeHtml(rule.detail)}</small></div>
+        <output>${escapeHtml(rule.value)}</output>
+        <button class="ims-auth-secondary ims-auth-danger" type="button" data-logic-delete>Remove</button>
+      </div>`).join('') || '<div class="ims-logic-empty">No approved overrides match this search. Built-in document defaults remain active.</div>';
+    list.querySelectorAll('[data-logic-delete]').forEach(button => button.addEventListener('click', deleteLogicRule));
+    renderLogicMeta();
+  }
+
+  function logicItemId(value) {
+    const text = clean(value);
+    const match = text.match(/^([^\s—]+)/);
+    return match ? match[1] : text;
+  }
+
+  function logicBucket(config, module) {
+    if (module === 'chocolate') return config.chocolate.weights;
+    if (module === 'ingredients') return config.ingredients.bom;
+    return config.pouches.bom;
+  }
+
+  async function saveLogicChange(module, key, value, action) {
+    if (!isLead()) return false;
+    const draft = normalizeLogicConfig(logicConfig);
+    const bucket = logicBucket(draft, module);
+    const oldValue = Object.prototype.hasOwnProperty.call(bucket, key) ? bucket[key] : null;
+    if (action === 'delete') delete bucket[key];
+    else bucket[key] = value;
+    draft.updatedAt = new Date().toISOString();
+    draft.updatedBy = profile.ims_username || profile.full_name || session.user.email;
+    setMessage('imsLogicMessage', 'Saving approved logic…', 'success');
+    const { data, error } = await client.from('ims_logic_config').update({
+      config: draft,
+      updated_by: session.user.id,
+      updated_at: draft.updatedAt
+    }).eq('id', 'global').select('config, updated_at').single();
+    if (error) {
+      setMessage('imsLogicMessage', `Unable to save: ${error.message}`, 'error');
+      return false;
+    }
+    logicConfig = normalizeLogicConfig(data.config);
+    logicConfig.updatedAt = data.updated_at;
+    if (typeof window.imsApplyLogicConfig === 'function') window.imsApplyLogicConfig(logicConfig, { rebuild: false });
+    const audit = await client.from('ims_logic_audit').insert({
+      module,
+      rule_key: key,
+      old_value: oldValue,
+      new_value: action === 'delete' ? null : value,
+      action: action === 'delete' ? 'deleted' : oldValue === null ? 'created' : 'updated',
+      changed_by: session.user.id,
+      changed_by_name: profile.full_name || profile.ims_username || session.user.email
+    });
+    renderLogicRules();
+    renderLogicMeta();
+    setMessage('imsLogicMessage', audit.error ? `Logic saved, but audit history failed: ${audit.error.message}` : 'Approved logic saved. Open reports were not reset; the new default applies on the next item selection or report.', audit.error ? 'error' : 'success');
+    await loadLogicAudit();
+    return true;
+  }
+
+  async function saveChocolateLogic(event) {
+    event.preventDefault();
+    const line = clean(byId('imsLogicChLine').value) || '*';
+    const item = logicItemId(byId('imsLogicChItem').value) || '*';
+    const kind = clean(byId('imsLogicChKind').value) || 'SINGLE';
+    const area = clean(byId('imsLogicChArea').value).toUpperCase();
+    const weight = Number(byId('imsLogicChWeight').value);
+    if (!area || !Number.isFinite(weight) || weight < 0) {
+      setMessage('imsLogicMessage', 'Enter a physical area and a valid non-negative weight.', 'error');
+      return;
+    }
+    await saveLogicChange('chocolate', [line, item, kind, area].join('|'), weight, 'save');
+  }
+
+  async function saveIngredientLogic(event) {
+    event.preventDefault();
+    const fg = logicItemId(byId('imsLogicIngFg').value);
+    const item = logicItemId(byId('imsLogicIngItem').value);
+    const bom = Number(byId('imsLogicIngBom').value);
+    if (!fg || !item || !Number.isFinite(bom) || bom <= 0) {
+      setMessage('imsLogicMessage', 'Enter the FG, ingredient item and a BOM greater than zero.', 'error');
+      return;
+    }
+    await saveLogicChange('ingredients', `${fg}|${item}`, bom, 'save');
+  }
+
+  async function savePouchLogic(event) {
+    event.preventDefault();
+    const item = logicItemId(byId('imsLogicPchItem').value);
+    const fg = logicItemId(byId('imsLogicPchFg').value) || '*';
+    const bom = Number(byId('imsLogicPchBom').value);
+    if (!item || !Number.isFinite(bom) || bom <= 0) {
+      setMessage('imsLogicMessage', 'Enter the packaging item, FG and a BOM greater than zero.', 'error');
+      return;
+    }
+    await saveLogicChange('pouches', `${item}|${fg}`, bom, 'save');
+  }
+
+  async function deleteLogicRule(event) {
+    if (!isLead()) return;
+    const row = event.target.closest('[data-logic-key]');
+    const key = decodeURIComponent(row.dataset.logicKey);
+    if (!window.confirm(`Remove approved rule ${key}? Built-in document logic will be used again.`)) return;
+    await saveLogicChange(row.dataset.logicModule, key, null, 'delete');
+  }
+
+  async function loadLogicAudit() {
+    const target = byId('imsLogicAudit');
+    if (!target || !isLead()) return;
+    target.innerHTML = '<div>Loading history…</div>';
+    const { data, error } = await client.from('ims_logic_audit').select('module, rule_key, old_value, new_value, action, changed_by_name, changed_at').order('changed_at', { ascending: false }).limit(50);
+    if (error) {
+      target.innerHTML = `<div class="ims-auth-message is-error">${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    target.innerHTML = data.map(row => `
+      <div class="ims-logic-audit-row">
+        <span class="ims-logic-module is-${escapeHtml(row.module)}">${escapeHtml(row.module)}</span>
+        <div><strong>${escapeHtml(row.action)} · ${escapeHtml(row.rule_key)}</strong><small>${escapeHtml(row.changed_by_name || 'Team Lead')} · ${escapeHtml(new Date(row.changed_at).toLocaleString())}</small></div>
+        <span class="ims-logic-change">${row.old_value == null ? '—' : escapeHtml(row.old_value)} → ${row.new_value == null ? '—' : escapeHtml(row.new_value)}</span>
+      </div>`).join('') || '<div class="ims-logic-empty">No logic changes have been recorded yet.</div>';
+  }
+
+  function normalizeUsername(value) {
+    return clean(value).toUpperCase().replace(/[^A-Z0-9._-]/g, '').slice(0, 32);
+  }
+
+  async function openUsersDialog() {
+    if (!profile || profile.role !== 'admin') return;
+    openDialog('imsUsersDialog');
+    await loadUsers();
+  }
+
+  async function createManagedUser(event) {
+    event.preventDefault();
+    if (!profile || profile.role !== 'admin') return;
+    const fullName = clean(byId('imsUserName').value);
+    const imsUsername = normalizeUsername(byId('imsUserUsername').value);
+    const email = clean(byId('imsUserEmail').value).toLowerCase();
+    const password = byId('imsUserPassword').value;
+    const role = byId('imsUserRole').value;
+    setMessage('imsUsersMessage', 'Creating user…', 'success');
+
+    const secondary = window.supabase.createClient(IMS_CONFIG.url, IMS_CONFIG.publishableKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        storageKey: `ims-admin-create-${Date.now()}`
+      }
+    });
+    const { data, error } = await secondary.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName, ims_username: imsUsername } }
+    });
+    if (error || !data.user) {
+      setMessage('imsUsersMessage', friendlyAuthError(error), 'error');
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, 250));
+    const update = await client.from('ims_profiles').update({
+      full_name: fullName,
+      ims_username: imsUsername,
+      role,
+      active: true,
+      updated_at: new Date().toISOString()
+    }).eq('id', data.user.id);
+    if (update.error) {
+      setMessage('imsUsersMessage', `Account created, but activation failed: ${update.error.message}`, 'error');
+      return;
+    }
+    event.target.reset();
+    setMessage('imsUsersMessage', 'User created and activated. If email confirmation is enabled, the employee must confirm the message received.', 'success');
+    await loadUsers();
+  }
+
+  async function loadUsers() {
+    const list = byId('imsUserList');
+    list.innerHTML = '<div>Loading users…</div>';
+    const { data, error } = await client.from('ims_profiles').select('*').order('full_name');
+    if (error) {
+      list.innerHTML = `<div class="ims-auth-message is-error">${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    list.innerHTML = data.map(user => `
+      <div class="ims-user-row" data-user-id="${escapeHtml(user.id)}">
+        <div><strong>${escapeHtml(user.full_name || 'Unnamed')}</strong><small>${escapeHtml(user.email || '')}</small></div>
+        <div><strong>${escapeHtml(user.ims_username || '—')}</strong><small>IMS username</small></div>
+        <select aria-label="Role" data-user-role>
+          <option value="employee" ${user.role === 'employee' ? 'selected' : ''}>Employee</option>
+          <option value="supervisor" ${user.role === 'supervisor' ? 'selected' : ''}>Team Lead</option>
+          <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrator</option>
+        </select>
+        <span class="ims-active-pill ${user.active ? 'is-active' : 'is-inactive'}">${user.active ? 'Active' : 'Inactive'}</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="ims-auth-secondary" type="button" data-user-toggle>${user.active ? 'Deactivate' : 'Activate'}</button>
+          <button class="ims-auth-secondary" type="button" data-user-reset>Reset</button>
+        </div>
+      </div>`).join('') || '<div>No users yet.</div>';
+
+    list.querySelectorAll('[data-user-role]').forEach(select => select.addEventListener('change', updateUserRole));
+    list.querySelectorAll('[data-user-toggle]').forEach(button => button.addEventListener('click', toggleUser));
+    list.querySelectorAll('[data-user-reset]').forEach(button => button.addEventListener('click', resetManagedUserPassword));
+  }
+
+  async function updateUserRole(event) {
+    const row = event.target.closest('[data-user-id]');
+    const { error } = await client.from('ims_profiles').update({ role: event.target.value, updated_at: new Date().toISOString() }).eq('id', row.dataset.userId);
+    setMessage('imsUsersMessage', error ? error.message : 'Role updated.', error ? 'error' : 'success');
+    if (error) await loadUsers();
+  }
+
+  async function toggleUser(event) {
+    const row = event.target.closest('[data-user-id]');
+    const isActive = row.querySelector('.ims-active-pill').classList.contains('is-active');
+    if (row.dataset.userId === session.user.id && isActive) {
+      setMessage('imsUsersMessage', 'You cannot deactivate your own active session.', 'error');
+      return;
+    }
+    const { error } = await client.from('ims_profiles').update({ active: !isActive, updated_at: new Date().toISOString() }).eq('id', row.dataset.userId);
+    setMessage('imsUsersMessage', error ? error.message : 'User status updated.', error ? 'error' : 'success');
+    await loadUsers();
+  }
+
+  async function resetManagedUserPassword(event) {
+    const row = event.target.closest('[data-user-id]');
+    const email = clean(row.querySelector('small').textContent);
+    const redirectTo = `${location.origin}${location.pathname}`;
+    const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+    setMessage('imsUsersMessage', error ? error.message : `Password recovery sent to ${email}.`, error ? 'error' : 'success');
+  }
+
+  function roleLabel(role) {
+    return ({ employee: 'Employee', supervisor: 'Team Lead', admin: 'Administrator' })[role] || role;
+  }
+
+  function openDialog(id) { byId(id).classList.add('is-visible'); }
+  function closeDialog(id) { byId(id).classList.remove('is-visible'); }
+
+  async function start() {
+    installMarkup();
+    if (!window.supabase || !window.supabase.createClient) {
+      setMessage('imsLoginMessage', 'Unable to load the secure login service. Check the internet connection.', 'error');
+      return;
+    }
+    client = window.supabase.createClient(IMS_CONFIG.url, IMS_CONFIG.publishableKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+
+    client.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'PASSWORD_RECOVERY') showAuthView('password');
+      if (event === 'SIGNED_OUT') {
+        session = null;
+        profile = null;
+        cloudReady = false;
+        showAuthView('login');
+      }
+      if (event === 'TOKEN_REFRESHED') session = nextSession;
+    });
+
+    const result = await client.auth.getSession();
+    if (result.error) {
+      setMessage('imsLoginMessage', friendlyAuthError(result.error), 'error');
+      showAuthView('login');
+      return;
+    }
+    if (authMode !== 'password') await authorizeSession(result.data.session);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+
 </script>
 
 </body>
