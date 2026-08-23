@@ -3903,7 +3903,7 @@ function getIngData(){
     item:tr.dataset.item,stage:tr.dataset.stage,detail:tr.dataset.detail||'',fixed:parseFloat(tr.querySelector('.ing-unit-lbs')?.value??tr.dataset.fixed)||0,
     qty:tr.querySelector('.ing-stage-qty')?.value||'',lbs:parseFloat((tr.querySelector('.ing-stage-lbs')?.value||'0').replace(/,/g,''))||0
   }));
-  const midCompletion=ingInput('ingMidCompletion'),endAdditionalCompletion=ingInput('ingEndCompletion'),endCompletion=midCompletion+endAdditionalCompletion;
+  const midCompletion=ingInput('ingMidCompletion'),endAdditionalCompletion=ingInput('ingEndCompletion'),endActive=endAdditionalCompletion>0,endCompletion=endActive?(midCompletion+endAdditionalCompletion):midCompletion;
   const midIngredients=[],endIngredients=[];
   ingSelectedItems().forEach(id=>{
     const s=ingSafe(id),name=(ING_ITEMS.find(i=>i.id===id)||{}).name||'',bom=ingInput(`ing-bom-${s}`);
@@ -3917,7 +3917,7 @@ function getIngData(){
     const end={id,name,bom,physical:endPhysical,system:endSystem,systemAfterScrap:endSystemAfterScrap,additionalCompletion:endAdditionalCompletion,additionalScrap:endAdditionalScrap,scrapReported:midScrapReported+endAdditionalScrap,scrapDisplay:endScrap,currentProductionAdjustment:endCurrentPA,productionAdjustment:endPA,totalAdjustment:endTotal,expected:endExpected,scrapPct:endScrapPct,paPct:endPAPct,pct:endPct,status:ingStatus(endPct,endTotal)};
     midIngredients.push(mid);endIngredients.push(end);
   });
-  return {date:document.getElementById('ingDate').value,shift:document.getElementById('ingShift').value,report:'Mid + End',line:document.getElementById('ingLine').value,template:document.getElementById('ingTemplate').value,fgItem:document.getElementById('ingFgItem').value,rows,mid:{completion:midCompletion,ingredients:midIngredients},end:{completion:endCompletion,additionalCompletion:endAdditionalCompletion,ingredients:endIngredients},completion:endCompletion,ingredients:endIngredients};
+  return {date:document.getElementById('ingDate').value,shift:document.getElementById('ingShift').value,report:endActive?'Mid + End':'Mid Shift',line:document.getElementById('ingLine').value,template:document.getElementById('ingTemplate').value,fgItem:document.getElementById('ingFgItem').value,rows,mid:{completion:midCompletion,ingredients:midIngredients},end:{active:endActive,completion:endCompletion,additionalCompletion:endAdditionalCompletion,ingredients:endIngredients},completion:endActive?endCompletion:midCompletion,ingredients:endActive?endIngredients:midIngredients};
 }
 function calcIng() {
   document.querySelectorAll('.ing-physical-row').forEach(tr => {
@@ -3947,7 +3947,8 @@ function saveIng() {
   const data=getIngData();
   saveReport({id:String(Date.now()),module:'ingredients',date:data.date,shift:data.shift,building:'L1',operator:document.getElementById('ingEmployee').value.trim(),data,savedAt:new Date().toISOString()});
   poSyncContext(document.getElementById('ingEmployee').value.trim(),data.date,data.shift,data.line);
-  poAutoReplace(`ingredients|${data.date}|${data.shift}|${data.line}`,'adj',data.end.ingredients.map(i=>({item:i.id,qty:i.totalAdjustment,units:'lb',lpn:'',reason:`Ingredient adjustment · ${data.line} · Physical ${fmt(i.physical)} · System ${fmt(i.system)} · Scrap ${fmt(i.scrapDisplay)} · Production Adjustment ${fmt(i.productionAdjustment)}`})));
+  const finalIngredients=data.end.active?data.end.ingredients:data.mid.ingredients;
+  poAutoReplace(`ingredients|${data.date}|${data.shift}|${data.line}`,'adj',finalIngredients.map(i=>({item:i.id,qty:i.totalAdjustment,units:'lb',lpn:'',reason:`Ingredient adjustment · ${data.line} · ${data.end.active?'Mid + End cumulative':'Mid Shift only'} · Physical ${fmt(i.physical)} · System ${fmt(i.system)} · Scrap ${fmt(i.scrapDisplay)} · Production Adjustment ${fmt(i.productionAdjustment)}`})));
 }
 
 // ══════════════════════ SCHEDULE & PALLET CONTROL ══════════════════════
@@ -5589,11 +5590,16 @@ async function exportChocWord() {
 async function exportIngWord() {
   calcIng();
   const data = getIngData();
-  const cols = [1800,5000,2500,2500,2600]; const tw = 14400;
-  const hdr = wHeaderRow(['Ingredient','Detail','Mid Qty / lbs','End Qty / lbs','Per Unit lbs'].map((h,i)=>thCell(h,cols[i])).join(''));
+  const endActive=!!data.end?.active;
+  const cols = endActive ? [1800,5000,2500,2500,2600] : [2000,6200,3200,3000]; const tw = 14400;
+  const physicalHeaders=endActive?['Ingredient','Detail','Mid Qty / lbs','End Qty / lbs','Per Unit lbs']:['Ingredient','Detail','Mid Qty / lbs','Per Unit lbs'];
+  const hdr = wHeaderRow(physicalHeaders.map((h,i)=>thCell(h,cols[i])).join(''));
   const grouped={};
   data.rows.forEach(r=>{const key=`${r.item}|${r.detail}|${r.fixed}`;grouped[key] ||= {item:r.item,detail:r.detail,fixed:r.fixed,mid:null,end:null};grouped[key][r.stage]=r;});
-  const rows = Object.values(grouped).map((r,i)=>wRow([r.item,r.detail,`${r.mid?.qty||'—'} / ${fmt(r.mid?.lbs||0)}`,`${r.end?.qty||'—'} / ${fmt(r.end?.lbs||0)}`,r.fixed].map((v,ci)=>tdCell(v,cols[ci],i%2===1)).join(''))).join('');
+  const rows = Object.values(grouped).map((r,i)=>{
+    const vals=endActive?[r.item,r.detail,`${r.mid?.qty||'—'} / ${fmt(r.mid?.lbs||0)}`,`${r.end?.qty||'—'} / ${fmt(r.end?.lbs||0)}`,r.fixed]:[r.item,r.detail,`${r.mid?.qty||'—'} / ${fmt(r.mid?.lbs||0)}`,r.fixed];
+    return wRow(vals.map((v,ci)=>tdCell(v,cols[ci],i%2===1)).join(''));
+  }).join('');
   const summaryCols=[1700,1300,1500,1700,1000,1700,1000,1800,1000,1400];
   const summaryHeader=wHeaderRow(['Stage','Completion','Pounds','Scrap','Scrap %','Production Adjustment','Production Adjustment %','Total Adj.','Adj. %','Status'].map((h,i)=>thCell(h,summaryCols[i])).join(''));
   const summaries = data.mid.ingredients.map((mid,index) => {
@@ -5607,13 +5613,14 @@ async function exportIngWord() {
       wordToneCell(d.totalAdjustment,wordAdjustment(d.totalAdjustment,fmt,' lbs'),summaryCols[7],even),
       tdCell(`${(d.pct*100).toFixed(1)}%`,summaryCols[8],even,{bold:true,center:true}),wordStatusCell(d.status.label,summaryCols[9],even)
     ].join(''));
-    return wSec(`${mid.id} — ${mid.name}`) + wTable(10,summaryCols,summaryHeader+stageRow('MID',data.mid.completion,mid,false)+stageRow('END CUMULATIVE',data.end.completion,end,true),tw)+wPara('',{spaceAfter:100});
+    const stageRows=stageRow('MID',data.mid.completion,mid,false)+(endActive?stageRow('END CUMULATIVE',data.end.completion,end,true):'');
+    return wSec(`${mid.id} — ${mid.name}`) + wTable(10,summaryCols,summaryHeader+stageRows,tw)+wPara('',{spaceAfter:100});
   }
   ).join('');
   const body = wHdr('Ingredients Adjustment — L1') +
     wPara(`Date: ${data.date}   Shift: ${data.shift}   Report: ${data.report}   Line: ${data.line}   FG Item: ${data.fgItem||'—'}`,{size:18,color:'555555'}) +
     wPara('Print key: GREEN = quantity to add. RED = quantity to remove. Every colored value also includes a written action.',{size:18,bold:true,color:'334155'})+
-    wTable(5,cols,hdr+rows,tw) + summaries;
+    wTable(endActive?5:4,cols,hdr+rows,tw) + summaries;
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `Ingredients_${data.date}.docx`);
   toast('✅ Ingredients exported!');
@@ -5963,12 +5970,17 @@ window.addEventListener('DOMContentLoaded', init);
     const data = typeof getIngData==='function' ? getIngData() : {rows:[],ingredients:[]};
     const grouped={};
     (data.rows||[]).forEach(r=>{const key=`${r.item}|${r.detail}|${r.fixed}`;grouped[key] ||= {item:r.item,detail:r.detail,fixed:r.fixed,mid:null,end:null};grouped[key][r.stage]=r;});
-    const rows=Object.values(grouped).map(r=>[esc(r.item),esc(r.detail),`${esc(r.mid?.qty||'—')} / ${money(r.mid?.lbs||0)}`,`${esc(r.end?.qty||'—')} / ${money(r.end?.lbs||0)}`,money(r.fixed)]);
-    const meta=[['Date',data.date||today()],['Shift',data.shift||'—'],['Report','Mid + End'],['Line',data.line||'—'],['FG Item',data.fgItem||'—']];
+    const endActive=!!data.end?.active;
+    const rows=Object.values(grouped).map(r=>endActive
+      ? [esc(r.item),esc(r.detail),`${esc(r.mid?.qty||'—')} / ${money(r.mid?.lbs||0)}`,`${esc(r.end?.qty||'—')} / ${money(r.end?.lbs||0)}`,money(r.fixed)]
+      : [esc(r.item),esc(r.detail),`${esc(r.mid?.qty||'—')} / ${money(r.mid?.lbs||0)}`,money(r.fixed)]);
+    const meta=[['Date',data.date||today()],['Shift',data.shift||'—'],['Report',endActive?'Mid + End':'Mid Shift'],['Line',data.line||'—'],['FG Item',data.fgItem||'—']];
     const metaHTML=meta.map(x=>`<div><strong>${esc(x[0])}:</strong> ${esc(x[1])}</div>`).join('');
     const bodyHTML=rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
     const summaryRows=(data.mid?.ingredients||[]).flatMap((mid,index)=>{
-      const end=data.end.ingredients[index],items=[{label:'Mid Shift',completion:data.mid.completion,i:mid},{label:'End — Cumulative',completion:data.end.completion,i:end}];
+      const end=data.end.ingredients[index],items=endActive
+        ? [{label:'Mid Shift',completion:data.mid.completion,i:mid},{label:'End — Cumulative',completion:data.end.completion,i:end}]
+        : [{label:'Mid Shift',completion:data.mid.completion,i:mid}];
       return items.map(x=>{
       const i=x.i,cls=i.status?.label==='Critical'?'ops-status-critical':i.status?.label==='Attention'?'ops-status-review':'ops-status-ok';
       const signedVal=n=>`${n>0?'+':''}${money(n)}`;
@@ -5983,9 +5995,9 @@ window.addEventListener('DOMContentLoaded', init);
     return `<div class="ops-one-sheet ops-ingredients-sheet" id="ops-ingredients-sheet">
       <div class="ops-sheet-title">Ingredient Adjustment Report</div>
       <div class="ops-sheet-meta">${metaHTML}</div>
-      <table class="ops-sheet-table"><thead><tr><th>Ingredient</th><th>Physical Detail</th><th>Mid Qty / lbs</th><th>End Qty / lbs</th><th>Lbs / Unit</th></tr></thead><tbody>${bodyHTML}</tbody></table>
+      <table class="ops-sheet-table"><thead><tr><th>Ingredient</th><th>Physical Detail</th><th>Mid Qty / lbs</th>${endActive?'<th>End Qty / lbs</th>':''}<th>Lbs / Unit</th></tr></thead><tbody>${bodyHTML}</tbody></table>
       <table class="ops-sheet-table"><thead><tr><th>Ingredient</th><th>Completion</th><th>Pounds</th><th>Scrap</th><th>Scrap %</th><th>Production Adjustment</th><th>Production Adjustment %</th><th>Total Adj.</th><th>Adj. %</th><th>Status</th></tr></thead><tbody>${summaryRows}</tbody></table>
-      <div class="ops-sheet-note"><span>End is cumulative: Mid + additional End Completion, Scrap and Production Adjustment. Pounds = Completion × BOM.</span><span>Signature: ____________________</span></div>
+      <div class="ops-sheet-note"><span>${endActive?'End is cumulative: Mid + additional End Completion, Scrap and Production Adjustment.':'Mid Shift only. End Shift is not included until End Shift Additional Completion is entered.'} Pounds = Completion × BOM.</span><span>Signature: ____________________</span></div>
     </div>`;
   }
 
