@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2694,8 +2692,8 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
     </div>
     <div class="card-body">
       <div class="help-box">
-        <strong>Kitchen Logic:</strong> Upload Excel/CSV from IMS/NetSuite. The tool reads Item, Description, Inventory Number (from the "Lot Number" column — this is different from Bin/LP), LP Number, Expiration Date and exact System Qty.
-        Enter Physical Qty, LP Match and Adjust manually. Every item keeps its own expiration date. Total / Grand Total rows from the uploaded file are ignored because quantities from different items must not be added together.
+        <strong>Kitchen Logic — Exact Adjustment:</strong> Upload Excel/CSV from IMS/NetSuite. The tool reads Item, Description, Inventory Number (from the "Lot Number" column — this is different from Bin/LP), LP Number, Expiration Date and the RAW System Qty from Excel.
+        Enter the exact Physical Qty. The tool calculates <strong>EXACT ADJUSTMENT TO ENTER = Physical Qty − System Qty</strong> without rounding, then independently verifies <strong>System Qty + Adjustment = Physical Qty</strong>. Only use the adjustment when Expected Final shows ✓ EXACT. Every item keeps its own expiration date. Total / Grand Total rows are ignored.
       </div>
 
       <div class="g4">
@@ -2730,6 +2728,10 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
         </div>
       </div>
 
+      <div class="help-box" style="margin:12px 0;border:2px solid #2563eb;background:#eff6ff;color:#1e3a8a">
+        <strong>🎯 EXACT KITCHEN ADJUSTMENT:</strong> Use the full value shown under <strong>EXACT ADJUSTMENT TO ENTER</strong>. The tool does not round the adjustment. <strong>EXPECTED FINAL</strong> must equal the Physical Qty and show <strong>✓ EXACT</strong> before you enter the adjustment in NetSuite/IMS.
+      </div>
+
       <div class="kit-upload-box no-print">
         <strong>Upload Excel / CSV</strong><br><br>
         <input type="file" id="kitFile" accept=".csv,.xls,.xlsx" onchange="loadKitchenFile(event)">
@@ -2754,7 +2756,7 @@ input[readonly], .fixed-cell { background:#f1f5f9!important; color:#334155!impor
         <table id="kitTable" style="display:none">
           <thead>
             <tr>
-              <th>Item</th><th>Description</th><th>Inventory Number<br>(System Lot)</th><th>System LP</th><th>Expiration Date</th><th>System Qty</th><th>Physical Qty</th><th>Difference</th><th>LP Match?</th><th>Adjust?</th><th>Required Action</th><th>Notes</th>
+              <th>Item</th><th>Description</th><th>Inventory Number<br>(System Lot)</th><th>System LP</th><th>Expiration Date</th><th>System Qty<br>(Exact)</th><th>Physical Qty</th><th>EXACT ADJUSTMENT<br>TO ENTER</th><th>EXPECTED FINAL</th><th>LP Match?</th><th>Adjust?</th><th>Required Action</th><th>Notes</th>
             </tr>
           </thead>
           <tbody id="kitBody"></tbody>
@@ -3903,7 +3905,7 @@ function getIngData(){
     item:tr.dataset.item,stage:tr.dataset.stage,detail:tr.dataset.detail||'',fixed:parseFloat(tr.querySelector('.ing-unit-lbs')?.value??tr.dataset.fixed)||0,
     qty:tr.querySelector('.ing-stage-qty')?.value||'',lbs:parseFloat((tr.querySelector('.ing-stage-lbs')?.value||'0').replace(/,/g,''))||0
   }));
-  const midCompletion=ingInput('ingMidCompletion'),endAdditionalCompletion=ingInput('ingEndCompletion'),endActive=endAdditionalCompletion>0,endCompletion=endActive?(midCompletion+endAdditionalCompletion):midCompletion;
+  const midCompletion=ingInput('ingMidCompletion'),endAdditionalCompletion=ingInput('ingEndCompletion'),endCompletion=midCompletion+endAdditionalCompletion;
   const midIngredients=[],endIngredients=[];
   ingSelectedItems().forEach(id=>{
     const s=ingSafe(id),name=(ING_ITEMS.find(i=>i.id===id)||{}).name||'',bom=ingInput(`ing-bom-${s}`);
@@ -3917,7 +3919,7 @@ function getIngData(){
     const end={id,name,bom,physical:endPhysical,system:endSystem,systemAfterScrap:endSystemAfterScrap,additionalCompletion:endAdditionalCompletion,additionalScrap:endAdditionalScrap,scrapReported:midScrapReported+endAdditionalScrap,scrapDisplay:endScrap,currentProductionAdjustment:endCurrentPA,productionAdjustment:endPA,totalAdjustment:endTotal,expected:endExpected,scrapPct:endScrapPct,paPct:endPAPct,pct:endPct,status:ingStatus(endPct,endTotal)};
     midIngredients.push(mid);endIngredients.push(end);
   });
-  return {date:document.getElementById('ingDate').value,shift:document.getElementById('ingShift').value,report:endActive?'Mid + End':'Mid Shift',line:document.getElementById('ingLine').value,template:document.getElementById('ingTemplate').value,fgItem:document.getElementById('ingFgItem').value,rows,mid:{completion:midCompletion,ingredients:midIngredients},end:{active:endActive,completion:endCompletion,additionalCompletion:endAdditionalCompletion,ingredients:endIngredients},completion:endActive?endCompletion:midCompletion,ingredients:endActive?endIngredients:midIngredients};
+  return {date:document.getElementById('ingDate').value,shift:document.getElementById('ingShift').value,report:'Mid + End',line:document.getElementById('ingLine').value,template:document.getElementById('ingTemplate').value,fgItem:document.getElementById('ingFgItem').value,rows,mid:{completion:midCompletion,ingredients:midIngredients},end:{completion:endCompletion,additionalCompletion:endAdditionalCompletion,ingredients:endIngredients},completion:endCompletion,ingredients:endIngredients};
 }
 function calcIng() {
   document.querySelectorAll('.ing-physical-row').forEach(tr => {
@@ -3947,8 +3949,7 @@ function saveIng() {
   const data=getIngData();
   saveReport({id:String(Date.now()),module:'ingredients',date:data.date,shift:data.shift,building:'L1',operator:document.getElementById('ingEmployee').value.trim(),data,savedAt:new Date().toISOString()});
   poSyncContext(document.getElementById('ingEmployee').value.trim(),data.date,data.shift,data.line);
-  const finalIngredients=data.end.active?data.end.ingredients:data.mid.ingredients;
-  poAutoReplace(`ingredients|${data.date}|${data.shift}|${data.line}`,'adj',finalIngredients.map(i=>({item:i.id,qty:i.totalAdjustment,units:'lb',lpn:'',reason:`Ingredient adjustment · ${data.line} · ${data.end.active?'Mid + End cumulative':'Mid Shift only'} · Physical ${fmt(i.physical)} · System ${fmt(i.system)} · Scrap ${fmt(i.scrapDisplay)} · Production Adjustment ${fmt(i.productionAdjustment)}`})));
+  poAutoReplace(`ingredients|${data.date}|${data.shift}|${data.line}`,'adj',data.end.ingredients.map(i=>({item:i.id,qty:i.totalAdjustment,units:'lb',lpn:'',reason:`Ingredient adjustment · ${data.line} · Physical ${fmt(i.physical)} · System ${fmt(i.system)} · Scrap ${fmt(i.scrapDisplay)} · Production Adjustment ${fmt(i.productionAdjustment)}`})));
 }
 
 // ══════════════════════ SCHEDULE & PALLET CONTROL ══════════════════════
@@ -5033,11 +5034,11 @@ function loadKitchenFile(event){
           return;
         }
 
-        kitStatus('Reading spreadsheet...', 'ok');
+        kitStatus('Reading RAW spreadsheet quantities with full precision...', 'ok');
         const data = new Uint8Array(e.target.result);
         const wb = XLSX.read(data, {type:'array', cellDates:true, dense:true});
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false});
+        const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:true, blankrows:false});
 
         setTimeout(() => parseKitchenData(json), 50);
       }catch(err){
@@ -5086,8 +5087,10 @@ function parseKitchenData(data){
       desc:iDesc !== -1 ? String(r[iDesc] || '').trim() : '',
       inventoryNumber:String(r[iInventoryNumber] || '').trim(),
       systemLP:String(r[iLP] || '').trim(),
-      expiration:iExpiration !== -1 ? String(r[iExpiration] || '').trim() : '',
+      expiration:iExpiration !== -1 ? kitFormatExcelDate(r[iExpiration]) : '',
+      // systemQtyText is the source of truth for Kitchen math. Do not round it.
       systemQtyText:kitCleanNum(r[iQty]),
+      // Numeric copy is kept only for backwards compatibility with existing displays/reports.
       systemQty:parseFloat(kitCleanNum(r[iQty]))
     }));
 
@@ -5107,7 +5110,7 @@ function parseKitchenData(data){
   } else if(missingExpiration){
     kitStatus(`Loaded ${kitRows.length} rows.${ignoredNote} The source file is missing Expiration Date on ${missingExpiration} row${missingExpiration===1?'':'s'}; upload a corrected IMS/NetSuite file.`, 'error');
   } else {
-    kitStatus(`Loaded ${kitRows.length} rows successfully.${ignoredNote}`, 'ok');
+    kitStatus(`✅ Loaded ${kitRows.length} rows with RAW Excel quantity precision. No Kitchen quantity rounding was applied.${ignoredNote}`, 'ok');
   }
 
   const badge = document.getElementById('nb-kit');
@@ -5128,9 +5131,10 @@ function renderKitchenTable(){
       <td class="mono">${kitEscape(row.inventoryNumber)}</td>
       <td class="mono"><strong>${kitEscape(row.systemLP)}</strong></td>
       <td class="mono"><strong>${kitEscape(row.expiration || '—')}</strong></td>
-      <td class="mono">${kitFormatExact(row.systemQtyText)}</td>
-      <td><input type="number" step="any" inputmode="decimal" oninput="setKitchenValue(${row.key}, 'physicalQty', this.value)"></td>
-      <td id="kit-diff-${row.key}" class="mono">—</td>
+      <td class="mono"><strong>${kitFormatExact(row.systemQtyText)}</strong></td>
+      <td><input type="number" step="any" inputmode="decimal" placeholder="Exact physical" oninput="setKitchenValue(${row.key}, 'physicalQty', this.value)"></td>
+      <td id="kit-diff-${row.key}" class="mono" style="font-weight:900;background:#eff6ff">—</td>
+      <td id="kit-final-${row.key}" class="mono" style="font-weight:900;background:#f0fdf4">—</td>
       <td><select onchange="setKitchenValue(${row.key}, 'lpMatch', this.value)"><option value="">Select</option><option value="Yes">Yes</option><option value="No">No</option></select></td>
       <td><select onchange="setKitchenValue(${row.key}, 'adjust', this.value)"><option value="">Select</option><option value="Yes">Yes</option><option value="No">No</option></select></td>
       <td id="kit-review-${row.key}">—</td>
@@ -5156,23 +5160,42 @@ function updateKitchenRow(key){
   const data = kitPhysical[key] || {};
   if(!row) return;
 
-  const qty = parseFloat(kitCleanNum(data.physicalQty));
+  const hasPhysical = String(data.physicalQty ?? '').trim() !== '';
   const diffCell = document.getElementById('kit-diff-' + key);
+  const finalCell = document.getElementById('kit-final-' + key);
   const reviewCell = document.getElementById('kit-review-' + key);
   const tr = document.getElementById('kit-row-' + key);
 
-  if(!diffCell || !reviewCell || !tr) return;
+  if(!diffCell || !finalCell || !reviewCell || !tr) return;
 
-  if(!isNaN(qty)){
-    const diffText = kitDecimalSubtract(data.physicalQty, row.systemQtyText);
-    const diffSign = kitDecimalCompare(diffText, '0');
-    diffCell.textContent = kitFormatExact(diffText);
-    diffCell.style.color = diffSign === 0 ? '#222' : diffSign > 0 ? '#047857' : '#b91c1c';
-    diffCell.style.fontWeight = diffSign === 0 ? 'normal' : '800';
+  if(hasPhysical){
+    // Exact decimal arithmetic: no floating-point subtraction and no pre-rounding.
+    const adjustment = kitDecimalSubtract(data.physicalQty, row.systemQtyText);
+    const expectedFinal = kitDecimalAdd(row.systemQtyText, adjustment);
+    const exactMatch = kitDecimalCompare(expectedFinal, data.physicalQty) === 0;
+    const diffSign = kitDecimalCompare(adjustment, '0');
+
+    diffCell.textContent = (diffSign > 0 ? '+' : '') + kitFormatExact(adjustment);
+    diffCell.style.color = diffSign === 0 ? '#166534' : diffSign > 0 ? '#047857' : '#b91c1c';
+    diffCell.style.fontWeight = '900';
+
+    finalCell.textContent = `${kitFormatExact(expectedFinal)} ${exactMatch ? '✓ EXACT' : '⚠ CHECK'}`;
+    finalCell.style.color = exactMatch ? '#166534' : '#b91c1c';
+    finalCell.style.background = exactMatch ? '#dcfce7' : '#fee2e2';
+
+    // Store the same exact strings used on screen so Save/exports/PASOS cannot recalculate differently.
+    data.exactAdjustment = adjustment;
+    data.expectedFinal = expectedFinal;
+    data.exactMatch = exactMatch;
   } else {
     diffCell.textContent = '—';
     diffCell.style.color = '#222';
-    diffCell.style.fontWeight = 'normal';
+    finalCell.textContent = '—';
+    finalCell.style.color = '#222';
+    finalCell.style.background = '#f0fdf4';
+    delete data.exactAdjustment;
+    delete data.expectedFinal;
+    delete data.exactMatch;
   }
 
   tr.classList.remove('kit-row-adjust','kit-row-no-adjust','kit-row-verify-label','kit-row-verify-adjust');
@@ -5180,7 +5203,7 @@ function updateKitchenRow(key){
   if(!data.lpMatch || !data.adjust){
     reviewCell.innerHTML = '<span class="kit-pending">PENDING</span>';
   } else if(data.lpMatch === 'Yes' && data.adjust === 'Yes'){
-    reviewCell.innerHTML = '<span class="kit-no">ADJUST</span>';
+    reviewCell.innerHTML = '<span class="kit-no">ENTER EXACT ADJUSTMENT SHOWN</span>';
     tr.classList.add('kit-row-adjust');
   } else if(data.lpMatch === 'Yes' && data.adjust === 'No'){
     reviewCell.innerHTML = '<span class="kit-yes">NO ADJUST</span>';
@@ -5189,7 +5212,7 @@ function updateKitchenRow(key){
     reviewCell.innerHTML = '<span class="kit-pending">VERIFY LP + PRINT LABEL</span>';
     tr.classList.add('kit-row-verify-label');
   } else if(data.lpMatch === 'No' && data.adjust === 'Yes'){
-    reviewCell.innerHTML = '<span style="color:#c2410c;font-weight:900">VERIFY LP + ADJUST</span>';
+    reviewCell.innerHTML = '<span style="color:#c2410c;font-weight:900">VERIFY LP + ENTER EXACT ADJUSTMENT</span>';
     tr.classList.add('kit-row-verify-adjust');
   }
 }
@@ -5250,8 +5273,10 @@ function getKitchenRowsForExport(){
 
   return kitRows.map(row => {
     const d = kitPhysical[row.key] || {};
-    const pqty = parseFloat(kitCleanNum(d.physicalQty));
-    const diff = !isNaN(pqty) ? kitDecimalSubtract(d.physicalQty, row.systemQtyText) : '';
+    const hasPhysical = String(d.physicalQty ?? '').trim() !== '';
+    const exactAdjustment = hasPhysical ? kitDecimalSubtract(d.physicalQty, row.systemQtyText) : '';
+    const expectedFinal = hasPhysical ? kitDecimalAdd(row.systemQtyText, exactAdjustment) : '';
+    const exactMatch = hasPhysical ? kitDecimalCompare(expectedFinal, d.physicalQty) === 0 : false;
 
     let review = '';
     if(!d.lpMatch || !d.adjust) review = 'PENDING';
@@ -5260,7 +5285,19 @@ function getKitchenRowsForExport(){
     else if(d.lpMatch === 'No' && d.adjust === 'No') review = 'VERIFY LP + PRINT LABEL';
     else if(d.lpMatch === 'No' && d.adjust === 'Yes') review = 'VERIFY LP + ADJUST';
 
-    return {area, shift, date, preparedBy, item:row.item, desc:row.desc, inventoryNumber:row.inventoryNumber, systemLP:row.systemLP, expiration:row.expiration || '', systemQty:row.systemQtyText, physicalQty:d.physicalQty || '', difference:diff, lpMatch:d.lpMatch || '', adjust:d.adjust || '', review, notes:d.notes || ''};
+    return {
+      area, shift, date, preparedBy,
+      item:row.item, desc:row.desc, inventoryNumber:row.inventoryNumber,
+      systemLP:row.systemLP, expiration:row.expiration || '',
+      systemQty:row.systemQtyText,
+      physicalQty:d.physicalQty || '',
+      // Kept for backwards compatibility; it is the exact adjustment to enter.
+      difference:exactAdjustment,
+      exactAdjustment,
+      expectedFinal,
+      exactMatch,
+      lpMatch:d.lpMatch || '', adjust:d.adjust || '', review, notes:d.notes || ''
+    };
   });
 }
 
@@ -5270,16 +5307,16 @@ function exportKitchenCSV(){
     toast(`⚠️ The uploaded file is missing Expiration Date for ${missingExpiration} Kitchen item${missingExpiration===1?'':'s'}. Upload a corrected IMS/NetSuite file.`);
     return;
   }
-  const output = [['Area','Shift','Date','Prepared By','Item','Description','Inventory Number (System Lot)','System LP','Expiration Date','System Qty','Physical Qty','Difference','LP Match','Adjust?','Required Action','Notes']];
+  const output = [['Area','Shift','Date','Prepared By','Item','Description','Inventory Number (System Lot)','System LP','Expiration Date','System Qty Exact','Physical Qty','EXACT ADJUSTMENT TO ENTER','Expected Final','Exact Check','LP Match','Adjust?','Required Action','Notes']];
 
   getKitchenRowsForExport().forEach(r => {
-    output.push([r.area,r.shift,r.date,r.preparedBy,r.item,r.desc,r.inventoryNumber,r.systemLP,r.expiration,kitFormatExact(r.systemQty),r.physicalQty,r.difference === '' ? '' : kitFormatExact(r.difference),r.lpMatch,r.adjust,r.review,r.notes]);
+    output.push([r.area,r.shift,r.date,r.preparedBy,r.item,r.desc,r.inventoryNumber,r.systemLP,r.expiration,kitFormatExact(r.systemQty),r.physicalQty,r.exactAdjustment === '' ? '' : kitFormatExact(r.exactAdjustment),r.expectedFinal === '' ? '' : kitFormatExact(r.expectedFinal),r.physicalQty === '' ? '' : (r.exactMatch ? 'EXACT' : 'CHECK'),r.lpMatch,r.adjust,r.review,r.notes]);
   });
 
   const csv = output.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-  dlBlob(blob, 'Kitchen_LP_Verification.csv');
-  toast('✅ Kitchen CSV exported');
+  dlBlob(blob, 'Kitchen_Exact_Adjustments.csv');
+  toast('✅ Exact Kitchen CSV exported');
 }
 
 async function exportKitchenWord(){
@@ -5294,11 +5331,11 @@ async function exportKitchenWord(){
   }
 
   const rows = getKitchenRowsForExport();
-  const cols = [900,1600,1500,1300,1400,1100,1100,1000,900,900,2300];
-  const tw = 14000;
-  const header = wRow(['Item','Description','System Lot','System LP','Expiration Date','System Qty','Physical','Difference','LP Match','Adjust','Required Action'].map((h,i)=>thCell(h,cols[i])).join(''));
+  const cols = [750,1300,1200,1100,1150,900,900,1150,1000,750,750,1950];
+  const tw = 12900;
+  const header = wRow(['Item','Description','System Lot','System LP','Expiration Date','System Qty','Physical','Exact Adjustment','Expected Final','LP Match','Adjust','Required Action'].map((h,i)=>thCell(h,cols[i])).join(''));
 
-  const bodyRows = rows.map((r,i) => wRow([r.item,r.desc,r.inventoryNumber,r.systemLP,r.expiration,kitFormatExact(r.systemQty),r.physicalQty,r.difference === '' ? '' : kitFormatExact(r.difference),r.lpMatch,r.adjust,r.review].map((v,ci)=>tdCell(v || '—', cols[ci], i%2===1)).join(''))).join('');
+  const bodyRows = rows.map((r,i) => wRow([r.item,r.desc,r.inventoryNumber,r.systemLP,r.expiration,kitFormatExact(r.systemQty),r.physicalQty,r.exactAdjustment === '' ? '' : kitFormatExact(r.exactAdjustment),r.expectedFinal === '' ? '' : `${kitFormatExact(r.expectedFinal)} ${r.exactMatch?'✓':'CHECK'}`,r.lpMatch,r.adjust,r.review].map((v,ci)=>tdCell(v || '—', cols[ci], i%2===1)).join(''))).join('');
 
   const counted = rows.filter(r => r.physicalQty !== '').length;
   const redCount = rows.filter(r => r.review === 'ADJUST').length;
@@ -5311,7 +5348,7 @@ async function exportKitchenWord(){
   const preHeader=wRow(['Item','LP','Physical Qty','Notes'].map((h,i)=>thCell(h,preCols[i])).join(''));
   const preBody=preKitchenRows.map((r,i)=>wRow([r.item,r.lp,kitFormatExact(r.qty),r.notes||'—'].map((v,ci)=>tdCell(v,preCols[ci],i%2===1)).join(''))).join('');
   const preSection=preKitchenRows.length ? wSec('Pre-Kitchen Physical Inventory — No File') + wPara(`Physical rows: ${preKitchenRows.length} · Unique items: ${new Set(preKitchenRows.map(r=>r.item)).size} · Unique LPs: ${new Set(preKitchenRows.map(r=>r.lp)).size}`, {size:18,color:'555555'}) + wTable(4,preCols,preHeader+preBody,9600) : '';
-  const verificationSection=rows.length ? wSec('Inventory LP Verification Table') + wTable(11, cols, header + bodyRows, tw) : '';
+  const verificationSection=rows.length ? wSec('Inventory LP Verification Table') + wTable(12, cols, header + bodyRows, tw) : '';
 
   const docBody =
     wHdr(`Kitchen / Inventory LP Verification — ${document.getElementById('kitDate')?.value || ''}`) +
@@ -5334,7 +5371,7 @@ function saveKitchen(){
 
   saveReport({id:String(Date.now()), module:'kitchen', date:data.date, shift:data.shift, building:data.building, operator:data.operator, data, savedAt:new Date().toISOString()});
   poSyncContext(data.operator,data.date,data.shift,data.area);
-  poAutoReplace(`kitchen|${data.date}|${data.shift}|${data.area}`,'cycle',data.rows.filter(r=>r.physicalQty!==''||r.lpMatch||r.adjust).map(r=>({item:r.item,lpn:r.systemLP,found:r.lpMatch==='No'?'NO':'YES',detail:`Kitchen inventory · Lot ${r.inventoryNumber||'—'} · Expiration ${r.expiration||'—'} · System ${r.systemQty||'—'} · Physical ${r.physicalQty||'—'} · Difference ${r.difference===''?'—':r.difference} · ${r.review||'Reviewed'}${r.notes?` · ${r.notes}`:''}`})));
+  poAutoReplace(`kitchen|${data.date}|${data.shift}|${data.area}`,'cycle',data.rows.filter(r=>r.physicalQty!==''||r.lpMatch||r.adjust).map(r=>({item:r.item,lpn:r.systemLP,found:r.lpMatch==='No'?'NO':'YES',detail:`Kitchen inventory · Lot ${r.inventoryNumber||'—'} · Expiration ${r.expiration||'—'} · System ${r.systemQty||'—'} · Physical ${r.physicalQty||'—'} · Exact Adjustment ${r.exactAdjustment===''?'—':r.exactAdjustment} · Expected Final ${r.expectedFinal===''?'—':r.expectedFinal} ${r.exactMatch?'✓ EXACT':'⚠ CHECK'} · ${r.review||'Reviewed'}${r.notes?` · ${r.notes}`:''}`})));
   poAutoReplace(`prekitchen|${data.date}|${data.shift}|${data.area}`,'cycle',data.preKitchen.map(r=>({item:r.item,lpn:r.systemLP,found:'YES',detail:`Pre-Kitchen physical inventory · Physical ${r.physicalQty}${r.notes?` · ${r.notes}`:''}`})));
 
   const badge = document.getElementById('nb-kit');
@@ -5590,16 +5627,11 @@ async function exportChocWord() {
 async function exportIngWord() {
   calcIng();
   const data = getIngData();
-  const endActive=!!data.end?.active;
-  const cols = endActive ? [1800,5000,2500,2500,2600] : [2000,6200,3200,3000]; const tw = 14400;
-  const physicalHeaders=endActive?['Ingredient','Detail','Mid Qty / lbs','End Qty / lbs','Per Unit lbs']:['Ingredient','Detail','Mid Qty / lbs','Per Unit lbs'];
-  const hdr = wHeaderRow(physicalHeaders.map((h,i)=>thCell(h,cols[i])).join(''));
+  const cols = [1800,5000,2500,2500,2600]; const tw = 14400;
+  const hdr = wHeaderRow(['Ingredient','Detail','Mid Qty / lbs','End Qty / lbs','Per Unit lbs'].map((h,i)=>thCell(h,cols[i])).join(''));
   const grouped={};
   data.rows.forEach(r=>{const key=`${r.item}|${r.detail}|${r.fixed}`;grouped[key] ||= {item:r.item,detail:r.detail,fixed:r.fixed,mid:null,end:null};grouped[key][r.stage]=r;});
-  const rows = Object.values(grouped).map((r,i)=>{
-    const vals=endActive?[r.item,r.detail,`${r.mid?.qty||'—'} / ${fmt(r.mid?.lbs||0)}`,`${r.end?.qty||'—'} / ${fmt(r.end?.lbs||0)}`,r.fixed]:[r.item,r.detail,`${r.mid?.qty||'—'} / ${fmt(r.mid?.lbs||0)}`,r.fixed];
-    return wRow(vals.map((v,ci)=>tdCell(v,cols[ci],i%2===1)).join(''));
-  }).join('');
+  const rows = Object.values(grouped).map((r,i)=>wRow([r.item,r.detail,`${r.mid?.qty||'—'} / ${fmt(r.mid?.lbs||0)}`,`${r.end?.qty||'—'} / ${fmt(r.end?.lbs||0)}`,r.fixed].map((v,ci)=>tdCell(v,cols[ci],i%2===1)).join(''))).join('');
   const summaryCols=[1700,1300,1500,1700,1000,1700,1000,1800,1000,1400];
   const summaryHeader=wHeaderRow(['Stage','Completion','Pounds','Scrap','Scrap %','Production Adjustment','Production Adjustment %','Total Adj.','Adj. %','Status'].map((h,i)=>thCell(h,summaryCols[i])).join(''));
   const summaries = data.mid.ingredients.map((mid,index) => {
@@ -5613,14 +5645,13 @@ async function exportIngWord() {
       wordToneCell(d.totalAdjustment,wordAdjustment(d.totalAdjustment,fmt,' lbs'),summaryCols[7],even),
       tdCell(`${(d.pct*100).toFixed(1)}%`,summaryCols[8],even,{bold:true,center:true}),wordStatusCell(d.status.label,summaryCols[9],even)
     ].join(''));
-    const stageRows=stageRow('MID',data.mid.completion,mid,false)+(endActive?stageRow('END CUMULATIVE',data.end.completion,end,true):'');
-    return wSec(`${mid.id} — ${mid.name}`) + wTable(10,summaryCols,summaryHeader+stageRows,tw)+wPara('',{spaceAfter:100});
+    return wSec(`${mid.id} — ${mid.name}`) + wTable(10,summaryCols,summaryHeader+stageRow('MID',data.mid.completion,mid,false)+stageRow('END CUMULATIVE',data.end.completion,end,true),tw)+wPara('',{spaceAfter:100});
   }
   ).join('');
   const body = wHdr('Ingredients Adjustment — L1') +
     wPara(`Date: ${data.date}   Shift: ${data.shift}   Report: ${data.report}   Line: ${data.line}   FG Item: ${data.fgItem||'—'}`,{size:18,color:'555555'}) +
     wPara('Print key: GREEN = quantity to add. RED = quantity to remove. Every colored value also includes a written action.',{size:18,bold:true,color:'334155'})+
-    wTable(endActive?5:4,cols,hdr+rows,tw) + summaries;
+    wTable(5,cols,hdr+rows,tw) + summaries;
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `Ingredients_${data.date}.docx`);
   toast('✅ Ingredients exported!');
@@ -5960,7 +5991,7 @@ window.addEventListener('DOMContentLoaded', init);
     const rows = issueRows.concat(normalRows).slice(0,22);
     return sheetHTML('kitchen','Kitchen LP Verification Report',
       [['Date',text('kitDate')||today()],['Area',text('kitArea')||'—'],['Shift',text('kitShift')||'—'],['Prepared By',text('kitPreparedBy')||'—'],['Rows',`${data.length}`]],
-      ['Item','Description','System Lot','System LP','Expiration Date','System Qty','Physical','Diff','LP Match','Adjust','Required Action'],rows,
+      ['Item','Description','System Lot','System LP','Expiration Date','System Qty','Physical','Exact Adjustment','LP Match','Adjust','Required Action'],rows,
       [['Counted',`${counted}/${data.length}`],['LP Issues',review,review?'ops-status-review':'ops-status-ok'],['Adjustments',adjust,adjust?'ops-status-review':'ops-status-ok'],['Expiration Missing',expirationMissing,expirationMissing?'ops-status-critical':'ops-status-ok']],
       data.length>22 ? `Showing rows that require action first (${rows.length} of ${data.length}) to keep the report on one page.` : 'Kitchen report is formatted to stay on one landscape page.');
   }
@@ -5970,17 +6001,12 @@ window.addEventListener('DOMContentLoaded', init);
     const data = typeof getIngData==='function' ? getIngData() : {rows:[],ingredients:[]};
     const grouped={};
     (data.rows||[]).forEach(r=>{const key=`${r.item}|${r.detail}|${r.fixed}`;grouped[key] ||= {item:r.item,detail:r.detail,fixed:r.fixed,mid:null,end:null};grouped[key][r.stage]=r;});
-    const endActive=!!data.end?.active;
-    const rows=Object.values(grouped).map(r=>endActive
-      ? [esc(r.item),esc(r.detail),`${esc(r.mid?.qty||'—')} / ${money(r.mid?.lbs||0)}`,`${esc(r.end?.qty||'—')} / ${money(r.end?.lbs||0)}`,money(r.fixed)]
-      : [esc(r.item),esc(r.detail),`${esc(r.mid?.qty||'—')} / ${money(r.mid?.lbs||0)}`,money(r.fixed)]);
-    const meta=[['Date',data.date||today()],['Shift',data.shift||'—'],['Report',endActive?'Mid + End':'Mid Shift'],['Line',data.line||'—'],['FG Item',data.fgItem||'—']];
+    const rows=Object.values(grouped).map(r=>[esc(r.item),esc(r.detail),`${esc(r.mid?.qty||'—')} / ${money(r.mid?.lbs||0)}`,`${esc(r.end?.qty||'—')} / ${money(r.end?.lbs||0)}`,money(r.fixed)]);
+    const meta=[['Date',data.date||today()],['Shift',data.shift||'—'],['Report','Mid + End'],['Line',data.line||'—'],['FG Item',data.fgItem||'—']];
     const metaHTML=meta.map(x=>`<div><strong>${esc(x[0])}:</strong> ${esc(x[1])}</div>`).join('');
     const bodyHTML=rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
     const summaryRows=(data.mid?.ingredients||[]).flatMap((mid,index)=>{
-      const end=data.end.ingredients[index],items=endActive
-        ? [{label:'Mid Shift',completion:data.mid.completion,i:mid},{label:'End — Cumulative',completion:data.end.completion,i:end}]
-        : [{label:'Mid Shift',completion:data.mid.completion,i:mid}];
+      const end=data.end.ingredients[index],items=[{label:'Mid Shift',completion:data.mid.completion,i:mid},{label:'End — Cumulative',completion:data.end.completion,i:end}];
       return items.map(x=>{
       const i=x.i,cls=i.status?.label==='Critical'?'ops-status-critical':i.status?.label==='Attention'?'ops-status-review':'ops-status-ok';
       const signedVal=n=>`${n>0?'+':''}${money(n)}`;
@@ -5995,9 +6021,9 @@ window.addEventListener('DOMContentLoaded', init);
     return `<div class="ops-one-sheet ops-ingredients-sheet" id="ops-ingredients-sheet">
       <div class="ops-sheet-title">Ingredient Adjustment Report</div>
       <div class="ops-sheet-meta">${metaHTML}</div>
-      <table class="ops-sheet-table"><thead><tr><th>Ingredient</th><th>Physical Detail</th><th>Mid Qty / lbs</th>${endActive?'<th>End Qty / lbs</th>':''}<th>Lbs / Unit</th></tr></thead><tbody>${bodyHTML}</tbody></table>
+      <table class="ops-sheet-table"><thead><tr><th>Ingredient</th><th>Physical Detail</th><th>Mid Qty / lbs</th><th>End Qty / lbs</th><th>Lbs / Unit</th></tr></thead><tbody>${bodyHTML}</tbody></table>
       <table class="ops-sheet-table"><thead><tr><th>Ingredient</th><th>Completion</th><th>Pounds</th><th>Scrap</th><th>Scrap %</th><th>Production Adjustment</th><th>Production Adjustment %</th><th>Total Adj.</th><th>Adj. %</th><th>Status</th></tr></thead><tbody>${summaryRows}</tbody></table>
-      <div class="ops-sheet-note"><span>${endActive?'End is cumulative: Mid + additional End Completion, Scrap and Production Adjustment.':'Mid Shift only. End Shift is not included until End Shift Additional Completion is entered.'} Pounds = Completion × BOM.</span><span>Signature: ____________________</span></div>
+      <div class="ops-sheet-note"><span>End is cumulative: Mid + additional End Completion, Scrap and Production Adjustment. Pounds = Completion × BOM.</span><span>Signature: ____________________</span></div>
     </div>`;
   }
 
