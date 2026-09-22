@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <polygon points="32,3 58,17.5 58,46.5 32,61 6,46.5 6,17.5" fill="#9B1C2E"/>
+  <polygon points="32,3 58,17.5 58,46.5 32,61 32,3" fill="#771423" opacity="0.45"/>
+  <text x="32" y="42" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#fff" text-anchor="middle">IMS</text>
+</svg>
