@@ -533,6 +533,18 @@ function updateIngMatchStatus(){
   return true;
 }
 function ingTemplateChanged(){ ingIngredientChanged(); }
+function ingFgHasBom(fg){
+  const bom=window.SHIFTHUB_INGREDIENT_DATA?.bom||{},fgKey=ingMatchKey(fg);
+  return Object.keys(bom).some(k=>ingMatchKey(k.split('|')[0])===fgKey&&Number(bom[k])>0);
+}
+// 'ok': selection matches the FILES L1 BOM. 'error': the FG has BOM data in the
+// files but the selection does not match it. 'review': no BOM data to check against.
+function ingMatchState(){
+  const fg=document.getElementById('ingFgItem')?.value||'',items=ingSelectedItems().filter(Boolean);
+  if(!fg||!items.length) return 'review';
+  if(items.every(id=>ingItemMatchesFg(fg,id))) return 'ok';
+  return ingFgHasBom(fg)?'error':'review';
+}
 function ingIngredientChanged(){
   const candidates=ingCompatibleFgs();
   const fgSelect=document.getElementById('ingFgItem');
@@ -735,6 +747,13 @@ function calcIng() {
 }
 function resetIng() { ['ingMidCompletion','ingEndCompletion'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); buildIngRows(); toast('Ingredients reset'); }
 function saveIng() {
+  updateIngMatchStatus();
+  if(ingMatchState()==='error'){
+    const fg=document.getElementById('ingFgItem').value;
+    const correct=ingAvailableItemsForFg(fg).map(id=>{const m=ING_ITEMS.find(i=>i.id===id);return m?`${id} (${m.name})`:id;});
+    toast(`Save blocked: FG ${fg} does not use the selected ingredient(s) in the FILES L1 BOM. This running item uses: ${correct.join(' + ')||'—'}.`);
+    return;
+  }
   const data=getIngData();
   saveReport({id:String(Date.now()),module:'ingredients',date:data.date,shift:data.shift,building:'L1',operator:document.getElementById('ingEmployee').value.trim(),data,savedAt:new Date().toISOString()});
   poSyncContext(document.getElementById('ingEmployee').value.trim(),data.date,data.shift,data.line);
@@ -962,6 +981,15 @@ function pchValidateFgMatch(){
   pchApplyConfiguredBom();
   calcPchAll();
 }
+// 'ok': reliable FG match. 'error': a reliable match exists in the data but the
+// selected FG is not it. 'review': no reliable match to check against.
+function pchMatchState(){
+  const {pouch,ranked}=pchFgCandidates(),top=ranked[0];
+  if(!pouch||!top||top.score<9) return 'review';
+  const selectedId=document.getElementById('pchFgItem')?.value;
+  const selected=ranked.find(x=>String(x.fg.id)===String(selectedId));
+  return (selected&&selected.score>=9&&selected.score>=top.score-1)?'ok':'error';
+}
 function pchApplyConfiguredBom(){
   const item=document.getElementById('pchItem')?.value||'';
   const fg=document.getElementById('pchFgItem')?.value||'';
@@ -1144,6 +1172,12 @@ function resetPch(){
   toast('Pouches reset');
 }
 function savePch(){
+  pchValidateFgMatch();
+  if(pchMatchState()==='error'){
+    const {ranked}=pchFgCandidates(),top=ranked[0];
+    toast(`Save blocked: this packaging does not match FG ${document.getElementById('pchFgItem')?.value||'—'}. Suggested FG: ${top.fg.id} — ${top.fg.desc}.`);
+    return;
+  }
   const mid = pchSectionData('mid');
   const end = pchSectionData('end', mid);
   const grand = pchGrandData(mid, end);
