@@ -2538,3 +2538,120 @@ input::placeholder,textarea::placeholder{color:var(--ink3)}
 }
 
 .u-px20-pb{padding:0 1.25rem 1.25rem}
+/* ══════════════════════════════════════════════════════════════════════════
+   EXCEL-LOOK ADJUSTMENT BOXES — visual language taken from FILES L1 workbooks
+   (Chocolate adjustment, Chocolate report, Daily Pouch Adjustment NEW,
+   Ingredient Adjustment, Ingredients Daily Adjustments).
+   Palette: peach inputs, light-yellow secondary inputs, light-blue totals,
+   lime SUMMARY headers, green add / red remove adjustment cells,
+   red/gray banners, black title bars, dotted grids, legend chips.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  --xl-peach:#FDEBD0;      /* main input cells (peach/tan) */
+  --xl-yellow:#FFF9DB;     /* secondary input cells (light yellow) */
+  --xl-total:#D6EAF8;      /* total rows (light blue) */
+  --xl-lime:#C6E8B4;       /* SUMMARY headers (lime) */
+  --xl-add-bg:#D5F8DC;     /* amount to add (light green) */
+  --xl-add-tx:#1E7E34;     /* amount to add text (dark green) */
+  --xl-rm-bg:#FADBD8;      /* amount to remove (light pink) */
+  --xl-rm-tx:#C0392B;      /* amount to remove text (red) */
+  --xl-grid:#9aa0a6;       /* thin grid borders */
+  --xl-banner:#C0392B;     /* red banners */
+  --xl-banner-gray:#6B7280;/* gray banners */
+  --xl-navy:#1E3A5F;       /* Excel title blue */
+}
+
+/* ── shared report banner / black title bar ── */
+.xl-report-banner{
+  margin:0 0 10px;padding:8px 12px;text-align:center;
+  background:var(--xl-banner);color:#fff;
+  font-weight:900;font-size:15px;letter-spacing:.5px;text-transform:uppercase;
+}
+.xl-titlebar{
+  background:#000;color:#fff;text-align:center;
+  font-weight:900;font-size:15px;letter-spacing:.5px;text-transform:uppercase;
+  padding:8px 12px;margin:14px 0 10px;
+}
+.xl-titlebar:first-child{margin-top:0;}
+
+/* ── Chocolate entry table: peach input cells, thin grid ── */
+#chTable th,#chDarkTable th,#chMilkTable th,#chTable td,#chDarkTable td,#chMilkTable td{
+  border:1px solid var(--xl-grid);
+}
+#chTable .ch-input,#chDarkTable .ch-input,#chMilkTable .ch-input{
+  background:var(--xl-peach)!important;border:1px solid var(--xl-grid);
+  font-weight:700;
+}
+#chTable .ch-qty,#chDarkTable .ch-qty,#chMilkTable .ch-qty{background:#fff;}
+
+/* ── Chocolate SUMMARY box: lime header, blue physical, peach system, green/red adjustment ── */
+#chSummary{position:relative;background:#fff;border:1px solid var(--xl-grid);border-radius:4px;padding-top:0;}
+#chSummary::before{
+  content:'SUMMARY';display:block;background:var(--xl-lime);
+  font-weight:900;font-size:14px;letter-spacing:.5px;text-align:center;
+  padding:7px 10px;margin-bottom:10px;border-bottom:1px solid var(--xl-grid);
+  grid-column:1/-1;
+}
+#chSummary .sum-box{border:1px solid var(--xl-grid);border-radius:0;background:#fff;}
+#chSummary .sum-box.xl-physical{background:var(--xl-total);}
+#chSummary .sum-box.xl-physical .sum-val{font-weight:900;}
+#chSummary .sum-box.xl-system{background:var(--xl-peach);}
+#chSummary .sum-box.status-increase{background:var(--xl-add-bg);}
+#chSummary .sum-box.status-increase .sum-val{color:var(--xl-add-tx);font-weight:900;}
+#chSummary .sum-box.status-remove{background:var(--xl-rm-bg);}
+#chSummary .sum-box.status-remove .sum-val{color:var(--xl-rm-tx);font-weight:900;}
+
+/* ── Chocolate printable report ── */
+.choc-report-title{color:var(--xl-navy);text-transform:uppercase;letter-spacing:.5px;}
+.choc-report-summary{background:#fff;border:1px solid var(--xl-grid);}
+.choc-report-summary>div{border:1px solid var(--xl-grid);}
+.choc-report-summary>div:first-child{background:var(--xl-total);}
+.choc-report-summary>div:first-child .choc-report-val{font-weight:900;}
+.choc-report-summary>div:nth-child(2){background:var(--xl-peach);}
+.choc-report-summary>div.xl-add{background:var(--xl-add-bg);}
+.choc-report-summary>div.xl-add .choc-report-val{color:var(--xl-add-tx);}
+.choc-report-summary>div.xl-rm{background:var(--xl-rm-bg);}
+.choc-report-summary>div.xl-rm .choc-report-val{color:var(--xl-rm-tx);}
+.choc-report-table th,.choc-report-table td{border:1px solid var(--xl-grid);}
+.choc-report-table th{background:var(--xl-navy);color:#fff;}
+.choc-report-table td:nth-child(3){background:var(--xl-peach);}
+.pretzel-side-title.dark{background:#000!important;color:#fff!important;}
+.pretzel-side-title.milk{background:#4b5563!important;color:#fff!important;}
+
+/* ── Pouches box: black section bars, dashed grid, green/blue % cells ── */
+.pouch-clean-section-title{
+  background:#000!important;color:#fff!important;
+  font-weight:900;letter-spacing:.5px;text-transform:uppercase;
+}
+.pouch-clean-table th,.pouch-clean-table td{border:1px dashed var(--xl-grid);background:#fff;}
+.pouch-clean-table th{background:#f8fafc;}
+.pouch-clean-table .pouch-row-scrap th{background:var(--xl-peach)!important;}
+.pouch-clean-table .pouch-row-pa th{background:var(--xl-peach)!important;}
+.pouch-clean-table tr:nth-child(5) td{background:#D5F8DC!important;}   /* scrap % — green */
+.pouch-clean-table tr:nth-child(7) td{background:var(--xl-total)!important;} /* PA % — light blue */
+.pouch-clean-table tr:nth-child(9) td{background:var(--xl-total)!important;} /* total adj % — light blue */
+.pouch-clean-table .pouch-row-total th,.pouch-clean-table .pouch-row-total td{
+  background:var(--xl-total)!important;font-weight:900;
+}
+.pouch-legend{border:1px solid var(--xl-grid);}
+
+/* ── Ingredient module: navy item bar, red/gray shift banners, peach headers ── */
+.ing-ingredient-title{background:var(--xl-navy);border-bottom:1px solid var(--xl-navy);}
+.ing-ingredient-title strong,.ing-ingredient-title b,.ing-ingredient-title span{color:#fff;}
+.ing-stage-header{background:var(--xl-banner);color:#fff;border-bottom:2px solid #7b241c;}
+.ing-stage-header strong{color:#fff;}
+.ing-stage-header small{color:#fdecea;}
+.ing-stage-header.end{background:var(--xl-banner-gray);border-bottom:2px solid #374151;}
+.ing-physical-table th{background:var(--xl-peach);color:#7a4a12;border:1px solid var(--xl-grid);}
+.ing-physical-table td{border:1px dashed var(--xl-grid);}
+.ing-physical-total{background:var(--xl-total);border-top:2px solid var(--xl-navy);}
+.ing-physical-total output{color:#0b3d62;}
+.ing-result-table th,.ing-result-table td{border:1px dashed var(--xl-grid);}
+.ing-result-table .ing-result-scrap th,.ing-result-table .ing-result-pa th{background:var(--xl-peach)!important;}
+.ing-result-table .ing-result-total th,.ing-result-table .ing-result-total td{background:var(--xl-total)!important;}
+.ing-result-table .ing-result-pct th,.ing-result-table .ing-result-pct td{background:var(--xl-yellow)!important;}
+
+/* ── Printable report paper look ── */
+.choc-report-box,.pouch-clean-box,.ing-stage-card{
+  border:1px solid var(--xl-grid);
+}
