@@ -368,202 +368,11 @@ body.ims-app-locked > :not(#imsAuthRoot):not(script) {
   border-color: #d97706;
 }
 
-.ims-logic-dialog {
-  width: min(1180px, 100%);
-}
-
-.ims-logic-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding: 12px 14px;
-  border: 1px solid #bfdbfe;
-  border-radius: 11px;
-  background: #eff6ff;
-  color: #1e3a8a;
-  font-size:12px;
-}
-
-.ims-logic-meta strong {
-  margin-right: auto;
-  font-size:13px;
-}
-
-.ims-logic-meta span {
-  padding: 5px 8px;
-  border-radius: 999px;
-  background: #fff;
-}
-
-.ims-logic-editor-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.ims-logic-card {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid #dbe3ef;
-  border-radius: 14px;
-  background: #f8fafc;
-}
-
-.ims-logic-card-head {
-  display: flex;
-  gap: 10px;
-  min-height: 70px;
-}
-
-.ims-logic-card-head h3,
-.ims-logic-section-head h3 {
-  margin: 0;
-  color: #172033;
-  font-size:16px;
-}
-
-.ims-logic-card-head p,
-.ims-logic-section-head p {
-  margin: 4px 0 0;
-  color: #64748b;
-  font-size:12px;
-  line-height: 1.45;
-}
-
-.ims-logic-icon {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  flex: 0 0 38px;
-  place-items: center;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: inset 0 0 0 1px #e2e8f0;
-  font-size:20px;
-}
-
-.ims-logic-fields {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 10px;
-}
-
-.ims-logic-value-field {
-  grid-column: 1 / -1;
-}
-
-.ims-logic-card .ims-auth-primary {
-  margin-top: auto;
-  transform: translateY(10px);
-}
-
-.ims-logic-monitor {
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.ims-logic-section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 12px;
-}
-
-.ims-logic-section-head input[type="search"] {
-  width: min(340px, 100%);
-  min-height: 42px;
-  padding: 9px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 9px;
-  font: inherit;
-}
-
-.ims-logic-rule-list,
-.ims-logic-audit {
-  display: grid;
-  gap: 8px;
-}
-
-.ims-logic-rule,
-.ims-logic-audit-row {
-  display: grid;
-  grid-template-columns: 100px minmax(220px, 1fr) minmax(90px, auto) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #fff;
-}
-
-.ims-logic-rule strong,
-.ims-logic-rule small,
-.ims-logic-audit-row strong,
-.ims-logic-audit-row small {
-  display: block;
-}
-
-.ims-logic-rule small,
-.ims-logic-audit-row small {
-  margin-top: 3px;
-  color: #64748b;
-}
-
-.ims-logic-rule output {
-  color: #0f172a;
-  font-size:16px;
-  font-weight: 900;
-  text-align: right;
-}
-
-.ims-logic-module {
-  width: max-content;
-  padding: 5px 8px;
-  border-radius: 999px;
-  background: #e2e8f0;
-  color: #334155;
-  font-size:11px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.ims-logic-module.is-chocolate { background: #fef3c7; color: #92400e; }
-.ims-logic-module.is-ingredients { background: #dcfce7; color: #166534; }
-.ims-logic-module.is-pouches { background: #dbeafe; color: #1e40af; }
-
-.ims-logic-change {
-  color: #334155;
-  font-weight: 800;
-  text-align: right;
-}
-
-.ims-logic-empty {
-  padding: 18px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 10px;
-  color: #64748b;
-  background: #f8fafc;
-  text-align: center;
-}
-
 @media (max-width: 760px) {
   .ims-auth-root { padding: 12px; }
   .ims-auth-head, .ims-auth-body { padding-left: 20px; padding-right: 20px; }
   .ims-user-create-grid { grid-template-columns: 1fr; }
   .ims-user-row { grid-template-columns: 1fr; }
-  .ims-logic-editor-grid { grid-template-columns: 1fr; }
-  .ims-logic-fields { grid-template-columns: 1fr; }
-  .ims-logic-value-field { grid-column: auto; }
-  .ims-logic-section-head { align-items: stretch; flex-direction: column; }
-  .ims-logic-rule, .ims-logic-audit-row { grid-template-columns: 1fr; }
-  .ims-logic-rule output, .ims-logic-change { text-align: left; }
   .ims-cloud-status { display: none; }
   #imsAccountButton { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
 }
@@ -2574,32 +2383,58 @@ input::placeholder,textarea::placeholder{color:var(--ink3)}
 }
 .xl-titlebar:first-child{margin-top:0;}
 
-/* ── Chocolate entry table: peach input cells, thin grid ── */
-#chTable th,#chDarkTable th,#chMilkTable th,#chTable td,#chDarkTable td,#chMilkTable td{
-  border:1px solid var(--xl-grid);
+/* ── Chocolate entry table: Excel sheet look — navy header, thin grid, bold
+   labels, peach input cells, yellow secondary inputs, blue total row ── */
+.xl-entry-table{width:100%;border-collapse:collapse;background:#fff;}
+.xl-entry-table th{
+  background:var(--xl-navy);color:#fff;border:1px solid var(--xl-grid);
+  font-size:12px;text-transform:uppercase;letter-spacing:.4px;padding:8px;
 }
-#chTable .ch-input,#chDarkTable .ch-input,#chMilkTable .ch-input{
+.xl-entry-table td{border:1px solid var(--xl-grid);background:#fff;padding:6px 8px;}
+.xl-entry-table td:first-child{font-weight:700;}
+.xl-entry-table .ch-input{
   background:var(--xl-peach)!important;border:1px solid var(--xl-grid);
   font-weight:700;
 }
-#chTable .ch-qty,#chDarkTable .ch-qty,#chMilkTable .ch-qty{background:#fff;}
-
-/* ── Chocolate SUMMARY box: lime header, blue physical, peach system, green/red adjustment ── */
-#chSummary{position:relative;background:#fff;border:1px solid var(--xl-grid);border-radius:4px;padding-top:0;}
-#chSummary::before{
-  content:'SUMMARY';display:block;background:var(--xl-lime);
-  font-weight:900;font-size:14px;letter-spacing:.5px;text-align:center;
-  padding:7px 10px;margin-bottom:10px;border-bottom:1px solid var(--xl-grid);
-  grid-column:1/-1;
+.xl-entry-table .ch-fixed-input{background:var(--xl-yellow)!important;border:1px solid var(--xl-grid);}
+.xl-entry-table .ch-qty{background:#fff;}
+.xl-entry-table .xl-total-row td{
+  background:var(--xl-total)!important;font-weight:900;border-top:2px solid var(--xl-navy);
 }
-#chSummary .sum-box{border:1px solid var(--xl-grid);border-radius:0;background:#fff;}
-#chSummary .sum-box.xl-physical{background:var(--xl-total);}
-#chSummary .sum-box.xl-physical .sum-val{font-weight:900;}
-#chSummary .sum-box.xl-system{background:var(--xl-peach);}
-#chSummary .sum-box.status-increase{background:var(--xl-add-bg);}
-#chSummary .sum-box.status-increase .sum-val{color:var(--xl-add-tx);font-weight:900;}
-#chSummary .sum-box.status-remove{background:var(--xl-rm-bg);}
-#chSummary .sum-box.status-remove .sum-val{color:var(--xl-rm-tx);font-weight:900;}
+.xl-entry-table .xl-total-row td.mono{text-align:right;font-weight:900;}
+
+/* ── Excel SUMMARY box (Chocolate adjustment.xlsx / Ingredient Adjustment.xlsx):
+   lime SUMMARY header, Total Physical Chocolate, Total in the System (peach),
+   Amount to Add (green), Amount to Remove (red) ── */
+.xl-summary-wrap{margin-top:12px;}
+.xl-summary-table{width:100%;border-collapse:collapse;background:#fff;border:2px solid #111827;margin-top:12px;}
+.xl-summary-table th{
+  background:var(--xl-lime);font-weight:900;letter-spacing:.6px;text-transform:uppercase;
+  border:1px solid var(--xl-grid);padding:8px 10px;font-size:14px;
+}
+.xl-summary-table td{border:1px solid var(--xl-grid);padding:8px 10px;}
+.xl-summary-table td:first-child{font-weight:700;}
+.xl-summary-table td.mono{text-align:right;font-weight:800;white-space:nowrap;}
+.xl-summary-table .xl-row-system td{background:var(--xl-peach);}
+.xl-summary-table .xl-row-add td{background:var(--xl-add-bg);}
+.xl-summary-table .xl-row-add td.mono{color:var(--xl-add-tx);font-weight:900;}
+.xl-summary-table .xl-row-remove td{background:var(--xl-rm-bg);}
+.xl-summary-table .xl-row-remove td.mono{color:var(--xl-rm-tx);font-weight:900;}
+.xl-summary-duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.xl-summary-duo .xl-summary-table{margin-top:0;}
+@media(max-width:700px){.xl-summary-duo{grid-template-columns:1fr;}}
+
+/* ── Pouch % annotation chips (1% / 5% / 3% like the Excel sheet) ── */
+.xl-pct-chip{
+  display:inline-block;min-width:34px;text-align:center;font-size:11px;font-weight:900;
+  border:1px solid var(--xl-grid);border-radius:3px;padding:1px 6px;margin-left:6px;
+  vertical-align:middle;
+}
+
+/* ── Ingredient Excel touches: yellow quantity inputs, SUMMARY spacing ── */
+.ing-physical-table .ing-stage-qty{background:var(--xl-yellow)!important;border:1px solid var(--xl-grid)!important;}
+.ing-physical-table .ing-unit-lbs{background:var(--xl-yellow)!important;border:1px solid var(--xl-grid)!important;}
+.ing-summary-table{margin-top:14px;}
 
 /* ── Chocolate printable report ── */
 .choc-report-title{color:var(--xl-navy);text-transform:uppercase;letter-spacing:.5px;}

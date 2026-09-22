@@ -35,7 +35,6 @@
     <div class="guide-step"><h4>🏷 Hershey Lot Code</h4><p>Select manufacturing, packaging, equipment/die designator, shift, and hour. The tool generates the lot using the official 2026 table. Expiration: move 11 months ahead and use day 30 of the resulting month; if it does not exist, use the last valid day. Example: 7/29/2026 → 6/30/2027. Always verify designator and shift against the order.</p></div>
     <div class="guide-step"><h4>🗓 Schedule and ✅ Shift Tasks</h4><p>Schedule shows the weekly assignment. Shift Tasks builds the checklist from shift, area, packaging, special ingredient, and line status. Tasks are split into Before the Shift, Start of Shift, During/Mid Shift, and End of Shift. Checking a task immediately adds it to the PASOS draft; unchecking it removes it.</p></div>
     <div class="guide-step"><h4>🔄 Automatic PASOS Drafts</h4><p>When you save Chocolate, Ingredients, Pouches, Kitchen, or Cycle Count, the tool moves the summary and available details to PASOS. Completed checklist tasks are added too. Review the PASOS draft before saving or downloading it.</p></div>
-    <div class="guide-step"><h4>🧠 Logic Control — Team Leads</h4><p>Team Leads and Administrators can approve Chocolate default values, Ingredient BOMs, and Pouch BOMs. Each change records who made it, the date, and the old and new values. In Chocolate, the per-box weight can also be edited for the open count only, without changing the global default.</p></div>
     <div class="guide-step"><h4>🧾 PASOS / Pass Off and export</h4><p>The tabs separate Adjustments, Scrap, Movements, Cycle Count, and Completed Tasks. Automatic entries are editable drafts: review them, delete anything wrong, and add manual information when needed. Save stores the Pass Off; Word downloads the report. Reset clears the visible draft, so use it only after handing off the shift.</p></div>
     <div class="guide-step"><h4>💾 Save, ↺ Reset and Word</h4><p><strong>Save</strong> logs the module and updates PASOS. Saving the same automatic report again replaces its entries to avoid duplicates. <strong>Reset</strong> clears the current module. <strong>Word</strong> downloads the report to send or archive. The draft auto-saves to the IMS account and can be continued from another device.</p></div>
     <div class="guide-step"><h4>English quick reference</h4><p>Use Shift Tasks as the shift workflow. Confirm work orders, item, expiration and lot; complete initial physical inventories, chocolate, QC-approved labels and kitchen adjustment; complete mid-shift pouch/special-ingredient adjustments; repeat kitchen and final adjustments two hours before shift end; finish SafetyChain scrap, Pass Off, scans, reports and Teams screenshots.</p></div>
@@ -65,7 +64,7 @@
   <div class="nav-group"><span class="nav-group-label">Inventory</span><div class="nav-group-btns"><button class="nav-btn active" onclick="switchPanel('chocolate',this)" type="button">🍫 Chocolate <span class="nav-badge" id="nb-choc">0</span></button><button class="nav-btn" onclick="switchPanel('kitchen',this)" type="button">🍳 Kitchen <span class="nav-badge" id="nb-kit">0</span></button><button class="nav-btn" onclick="switchPanel('ingredients',this)" type="button">🥜 Ingredients <span class="nav-badge" id="nb-ing">0</span></button><button class="nav-btn" onclick="switchPanel('pouches',this)" type="button">📦 Pouches <span class="nav-badge" id="nb-pch">0</span></button><button class="nav-btn" onclick="switchPanel('cyclecount',this)" type="button">🔎 Cycle Count <span class="nav-badge" id="nb-cc">0/0</span></button></div></div>
   <div class="nav-group"><span class="nav-group-label">Production</span><div class="nav-group-btns"><button class="nav-btn" onclick="switchPanel('schedule',this)" type="button">🗓 Schedule <span class="nav-badge">2026</span></button><button class="nav-btn" onclick="switchPanel('pallets',this)" type="button">✅ Shift Tasks <span class="nav-badge" id="nb-pal">0/0</span></button><button class="nav-btn" onclick="switchPanel('hershey',this)" type="button">🏷 Hershey Lot Code <span class="nav-badge">2026</span></button><button class="nav-btn" onclick="switchPanel('passoff',this)" type="button">🧾 Pass Off <span class="nav-badge" id="nb-po">0</span></button><button class="btn btn-green btn-sm" onclick="exportDayWord()" type="button">⬇ Day Word</button></div></div>
   <div class="nav-group"><span class="nav-group-label">Staff</span><div class="nav-group-btns"><button id="imsUsersButton" class="btn btn-outline btn-sm" type="button" hidden>👥 Users</button><button id="imsAccountButton" class="btn btn-outline btn-sm" type="button" hidden>👤 Account</button></div></div>
-  <div class="nav-group"><span class="nav-group-label">System</span><div class="nav-group-btns"><button id="imsLogicButton" class="btn btn-outline btn-sm" type="button" hidden>🧠 Logic Control</button><button class="btn btn-outline btn-sm" onclick="openGuide()" type="button">📖 Guide</button></div></div>
+  <div class="nav-group"><span class="nav-group-label">System</span><div class="nav-group-btns"><button class="btn btn-outline btn-sm" onclick="openGuide()" type="button">📖 Guide</button></div></div>
 </nav>
 </header>
 <section class="summary-cards" aria-label="Shift quick summary">
@@ -186,24 +185,25 @@
         <div class="field"><label for="chSystem" id="chSystemLabel">Total in System (lbs)</label><input type="number" id="chSystem" placeholder="e.g. 16638" oninput="calcChoc()"></div>
         <div class="field is-hidden" id="chSystemMilkGroup"><label for="chSystemMilk">Milk Total in System (Pretzel)</label><input type="number" id="chSystemMilk" placeholder="Milk system lbs" oninput="calcChoc()"></div>
       </div>
-      <div class="help-box"><strong>Important note:</strong> Only <strong>ENROBERS AND PIPES</strong> and <strong>BED</strong> default to <strong>100%</strong>. Tanks / AD / Decorators / Morcos must be entered manually. FG Pallets = pallet count. For <strong>Boxes on the Floor</strong>, enter the box count and edit <strong>lbs per box</strong> when the box is not the standard weight. Team Leads manage permanent defaults in <strong>Logic Control</strong>.</div>
+      <div class="help-box"><strong>Important note:</strong> Only <strong>ENROBERS AND PIPES</strong> and <strong>BED</strong> default to <strong>100%</strong>. Tanks / AD / Decorators / Morcos must be entered manually. FG Pallets = pallet count. For <strong>Boxes on the Floor</strong>, enter the box count and edit <strong>lbs per box</strong> when the box is not the standard weight (the edit applies to the current count only).</div>
       <div class="tbl-wrap" id="chSingleTableWrap">
-        <table id="chTable">
+        <table id="chTable" class="xl-entry-table">
           <thead><tr><th>Area / Tank</th><th>Fixed Weight (lbs)</th><th>Physical Input</th><th>Mode</th><th>Total lbs</th></tr></thead>
           <tbody id="chBody"></tbody>
+          <tfoot><tr class="xl-total-row"><td colspan="4">Total Physical Chocolate</td><td class="mono" id="chFootTotal">0.00</td></tr></tfoot>
         </table>
       </div>
       <div id="chPretzelDual" class="pretzel-dual-grid is-hidden">
         <div class="pretzel-side-card">
           <div class="pretzel-side-title dark">Dark Chocolate</div>
-          <div class="tbl-wrap"><table><thead><tr><th>Area / Tank</th><th>Fixed Weight</th><th>Physical Input</th><th>Mode</th><th>Total lbs</th></tr></thead><tbody id="chDarkBody"></tbody></table></div>
+          <div class="tbl-wrap"><table class="xl-entry-table"><thead><tr><th>Area / Tank</th><th>Fixed Weight</th><th>Physical Input</th><th>Mode</th><th>Total lbs</th></tr></thead><tbody id="chDarkBody"></tbody><tfoot><tr class="xl-total-row"><td colspan="4">Total Physical Chocolate</td><td class="mono" id="chDarkFootTotal">0.00</td></tr></tfoot></table></div>
         </div>
         <div class="pretzel-side-card">
           <div class="pretzel-side-title milk">Milk Chocolate</div>
-          <div class="tbl-wrap"><table><thead><tr><th>Area / Tank</th><th>Fixed Weight</th><th>Physical Input</th><th>Mode</th><th>Total lbs</th></tr></thead><tbody id="chMilkBody"></tbody></table></div>
+          <div class="tbl-wrap"><table class="xl-entry-table"><thead><tr><th>Area / Tank</th><th>Fixed Weight</th><th>Physical Input</th><th>Mode</th><th>Total lbs</th></tr></thead><tbody id="chMilkBody"></tbody><tfoot><tr class="xl-total-row"><td colspan="4">Total Physical Chocolate</td><td class="mono" id="chMilkFootTotal">0.00</td></tr></tfoot></table></div>
         </div>
       </div>
-      <div class="g3 u-mt12" id="chSummary"></div>
+      <div class="xl-summary-wrap u-mt12" id="chSummary"></div>
 
       <div class="row-actions u-jcenter-mt14">
       </div>
@@ -423,8 +423,10 @@
       <div class="pouch-clean-box" id="pouchPrintable">
         <div class="pouch-clean-title">Pouches Adjustments</div>
         <div class="xl-report-banner" role="note">END OF SHIFT REPORT</div>
+        <div class="xl-titlebar">Pouch Adjustment Report</div>
 
         <div class="pouch-clean-header">
+          <div><strong>Report:</strong> <span>Mid + End</span></div>
           <div><strong>Item:</strong> <span id="pchViewItem">—</span></div>
           <div><strong>FG:</strong> <span id="pchViewFg">—</span></div>
           <div><strong>Shift:</strong> <span id="pchViewShift">—</span></div>
@@ -435,31 +437,31 @@
 
         <div class="pouch-clean-grid">
           <div class="pouch-clean-section">
-            <div class="pouch-clean-section-title">Mid Shift</div>
+            <div class="pouch-clean-section-title">Mid Shift Report</div>
             <table class="pouch-clean-table">
               <tr><th>Completion</th><td><label class="vh" for="pchMidViewCompletion">Completion</label><input id="pchMidViewCompletion" readonly></td></tr>
               <tr><th>Qty in System</th><td><label class="vh" for="pchMidViewSystem">Qty in System</label><input id="pchMidViewSystem" readonly></td></tr>
               <tr><th>Qty in Physical</th><td><label class="vh" for="pchMidViewPhysical">Qty in Physical</label><input id="pchMidViewPhysical" readonly></td></tr>
-              <tr class="pouch-row-scrap"><th>Scrap Reported</th><td><label class="vh" for="pchMidViewScrap">Scrap Reported</label><input id="pchMidViewScrap" readonly></td></tr>
+              <tr class="pouch-row-scrap"><th>Scrap Reported <span class="xl-pct-chip good-bg">1%</span></th><td><label class="vh" for="pchMidViewScrap">Scrap Reported</label><input id="pchMidViewScrap" readonly></td></tr>
               <tr class="pouch-row-pct"><th>Scrap %</th><td><label class="vh" for="pchMidViewScrapPct">Scrap %</label><input id="pchMidViewScrapPct" readonly></td></tr>
-              <tr class="pouch-row-pa"><th>Production Adjustment</th><td><label class="vh" for="pchMidViewPA">Production Adjustment</label><input id="pchMidViewPA" readonly></td></tr>
+              <tr class="pouch-row-pa"><th>Production Adjustment <span class="xl-pct-chip adjusted-in-bg">5%</span></th><td><label class="vh" for="pchMidViewPA">Production Adjustment</label><input id="pchMidViewPA" readonly></td></tr>
               <tr class="pouch-row-pct"><th>Production Adjustment %</th><td><label class="vh" for="pchMidViewPAPct">Production Adjustment %</label><input id="pchMidViewPAPct" readonly></td></tr>
-              <tr class="pouch-row-total"><th>Total Adjustment</th><td><label class="vh" for="pchMidViewTotalAdj">Total Adjustment</label><input id="pchMidViewTotalAdj" readonly></td></tr>
+              <tr class="pouch-row-total"><th>Total Adjustment <span class="xl-pct-chip adjusted-in-bg">3%</span></th><td><label class="vh" for="pchMidViewTotalAdj">Total Adjustment</label><input id="pchMidViewTotalAdj" readonly></td></tr>
               <tr class="pouch-row-pct"><th>Adjustment %</th><td><label class="vh" for="pchMidViewAdjPct">Adjustment %</label><input id="pchMidViewAdjPct" readonly></td></tr>
             </table>
           </div>
 
           <div class="pouch-clean-section">
-            <div class="pouch-clean-section-title">End of Shift — Cumulative</div>
+            <div class="pouch-clean-section-title">End of Shift Report — Cumulative</div>
             <table class="pouch-clean-table">
               <tr><th>Completion</th><td><label class="vh" for="pchEndViewCompletion">Completion</label><input id="pchEndViewCompletion" readonly></td></tr>
               <tr><th>Qty in System</th><td><label class="vh" for="pchEndViewSystem">Qty in System</label><input id="pchEndViewSystem" readonly></td></tr>
               <tr><th>Qty in Physical</th><td><label class="vh" for="pchEndViewPhysical">Qty in Physical</label><input id="pchEndViewPhysical" readonly></td></tr>
-              <tr class="pouch-row-scrap"><th>Scrap Reported</th><td><label class="vh" for="pchEndViewScrap">Scrap Reported</label><input id="pchEndViewScrap" readonly></td></tr>
+              <tr class="pouch-row-scrap"><th>Scrap Reported <span class="xl-pct-chip good-bg">1%</span></th><td><label class="vh" for="pchEndViewScrap">Scrap Reported</label><input id="pchEndViewScrap" readonly></td></tr>
               <tr class="pouch-row-pct"><th>Scrap %</th><td><label class="vh" for="pchEndViewScrapPct">Scrap %</label><input id="pchEndViewScrapPct" readonly></td></tr>
-              <tr class="pouch-row-pa"><th>Production Adjustment</th><td><label class="vh" for="pchEndViewPA">Production Adjustment</label><input id="pchEndViewPA" readonly></td></tr>
+              <tr class="pouch-row-pa"><th>Production Adjustment <span class="xl-pct-chip adjusted-in-bg">5%</span></th><td><label class="vh" for="pchEndViewPA">Production Adjustment</label><input id="pchEndViewPA" readonly></td></tr>
               <tr class="pouch-row-pct"><th>Production Adjustment %</th><td><label class="vh" for="pchEndViewPAPct">Production Adjustment %</label><input id="pchEndViewPAPct" readonly></td></tr>
-              <tr class="pouch-row-total"><th>Total Adjustment</th><td><label class="vh" for="pchEndViewTotalAdj">Total Adjustment</label><input id="pchEndViewTotalAdj" readonly></td></tr>
+              <tr class="pouch-row-total"><th>Total Adjustment <span class="xl-pct-chip adjusted-in-bg">3%</span></th><td><label class="vh" for="pchEndViewTotalAdj">Total Adjustment</label><input id="pchEndViewTotalAdj" readonly></td></tr>
               <tr class="pouch-row-pct"><th>Adjustment %</th><td><label class="vh" for="pchEndViewAdjPct">Adjustment %</label><input id="pchEndViewAdjPct" readonly></td></tr>
             </table>
           </div>
@@ -469,7 +471,6 @@
             <div class="pouch-legend-row"><div class="pouch-legend-label good-bg">Acceptable</div><div class="pouch-legend-text">&lt;=5%</div></div>
             <div class="pouch-legend-row"><div class="pouch-legend-label att-bg">Attention</div><div class="pouch-legend-text">&gt;5% and &lt;=8%</div></div>
             <div class="pouch-legend-row"><div class="pouch-legend-label crit-bg">Critical</div><div class="pouch-legend-text">&gt;8%</div></div>
-            <div class="pouch-legend-row"><div class="pouch-legend-label adjusted-in-bg">Adjusted IN</div><div class="pouch-legend-text">Positive adjustment</div></div>
             <div class="pouch-legend-row"><div class="pouch-legend-label adjusted-in-bg">Adjusted IN</div><div class="pouch-legend-text">Positive Adjustment</div></div>
           </div>
         </div>

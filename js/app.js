@@ -304,62 +304,24 @@ function resetDaily() { buildDailyShifts(); toast('Daily Report reset'); }
 function saveDaily() { saveReport({id:String(Date.now()),module:'daily',date:document.getElementById('dlDate').value,shift:'All',building:document.getElementById('dlBuilding').value,data:getDailyData(),savedAt:new Date().toISOString()}); }
 
 // ══════════════════════ CHOCOLATE ══════════════════════
-window.IMS_LOGIC_CONFIG = window.IMS_LOGIC_CONFIG || {
-  version:1,
-  chocolate:{weights:{}},
-  ingredients:{bom:{}},
-  pouches:{bom:{}}
-};
-function imsLogicNumber(value){
-  const number=Number(value);
-  return Number.isFinite(number)&&number>=0?number:null;
+// ══════════════════════ CHOCOLATE ══════════════════════
+// All defaults are hardcoded base values. Default/logic changes are now managed
+// through the FILES L1 update emails, not inside the app — there is no in-app
+// override UI. (Logic Control was removed on 2026-09-22.)
+// Default pouch BOMs from FILES L1 (Daily Pouch Adjustment NEW.xlsx): 1.08 Ea
+const DEFAULT_POUCH_BOMS = { '40674|*': 1.08, '40893|*': 1.08 };
+function imsNonNegativeNumber(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
-function imsChocolateRuleKey(line,item,kind,area){
-  return [line||'*',item||'*',kind||'SINGLE',area||''].map(value=>String(value).trim()).join('|');
-}
-function imsChocolateWeight(line,item,kind,area,fallback){
-  const weights=window.IMS_LOGIC_CONFIG?.chocolate?.weights||{};
-  const keys=[
-    imsChocolateRuleKey(line,item,kind,area),
-    imsChocolateRuleKey(line,'*',kind,area),
-    imsChocolateRuleKey('*','*',kind,area)
-  ];
-  for(const key of keys){
-    const configured=imsLogicNumber(weights[key]);
-    if(configured!==null) return configured;
+function imsPouchBom(item, fg, fallback = 1) {
+  const keys = [`${String(item || '').trim()}|${String(fg || '').trim()}`, `${String(item || '').trim()}|*`];
+  for (const key of keys) {
+    const configured = DEFAULT_POUCH_BOMS[key];
+    if (Number.isFinite(configured) && configured > 0) return configured;
   }
-  return imsLogicNumber(fallback)??0;
+  return imsNonNegativeNumber(fallback, 1);
 }
-function imsIngredientBom(fg,item){
-  const bom=window.IMS_LOGIC_CONFIG?.ingredients?.bom||{};
-  const exact=imsLogicNumber(bom[`${String(fg).trim()}|${String(item).trim()}`]);
-  return exact!==null&&exact>0?exact:0;
-}
-function imsPouchBom(item,fg,fallback=1){
-  const bom=window.IMS_LOGIC_CONFIG?.pouches?.bom||{};
-  const keys=[`${String(item||'').trim()}|${String(fg||'').trim()}`,`${String(item||'').trim()}|*`];
-  for(const key of keys){
-    const configured=imsLogicNumber(bom[key]);
-    if(configured!==null&&configured>0) return configured;
-  }
-  return imsLogicNumber(fallback)??1;
-}
-window.imsApplyLogicConfig=function(config,options={}){
-  const source=config&&typeof config==='object'?config:{};
-  window.IMS_LOGIC_CONFIG={
-    version:Number(source.version)||1,
-    chocolate:{weights:{...(source.chocolate?.weights||{})}},
-    ingredients:{bom:{...(source.ingredients?.bom||{})}},
-    pouches:{bom:{...(source.pouches?.bom||{})}},
-    updatedAt:source.updatedAt||source.updated_at||null,
-    updatedBy:source.updatedBy||source.updated_by||null
-  };
-  if(options.rebuild!==false){
-    if(document.getElementById('chBody')) buildChocRows();
-    if(document.getElementById('ingSummary')) buildIngRows();
-    if(document.getElementById('pchBom')) pchApplyConfiguredBom();
-  }
-};
 function buildChocRows() {
   const line = document.getElementById('chLine').value;
   const isPretzel=line.startsWith('Pretzel');
@@ -380,7 +342,6 @@ function buildChocRows() {
     const darkRows=[...base,['ENROBERS AND PIPES',400,'pct'],['BED',prod.pretzelDarkBed??prod.bed??0,'pct'],['FG PALLETS WITHOUT LABEL',prod.pretzelDarkPal??prod.chocPal??0,'count'],['BOXES ON THE FLOOR',50,'count']];
     const milkRows=[...base,['ENROBERS AND PIPES',100,'pct'],['BED',prod.pretzelMilkBed??prod.bed??0,'pct'],['FG PALLETS WITHOUT LABEL',prod.pretzelMilkPal??prod.chocPal??0,'count'],['BOXES ON THE FLOOR',50,'count']];
     const render=(kind,areas)=>areas.map(([name,weight,mode])=>{
-      weight=imsChocolateWeight(line,document.getElementById('chItem').value,kind,name,weight);
       const defaultVal=(name==='ENROBERS AND PIPES'||name==='BED')?'100':'';
       const modeTag=mode==='count'?'<span class="tag tag-blue">×</span>':'<span class="tag tag-amber">%</span>';
       const editableBox=name.includes('BOXES');
@@ -401,7 +362,6 @@ function buildChocRows() {
     let fw = weight;
     if(name.startsWith('BED')) fw = prod.bed||0;
     if(name.startsWith('FG PALLET')) fw = prod.chocPal||0;
-    fw=imsChocolateWeight(line,document.getElementById('chItem').value,'SINGLE',name,fw);
     const modeTag = mode==='pct'?'<span class="tag tag-amber">%</span>':mode==='count'?'<span class="tag tag-blue">×</span>':'<span class="tag tag-green">fixed</span>';
     const autoDefault100 = name.startsWith('ENROBERS AND PIPES') || name.startsWith('BED');
     const hint = autoDefault100 ? 'Default 100% — modify only if line ended / return was made' : (mode==='count'?'# boxes':'# pallets / %');
@@ -436,24 +396,28 @@ function calcChoc() {
   });
   const sys = parseFloat(document.getElementById('chSystem').value)||0;
   const isPretzel=document.getElementById('chLine').value.startsWith('Pretzel');
+  // Excel-style SUMMARY box (Chocolate adjustment.xlsx): lime SUMMARY header,
+  // Total Physical Chocolate, Total Chocolate in the System, Amount to Add to
+  // the System (green), Amount to Remove from the System (red).
+  const xlChocSummary=(total,systemTotal,label)=>{
+    const diff=total-systemTotal,add=diff>0?diff:0,remove=diff<0?-diff:0;
+    return `<table class="xl-summary-table"><thead><tr><th colspan="2">SUMMARY${label?' — '+label:''}</th></tr></thead><tbody>`
+      +`<tr><td>Total Physical Chocolate</td><td class="mono">${fmt(total)} lbs</td></tr>`
+      +`<tr class="xl-row-system"><td>Total Chocolate in the System</td><td class="mono">${fmt(systemTotal)} lbs</td></tr>`
+      +`<tr class="xl-row-add"><td>Amount to Add to the System</td><td class="mono">${fmt(add)} lbs</td></tr>`
+      +`<tr class="xl-row-remove"><td>Amount to Remove from the System</td><td class="mono">${fmt(remove)} lbs</td></tr>`
+      +`</tbody></table>`;
+  };
+  const setFootTotal=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=fmt(val);};
   if(isPretzel){
     const milkSys=parseFloat(document.getElementById('chSystemMilk').value)||0;
-    const darkDiff=darkTotal-sys,milkDiff=milkTotal-milkSys;
-    document.getElementById('chSummary').innerHTML=`
-      <div class="sum-box xl-physical"><div class="sum-lbl">Dark Physical</div><div class="sum-val">${fmt(darkTotal)} lbs</div></div>
-      <div class="sum-box xl-system"><div class="sum-lbl">Dark System</div><div class="sum-val">${fmt(sys)} lbs</div></div>
-      <div class="sum-box ${darkDiff>=0?'status-increase':'status-remove'}"><div class="sum-lbl">Dark Adjustment</div><div class="sum-val">${darkDiff>0?'+':''}${fmt(darkDiff)} lbs</div></div>
-      <div class="sum-box xl-physical"><div class="sum-lbl">Milk Physical</div><div class="sum-val">${fmt(milkTotal)} lbs</div></div>
-      <div class="sum-box xl-system"><div class="sum-lbl">Milk System</div><div class="sum-val">${fmt(milkSys)} lbs</div></div>
-      <div class="sum-box ${milkDiff>=0?'status-increase':'status-remove'}"><div class="sum-lbl">Milk Adjustment</div><div class="sum-val">${milkDiff>0?'+':''}${fmt(milkDiff)} lbs</div></div>`;
-    updateChocolateReport(darkTotal+milkTotal,sys+milkSys,darkDiff+milkDiff); return;
+    setFootTotal('chDarkFootTotal',darkTotal);setFootTotal('chMilkFootTotal',milkTotal);
+    document.getElementById('chSummary').innerHTML=`<div class="xl-summary-duo">${xlChocSummary(darkTotal,sys,'DARK')}${xlChocSummary(milkTotal,milkSys,'MILK')}</div>`;
+    updateChocolateReport(darkTotal+milkTotal,sys+milkSys,(darkTotal-sys)+(milkTotal-milkSys)); return;
   }
   const diff = total - sys;
-  const actionClass = diff > 0 ? 'status-increase' : (diff < 0 ? 'status-remove' : 'status-ok');
-  document.getElementById('chSummary').innerHTML = `
-    <div class="sum-box xl-physical"><div class="sum-lbl">Total Physical Inventory</div><div class="sum-val">${fmt(total)} lbs</div></div>
-    <div class="sum-box ${actionClass}"><div class="sum-lbl">Qty to ${diff>0?'Increase':diff<0?'Remove':'Adjust'}</div><div class="sum-val ${diff>0?'pos':diff<0?'neg':''}">${fmt(Math.abs(diff))} lbs</div></div>
-    <div class="sum-box xl-system"><div class="sum-lbl">System Qty</div><div class="sum-val mono">${fmt(sys)} lbs</div></div>`;
+  setFootTotal('chFootTotal',total);
+  document.getElementById('chSummary').innerHTML = xlChocSummary(total,sys,'');
   updateChocolateReport(total, sys, diff);
 }
 function getChocData() {
@@ -529,8 +493,6 @@ function ingPctClass(pct){ return pct<=.05?'good-bg':pct<=.08?'att-bg':'crit-bg'
 function ingInput(id){ return parseFloat(document.getElementById(id)?.value)||0; }
 function ingMatchKey(value){ return String(value??'').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,''); }
 function ingBomFor(fg,id){
-  const configured=imsIngredientBom(fg,id);
-  if(configured>0) return configured;
   const bom=window.SHIFTHUB_INGREDIENT_DATA?.bom||{};
   const direct=bom[`${String(fg).trim()}|${String(id).trim()}`];
   if(Number(direct)>0) return Number(direct);
@@ -644,7 +606,7 @@ function buildIngRows() {
       <details class="ing-breakdown" open>
         <summary>Edit physical breakdown · Pallets + Band + Bed + Boxes / Totes</summary>
         <div class="ing-physical-wrap"><table class="ing-physical-table">
-          <thead><tr><th>Physical Detail</th><th>Qty</th><th>Lbs / Unit</th><th>Total lbs</th></tr></thead>
+          <thead><tr><th>Physical Inventory</th><th>Quantity</th><th>Lbs per Unit</th><th>Pounds</th></tr></thead>
           <tbody>${itemRows.map(([item,detail,qty,fixed,mode])=>`<tr class="ing-physical-row" data-item="${item}" data-stage="${stage}" data-mode="${mode}" data-fixed="${fixed}" data-detail="${detail}">
             <td>${detail}</td>
             <td><input type="number" step="any" class="ing-stage-qty ing-entry-input" value="${qty}" oninput="calcIng()" aria-label="Physical quantity for ${detail}"></td>
@@ -678,10 +640,19 @@ function buildIngRows() {
         ${fields.map(([label,key,rowClass])=>`<tr class="${rowClass}"><th>${label}</th><td><input id="ing-${stage}-view-${key}-${m.s}" readonly></td></tr>`).join('')}
         <tr><th>Status</th><td class="ing-status-cell"><div id="ing-${stage}-status-${m.s}" class="pouch-clean-note good-bg">Acceptable</div></td></tr>
       </tbody></table></div>
+      <table class="xl-summary-table ing-summary-table">
+        <thead><tr><th colspan="2">SUMMARY</th></tr></thead>
+        <tbody>
+          <tr><td>Total Physical</td><td class="mono" id="ing-${stage}-sum-physical-${m.s}">0.00 lbs</td></tr>
+          <tr class="xl-row-system"><td>Total in the System</td><td class="mono" id="ing-${stage}-sum-system-${m.s}">0.00 lbs</td></tr>
+          <tr class="xl-row-add"><td>Amount to Add to the System</td><td class="mono" id="ing-${stage}-sum-add-${m.s}">0.00 lbs</td></tr>
+          <tr class="xl-row-remove"><td>Amount to Remove from the System</td><td class="mono" id="ing-${stage}-sum-remove-${m.s}">0.00 lbs</td></tr>
+        </tbody>
+      </table>
     </div>`;
   };
   const ingredientCard=(stage,m)=>`<article class="ing-ingredient-card" data-ingredient="${m.id}">
-    <div class="ing-ingredient-title"><strong>${m.id} — ${m.name}</strong><span>BOM: <b id="ing-${stage}-bom-label-${m.s}">${m.defaultBom||'0'}</b> lbs / completion</span></div>
+    <div class="ing-ingredient-title"><strong>INGREDIENT ADJUSTMENT — ${String(m.name||'Ingredient').toUpperCase()}</strong><span>${m.id} · BOM: <b id="ing-${stage}-bom-label-${m.s}">${m.defaultBom||'0'}</b> lbs / completion</span></div>
     ${physicalTable(stage,m)}
     ${systemInputs(stage,m)}
     ${resultTable(stage,m)}
@@ -747,6 +718,12 @@ function calcIng() {
     const render=(stage,i,completion)=>{
       const set=(field,value)=>{const el=document.getElementById(`ing-${stage}-view-${field}-${s}`);if(el)el.value=value;};
       set('completion',fmt(completion));set('pounds',`${i.expected>0?'+':''}${fmt(i.expected)}`);set('system',fmt(i.system));set('physical',fmt(i.physical));set('scrap',`${i.scrapDisplay>0?'+':''}${fmt(i.scrapDisplay)}`);set('scrapPct',(i.scrapPct*100).toFixed(1)+'%');set('pa',`${i.productionAdjustment>0?'+':''}${fmt(i.productionAdjustment)}`);set('paPct',(i.paPct*100).toFixed(1)+'%');set('total',`${i.totalAdjustment>0?'+':''}${fmt(i.totalAdjustment)}`);set('pct',(i.pct*100).toFixed(1)+'%');
+      // Excel SUMMARY box (Ingredient Adjustment.xlsx)
+      const sumSet=(field,value)=>{const el=document.getElementById(`ing-${stage}-sum-${field}-${s}`);if(el)el.textContent=value;};
+      sumSet('physical',`${fmt(i.physical)} lbs`);
+      sumSet('system',`${fmt(i.system)} lbs`);
+      sumSet('add',`${fmt(i.totalAdjustment>0?i.totalAdjustment:0)} lbs`);
+      sumSet('remove',`${fmt(i.totalAdjustment<0?-i.totalAdjustment:0)} lbs`);
       const physicalTotal=document.getElementById(`ing-${stage}-physical-total-${s}`);if(physicalTotal)physicalTotal.textContent=`${fmt(i.physical)} lbs`;
       const systemAfterScrap=document.getElementById(`ing-${stage}-system-after-scrap-${s}`);if(systemAfterScrap)systemAfterScrap.value=fmt(i.systemAfterScrap);
       const bomLabel=document.getElementById(`ing-${stage}-bom-label-${s}`);if(bomLabel)bomLabel.textContent=String(i.bom||0);
@@ -2929,11 +2906,6 @@ window.addEventListener('DOMContentLoaded', init);
     'scheduling_planning_supervision',
     'ims_supervisor_systems'
   ]);
-  const LOGIC_CONTROL_ROLES = new Set([
-    'supervisor',
-    ...FULL_CONTROL_ROLES
-  ]);
-
   let client;
   let session = null;
   let profile = null;
@@ -2942,21 +2914,11 @@ window.addEventListener('DOMContentLoaded', init);
   let saveTimer = null;
   let saveInFlight = false;
   let authMode = 'login';
-  let logicPollTimer = null;
-  let logicConfig = {
-    version: 1,
-    chocolate: { weights: {} },
-    ingredients: { bom: {} },
-    // Default pouch BOMs from FILES L1 (Daily Pouch Adjustment NEW.xlsx): 1.08 Ea
-    pouches: { bom: { '40674|*': 1.08, '40893|*': 1.08 } }
-  };
-
   window.IMSCloud = {
     get session() { return session; },
     get profile() { return profile; },
     saveNow: () => saveCloudState(true),
     openUsers: () => openUsersDialog(),
-    openLogic: () => openLogicDialog(),
     signOut: () => signOut()
   };
 
@@ -3063,75 +3025,6 @@ window.addEventListener('DOMContentLoaded', init);
             <div id="imsUserList" class="ims-user-list"><div>Loading users…</div></div>
           </div>
         </section>
-      </div>
-
-      <div id="imsLogicDialog" class="ims-dialog-backdrop">
-        <section class="ims-dialog ims-logic-dialog">
-          <div class="ims-dialog-head">
-            <div><h2>Logic Control</h2><small>Team Leads only · approved defaults and BOM monitoring</small></div>
-            <button class="ims-auth-secondary" type="button" data-close-dialog="imsLogicDialog">Close</button>
-          </div>
-          <div class="ims-dialog-body">
-            <div id="imsLogicMeta" class="ims-logic-meta">Loading approved logic…</div>
-            <div id="imsLogicMessage" class="ims-auth-message"></div>
-
-            <div class="ims-logic-editor-grid">
-              <form id="imsChocolateLogicForm" class="ims-logic-card">
-                <div class="ims-logic-card-head"><span class="ims-logic-icon">🍫</span><div><h3>Chocolate</h3><p>Default pounds for any physical area. Box weight remains editable per count.</p></div></div>
-                <div class="ims-logic-fields">
-                  <div class="ims-auth-field"><label for="imsLogicChLine">Line</label><select id="imsLogicChLine"><option>Sollich 2</option><option>Sollich 3</option><option>Pretzel — Dark + Milk</option><option value="*">All lines</option></select></div>
-                  <div class="ims-auth-field"><label for="imsLogicChItem">Running item</label><input id="imsLogicChItem" list="imsLogicProductList" placeholder="* = all items" value="*"></div>
-                  <div class="ims-auth-field"><label for="imsLogicChKind">Chocolate side</label><select id="imsLogicChKind"><option value="SINGLE">Single</option><option value="DARK">Dark</option><option value="MILK">Milk</option></select></div>
-                  <div class="ims-auth-field"><label for="imsLogicChArea">Physical area</label><input id="imsLogicChArea" list="imsLogicChocolateAreaList" value="BOXES ON THE FLOOR" required></div>
-                  <div class="ims-auth-field ims-logic-value-field"><label for="imsLogicChWeight">Default lbs / unit</label><input id="imsLogicChWeight" type="number" min="0" step="any" required placeholder="50"></div>
-                </div>
-                <button class="ims-auth-primary" type="submit">Save chocolate default</button>
-              </form>
-
-              <form id="imsIngredientLogicForm" class="ims-logic-card">
-                <div class="ims-logic-card-head"><span class="ims-logic-icon">🥜</span><div><h3>Ingredients</h3><p>BOM pounds consumed by each completed FG bag or unit.</p></div></div>
-                <div class="ims-logic-fields">
-                  <div class="ims-auth-field"><label for="imsLogicIngFg">Finished good</label><input id="imsLogicIngFg" list="imsLogicFgList" required placeholder="30809"></div>
-                  <div class="ims-auth-field"><label for="imsLogicIngItem">Ingredient item</label><input id="imsLogicIngItem" list="imsLogicIngredientList" required placeholder="10206"></div>
-                  <div class="ims-auth-field ims-logic-value-field"><label for="imsLogicIngBom">BOM lbs / completion</label><input id="imsLogicIngBom" type="number" min="0.000001" step="any" required placeholder="0.36096"></div>
-                </div>
-                <button class="ims-auth-primary" type="submit">Save ingredient BOM</button>
-              </form>
-
-              <form id="imsPouchLogicForm" class="ims-logic-card">
-                <div class="ims-logic-card-head"><span class="ims-logic-icon">📦</span><div><h3>Pouches</h3><p>BOM for the matched packaging item and finished good.</p></div></div>
-                <div class="ims-logic-fields">
-                  <div class="ims-auth-field"><label for="imsLogicPchItem">Packaging item</label><input id="imsLogicPchItem" list="imsLogicPouchList" required placeholder="41032"></div>
-                  <div class="ims-auth-field"><label for="imsLogicPchFg">Finished good</label><input id="imsLogicPchFg" list="imsLogicFgList" required placeholder="30809"></div>
-                  <div class="ims-auth-field ims-logic-value-field"><label for="imsLogicPchBom">BOM / completion</label><input id="imsLogicPchBom" type="number" min="0.000001" step="any" required value="1"></div>
-                </div>
-                <button class="ims-auth-primary" type="submit">Save pouch BOM</button>
-              </form>
-            </div>
-
-            <section class="ims-logic-monitor">
-              <div class="ims-logic-section-head"><div><h3>Approved rules</h3><p>These defaults are applied to every active user.</p></div><input id="imsLogicRuleSearch" type="search" placeholder="Search item, FG, area…"></div>
-              <div id="imsLogicRuleList" class="ims-logic-rule-list"></div>
-            </section>
-
-            <section class="ims-logic-monitor">
-              <div class="ims-logic-section-head"><div><h3>Recent changes</h3><p>Audit trail of Team Lead updates.</p></div><button id="imsLogicRefresh" class="ims-auth-secondary" type="button">Refresh</button></div>
-              <div id="imsLogicAudit" class="ims-logic-audit"><div>Loading history…</div></div>
-            </section>
-
-            <datalist id="imsLogicProductList"></datalist>
-            <datalist id="imsLogicFgList"></datalist>
-            <datalist id="imsLogicIngredientList"></datalist>
-            <datalist id="imsLogicPouchList"></datalist>
-            <datalist id="imsLogicChocolateAreaList">
-              <option value="MELTING TANK 1"></option><option value="MELTING TANK 2"></option><option value="MELTING TANK 3"></option>
-              <option value="AD3"></option><option value="AD4"></option><option value="AD5"></option><option value="AD6"></option>
-              <option value="MORCOS TANK"></option><option value="DECORATOR 1 (BIG)"></option><option value="DECORATOR 2 (SMALL)"></option>
-              <option value="ENROBERS AND PIPES"></option><option value="BED"></option><option value="FG PALLETS (WITHOUT LABEL)"></option>
-              <option value="FG PALLETS WITHOUT LABEL"></option><option value="BOXES ON THE FLOOR"></option>
-            </datalist>
-          </div>
-        </section>
       </div>`;
   }
 
@@ -3153,20 +3046,9 @@ window.addEventListener('DOMContentLoaded', init);
     byId('imsPendingSignout').addEventListener('click', signOut);
     byId('imsAccountButton').addEventListener('click', openAccountDialog);
     byId('imsUsersButton').addEventListener('click', openUsersDialog);
-    byId('imsLogicButton').addEventListener('click', openLogicDialog);
     byId('imsAccountSave').addEventListener('click', () => saveCloudState(true));
     byId('imsAccountSignout').addEventListener('click', signOut);
     byId('imsCreateUserForm').addEventListener('submit', createManagedUser);
-    byId('imsChocolateLogicForm').addEventListener('submit', saveChocolateLogic);
-    byId('imsIngredientLogicForm').addEventListener('submit', saveIngredientLogic);
-    byId('imsPouchLogicForm').addEventListener('submit', savePouchLogic);
-    byId('imsLogicRuleSearch').addEventListener('input', renderLogicRules);
-    byId('imsLogicChLine').addEventListener('change', event => {
-      const kind = byId('imsLogicChKind');
-      if (event.target.value.startsWith('Pretzel') && kind.value === 'SINGLE') kind.value = 'DARK';
-      if (!event.target.value.startsWith('Pretzel') && kind.value !== 'SINGLE') kind.value = 'SINGLE';
-    });
-    byId('imsLogicRefresh').addEventListener('click', async () => { await loadLogicConfig(); await loadLogicAudit(); });
     document.querySelectorAll('[data-close-dialog]').forEach(el => el.addEventListener('click', () => closeDialog(el.dataset.closeDialog)));
     document.querySelectorAll('.ims-dialog-backdrop').forEach(el => el.addEventListener('click', event => {
       if (event.target === el) closeDialog(el.id);
@@ -3318,7 +3200,6 @@ window.addEventListener('DOMContentLoaded', init);
     hideAuth();
     updateIdentityUI();
     setCloudStatus('Loading saved work…');
-    await loadLogicConfig();
     await restoreCloudState();
     await syncReportsFromCloud();
     fillEmployeeIdentity();
@@ -3326,9 +3207,6 @@ window.addEventListener('DOMContentLoaded', init);
     setCloudStatus('Saved', 'saved');
     installAutosaveListeners();
     wrapReportSaving();
-    if (!logicPollTimer) logicPollTimer = setInterval(() => {
-      if (session && profile && profile.active) loadLogicConfig({ rebuild: false });
-    }, 60000);
   }
 
   function updateIdentityUI() {
@@ -3339,9 +3217,7 @@ window.addEventListener('DOMContentLoaded', init);
     byId('imsCloudStatus').hidden = false;
     const canManage = hasFullControl();
     byId('imsUsersButton').hidden = !canManage;
-    const canLead = hasLogicControl();
-    byId('imsLogicButton').hidden = !canLead;
-    if (canLead) {
+    if (canManage) {
       safeCall('unlockDashboard');
       addDashboardNavigation();
     }
@@ -3391,11 +3267,9 @@ window.addEventListener('DOMContentLoaded', init);
     cloudReady = false;
     byId('imsAccountButton').hidden = true;
     byId('imsUsersButton').hidden = true;
-    byId('imsLogicButton').hidden = true;
     byId('imsCloudStatus').hidden = true;
     closeDialog('imsAccountDialog');
     closeDialog('imsUsersDialog');
-    closeDialog('imsLogicDialog');
     showAuthView('login');
     await checkBootstrapAvailability();
   }
@@ -3407,7 +3281,7 @@ window.addEventListener('DOMContentLoaded', init);
   }
 
   function appControls() {
-    return Array.from(document.querySelectorAll('input, select, textarea')).filter(el => !el.closest('#imsAuthRoot, #imsAccountDialog, #imsUsersDialog, #imsLogicDialog'));
+    return Array.from(document.querySelectorAll('input, select, textarea')).filter(el => !el.closest('#imsAuthRoot, #imsAccountDialog, #imsUsersDialog'));
   }
 
   function captureState() {
@@ -3531,7 +3405,7 @@ window.addEventListener('DOMContentLoaded', init);
     document.addEventListener('input', markDirty, true);
     document.addEventListener('change', markDirty, true);
     document.addEventListener('click', event => {
-      if (event.target.closest('#imsAuthRoot, #imsAccountDialog, #imsUsersDialog, #imsLogicDialog')) return;
+      if (event.target.closest('#imsAuthRoot, #imsAccountDialog, #imsUsersDialog')) return;
       setTimeout(markDirty, 0);
     }, true);
     document.addEventListener('visibilitychange', () => {
@@ -3595,233 +3469,9 @@ window.addEventListener('DOMContentLoaded', init);
     safeCall('renderPublicLeaderboard');
   }
 
-  function isLead() {
-    return hasLogicControl();
-  }
 
   function hasFullControl() {
     return Boolean(profile && profile.active && FULL_CONTROL_ROLES.has(profile.role));
-  }
-
-  function hasLogicControl() {
-    return Boolean(profile && profile.active && LOGIC_CONTROL_ROLES.has(profile.role));
-  }
-
-  function normalizeLogicConfig(raw) {
-    const source = raw && typeof raw === 'object' ? raw : {};
-    return {
-      version: Number(source.version) || 1,
-      chocolate: { weights: Object.assign({}, source.chocolate && source.chocolate.weights || {}) },
-      ingredients: { bom: Object.assign({}, source.ingredients && source.ingredients.bom || {}) },
-      pouches: { bom: Object.assign({}, source.pouches && source.pouches.bom || {}) },
-      updatedAt: source.updatedAt || source.updated_at || null,
-      updatedBy: source.updatedBy || source.updated_by || null
-    };
-  }
-
-  async function loadLogicConfig(options) {
-    const rebuild = !options || options.rebuild !== false;
-    const { data, error } = await client.from('ims_logic_config').select('config, updated_at').eq('id', 'global').maybeSingle();
-    if (error) {
-      setMessage('imsLogicMessage', `Logic Control is not ready: ${error.message}`, 'error');
-      if (typeof window.imsApplyLogicConfig === 'function') window.imsApplyLogicConfig(logicConfig, { rebuild });
-      return false;
-    }
-    logicConfig = normalizeLogicConfig(data && data.config);
-    if (data && data.updated_at) logicConfig.updatedAt = data.updated_at;
-    if (typeof window.imsApplyLogicConfig === 'function') window.imsApplyLogicConfig(logicConfig, { rebuild });
-    renderLogicRules();
-    renderLogicMeta();
-    return true;
-  }
-
-  function logicSource(name) {
-    try {
-      if (name === 'products' && typeof PROD_ITEMS !== 'undefined') return PROD_ITEMS;
-      if (name === 'ingredients' && typeof ING_ITEMS !== 'undefined') return ING_ITEMS;
-      if (name === 'pouches' && typeof POUCH_ITEMS !== 'undefined') return POUCH_ITEMS;
-    } catch (_) {}
-    if (name === 'fg') return (window.SHIFTHUB_INGREDIENT_DATA && window.SHIFTHUB_INGREDIENT_DATA.finishedGoods || []).filter(item => /^3/.test(String(item.id)));
-    return [];
-  }
-
-  function fillLogicDatalist(id, items, descriptionKey) {
-    const list = byId(id);
-    if (!list) return;
-    list.innerHTML = items.map(item => `<option value="${escapeHtml(item.id)}" label="${escapeHtml(item[descriptionKey] || item.desc || item.name || '')}"></option>`).join('');
-  }
-
-  function populateLogicDatalists() {
-    fillLogicDatalist('imsLogicProductList', logicSource('products'), 'desc');
-    fillLogicDatalist('imsLogicFgList', logicSource('fg'), 'desc');
-    fillLogicDatalist('imsLogicIngredientList', logicSource('ingredients'), 'name');
-    fillLogicDatalist('imsLogicPouchList', logicSource('pouches'), 'desc');
-  }
-
-  async function openLogicDialog() {
-    if (!isLead()) return;
-    populateLogicDatalists();
-    openDialog('imsLogicDialog');
-    setMessage('imsLogicMessage', '', 'success');
-    await loadLogicConfig({ rebuild: false });
-    await loadLogicAudit();
-  }
-
-  function renderLogicMeta() {
-    const counts = {
-      chocolate: Object.keys(logicConfig.chocolate.weights).length,
-      ingredients: Object.keys(logicConfig.ingredients.bom).length,
-      pouches: Object.keys(logicConfig.pouches.bom).length
-    };
-    const updated = logicConfig.updatedAt ? new Date(logicConfig.updatedAt).toLocaleString() : 'No Team Lead changes yet';
-    const meta = byId('imsLogicMeta');
-    if (meta) meta.innerHTML = `<strong>${counts.chocolate + counts.ingredients + counts.pouches} approved overrides</strong><span>Chocolate ${counts.chocolate}</span><span>Ingredients ${counts.ingredients}</span><span>Pouches ${counts.pouches}</span><span>Last update: ${escapeHtml(updated)}</span>`;
-  }
-
-  function logicRules() {
-    const rules = [];
-    Object.entries(logicConfig.chocolate.weights).forEach(([key, value]) => {
-      const [line, item, kind, area] = key.split('|');
-      rules.push({ module: 'chocolate', key, value, title: `Chocolate · ${line} · ${kind}`, detail: `${item === '*' ? 'All running items' : `Item ${item}`} · ${area} · lbs/unit` });
-    });
-    Object.entries(logicConfig.ingredients.bom).forEach(([key, value]) => {
-      const [fg, item] = key.split('|');
-      rules.push({ module: 'ingredients', key, value, title: `Ingredient BOM · FG ${fg}`, detail: `Ingredient ${item} · lbs/completion` });
-    });
-    Object.entries(logicConfig.pouches.bom).forEach(([key, value]) => {
-      const [item, fg] = key.split('|');
-      rules.push({ module: 'pouches', key, value, title: `Pouch BOM · Item ${item}`, detail: `${fg === '*' ? 'All finished goods' : `FG ${fg}`} · units/completion` });
-    });
-    return rules.sort((a, b) => a.module.localeCompare(b.module) || a.key.localeCompare(b.key));
-  }
-
-  function renderLogicRules() {
-    const list = byId('imsLogicRuleList');
-    if (!list) return;
-    const query = clean(byId('imsLogicRuleSearch') && byId('imsLogicRuleSearch').value).toLowerCase();
-    const rules = logicRules().filter(rule => !query || `${rule.title} ${rule.detail} ${rule.key}`.toLowerCase().includes(query));
-    list.innerHTML = rules.map(rule => `
-      <div class="ims-logic-rule" data-logic-module="${rule.module}" data-logic-key="${escapeHtml(encodeURIComponent(rule.key))}">
-        <span class="ims-logic-module is-${rule.module}">${rule.module === 'chocolate' ? 'Chocolate' : rule.module === 'ingredients' ? 'Ingredient' : 'Pouch'}</span>
-        <div><strong>${escapeHtml(rule.title)}</strong><small>${escapeHtml(rule.detail)}</small></div>
-        <output>${escapeHtml(rule.value)}</output>
-        <button class="ims-auth-secondary ims-auth-danger" type="button" data-logic-delete>Remove</button>
-      </div>`).join('') || '<div class="ims-logic-empty">No approved overrides match this search. Built-in document defaults remain active.</div>';
-    list.querySelectorAll('[data-logic-delete]').forEach(button => button.addEventListener('click', deleteLogicRule));
-    renderLogicMeta();
-  }
-
-  function logicItemId(value) {
-    const text = clean(value);
-    const match = text.match(/^([^\s—]+)/);
-    return match ? match[1] : text;
-  }
-
-  function logicBucket(config, module) {
-    if (module === 'chocolate') return config.chocolate.weights;
-    if (module === 'ingredients') return config.ingredients.bom;
-    return config.pouches.bom;
-  }
-
-  async function saveLogicChange(module, key, value, action) {
-    if (!isLead()) return false;
-    const draft = normalizeLogicConfig(logicConfig);
-    const bucket = logicBucket(draft, module);
-    const oldValue = Object.prototype.hasOwnProperty.call(bucket, key) ? bucket[key] : null;
-    if (action === 'delete') delete bucket[key];
-    else bucket[key] = value;
-    draft.updatedAt = new Date().toISOString();
-    draft.updatedBy = profile.ims_username || profile.full_name || session.user.email;
-    setMessage('imsLogicMessage', 'Saving approved logic…', 'success');
-    const { data, error } = await client.from('ims_logic_config').update({
-      config: draft,
-      updated_by: session.user.id,
-      updated_at: draft.updatedAt
-    }).eq('id', 'global').select('config, updated_at').single();
-    if (error) {
-      setMessage('imsLogicMessage', `Unable to save: ${error.message}`, 'error');
-      return false;
-    }
-    logicConfig = normalizeLogicConfig(data.config);
-    logicConfig.updatedAt = data.updated_at;
-    if (typeof window.imsApplyLogicConfig === 'function') window.imsApplyLogicConfig(logicConfig, { rebuild: false });
-    const audit = await client.from('ims_logic_audit').insert({
-      module,
-      rule_key: key,
-      old_value: oldValue,
-      new_value: action === 'delete' ? null : value,
-      action: action === 'delete' ? 'deleted' : oldValue === null ? 'created' : 'updated',
-      changed_by: session.user.id,
-      changed_by_name: profile.full_name || profile.ims_username || session.user.email
-    });
-    renderLogicRules();
-    renderLogicMeta();
-    setMessage('imsLogicMessage', audit.error ? `Logic saved, but audit history failed: ${audit.error.message}` : 'Approved logic saved. Open reports were not reset; the new default applies on the next item selection or report.', audit.error ? 'error' : 'success');
-    await loadLogicAudit();
-    return true;
-  }
-
-  async function saveChocolateLogic(event) {
-    event.preventDefault();
-    const line = clean(byId('imsLogicChLine').value) || '*';
-    const item = logicItemId(byId('imsLogicChItem').value) || '*';
-    const kind = clean(byId('imsLogicChKind').value) || 'SINGLE';
-    const area = clean(byId('imsLogicChArea').value).toUpperCase();
-    const weight = Number(byId('imsLogicChWeight').value);
-    if (!area || !Number.isFinite(weight) || weight < 0) {
-      setMessage('imsLogicMessage', 'Enter a physical area and a valid non-negative weight.', 'error');
-      return;
-    }
-    await saveLogicChange('chocolate', [line, item, kind, area].join('|'), weight, 'save');
-  }
-
-  async function saveIngredientLogic(event) {
-    event.preventDefault();
-    const fg = logicItemId(byId('imsLogicIngFg').value);
-    const item = logicItemId(byId('imsLogicIngItem').value);
-    const bom = Number(byId('imsLogicIngBom').value);
-    if (!fg || !item || !Number.isFinite(bom) || bom <= 0) {
-      setMessage('imsLogicMessage', 'Enter the FG, ingredient item and a BOM greater than zero.', 'error');
-      return;
-    }
-    await saveLogicChange('ingredients', `${fg}|${item}`, bom, 'save');
-  }
-
-  async function savePouchLogic(event) {
-    event.preventDefault();
-    const item = logicItemId(byId('imsLogicPchItem').value);
-    const fg = logicItemId(byId('imsLogicPchFg').value) || '*';
-    const bom = Number(byId('imsLogicPchBom').value);
-    if (!item || !Number.isFinite(bom) || bom <= 0) {
-      setMessage('imsLogicMessage', 'Enter the packaging item, FG and a BOM greater than zero.', 'error');
-      return;
-    }
-    await saveLogicChange('pouches', `${item}|${fg}`, bom, 'save');
-  }
-
-  async function deleteLogicRule(event) {
-    if (!isLead()) return;
-    const row = event.target.closest('[data-logic-key]');
-    const key = decodeURIComponent(row.dataset.logicKey);
-    if (!window.confirm(`Remove approved rule ${key}? Built-in document logic will be used again.`)) return;
-    await saveLogicChange(row.dataset.logicModule, key, null, 'delete');
-  }
-
-  async function loadLogicAudit() {
-    const target = byId('imsLogicAudit');
-    if (!target || !isLead()) return;
-    target.innerHTML = '<div>Loading history…</div>';
-    const { data, error } = await client.from('ims_logic_audit').select('module, rule_key, old_value, new_value, action, changed_by_name, changed_at').order('changed_at', { ascending: false }).limit(50);
-    if (error) {
-      target.innerHTML = `<div class="ims-auth-message is-error">${escapeHtml(error.message)}</div>`;
-      return;
-    }
-    target.innerHTML = data.map(row => `
-      <div class="ims-logic-audit-row">
-        <span class="ims-logic-module is-${escapeHtml(row.module)}">${escapeHtml(row.module)}</span>
-        <div><strong>${escapeHtml(row.action)} · ${escapeHtml(row.rule_key)}</strong><small>${escapeHtml(row.changed_by_name || 'Team Lead')} · ${escapeHtml(new Date(row.changed_at).toLocaleString())}</small></div>
-        <span class="ims-logic-change">${row.old_value == null ? '—' : escapeHtml(row.old_value)} → ${row.new_value == null ? '—' : escapeHtml(row.new_value)}</span>
-      </div>`).join('') || '<div class="ims-logic-empty">No logic changes have been recorded yet.</div>';
   }
 
   function normalizeUsername(value) {
