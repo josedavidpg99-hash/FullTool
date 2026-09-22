@@ -1,13 +1,13 @@
 /* IMS Tool — ui.js
- * Mejoras de interfaz 2026: tarjetas de resumen del turno.
- * Lee los contadores existentes (nb-*) y los refleja en las tarjetas (sc-*).
- * Las tarjetas navegan al módulo correspondiente con switchPanel().
- * No duplica lógica de app.js: solo observa el DOM.
+ * 2026 UI enhancements: shift summary cards.
+ * Reads the existing counters (nb-*) and mirrors them onto the cards (sc-*).
+ * Cards navigate to the matching module via switchPanel().
+ * No app.js logic duplicated: DOM observation only.
  */
 (function () {
   'use strict';
 
-  // [badge existente] -> [tarjeta de resumen]
+  // [existing badge] -> [summary card]
   var WATCH = [
     ['nb-choc', 'sc-choc'],
     ['nb-kit', 'sc-kit'],
@@ -49,7 +49,7 @@
   function init() {
     bindCards();
     syncCards();
-    // Los badges se actualizan por eventos de app.js; sincronizar periódicamente.
+    // Badges update on app.js events; sync periodically.
     setInterval(syncCards, 1500);
   }
 

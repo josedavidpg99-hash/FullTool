@@ -201,7 +201,7 @@ function resolveSearchableSelect(inputId,selectId,allowPartial){
 }
 function searchableSelectInput(inputId,selectId){ resolveSearchableSelect(inputId,selectId,false); }
 function searchableSelectCommit(inputId,selectId){
-  if(!resolveSearchableSelect(inputId,selectId,true)) toast('Selecciona una de las sugerencias.');
+  if(!resolveSearchableSelect(inputId,selectId,true)) toast('Select one of the matching suggestions.');
 }
 
 // ══════════════════════ NAV ══════════════════════
@@ -235,7 +235,7 @@ function buildDailyShifts() {
         <td><input type="text" id="dl${s}_${i}_item" placeholder="10200" style="min-width:80px"></td>
         <td><input type="number" id="dl${s}_${i}_start" placeholder="0" oninput="calcDailySummary()"></td>
         <td><input type="number" id="dl${s}_${i}_end" placeholder="0" oninput="calcDailySummary()"></td>
-        <td><input type="text" id="dl${s}_${i}_user" placeholder="Nombre"></td>
+        <td><input type="text" id="dl${s}_${i}_user" placeholder="Name"></td>
         <td><input type="number" id="dl${s}_${i}_dark" oninput="calcDailySummary()"></td>
         <td><input type="number" id="dl${s}_${i}_milk" oninput="calcDailySummary()"></td>
         <td><input type="number" id="dl${s}_${i}_white" oninput="calcDailySummary()"></td>
@@ -279,7 +279,7 @@ function getDailyData() {
   }));
   return { date:document.getElementById('dlDate').value, building:document.getElementById('dlBuilding').value, tl:document.getElementById('dlTL').value, shifts };
 }
-function resetDaily() { buildDailyShifts(); toast('Reporte diario restablecido'); }
+function resetDaily() { buildDailyShifts(); toast('Daily Report reset'); }
 function saveDaily() { saveReport({id:String(Date.now()),module:'daily',date:document.getElementById('dlDate').value,shift:'All',building:document.getElementById('dlBuilding').value,data:getDailyData(),savedAt:new Date().toISOString()}); }
 
 // ══════════════════════ CHOCOLATE ══════════════════════
@@ -442,7 +442,7 @@ function getChocData() {
   });
   return {date:document.getElementById('chDate').value,shift:document.getElementById('chShift').value,line:document.getElementById('chLine').value,item:document.getElementById('chItem').value,chocItem:document.getElementById('chChocItem').value,chocItemMilk:document.getElementById('chChocItemMilk').value,system:document.getElementById('chSystem').value,systemMilk:document.getElementById('chSystemMilk').value,rows};
 }
-function resetChoc() { ['chSystem','chSystemMilk'].forEach(id=>document.getElementById(id).value=''); buildChocRows(); toast('Chocolate restablecido'); }
+function resetChoc() { ['chSystem','chSystemMilk'].forEach(id=>document.getElementById(id).value=''); buildChocRows(); toast('Chocolate reset'); }
 function saveChoc() {
   const data=getChocData(),physical=data.rows.reduce((a,r)=>a+(parseFloat(String(r.qty).replace(/,/g,''))||0),0),system=(parseFloat(data.system)||0)+(parseFloat(data.systemMilk)||0),diff=physical-system;
   saveReport({id:String(Date.now()),module:'chocolate',date:data.date,shift:data.shift,building:'L1',operator:document.getElementById('chEmployee').value.trim(),data,savedAt:new Date().toISOString()});
@@ -574,7 +574,7 @@ function ingAutoConfigure(silent=false){
   buildIngRows();
   updateIngMatchStatus();
   if(!silent){
-    if(!available.length) toast('No se encontró ingrediente BOM para este producto terminado. Selecciona el ingrediente e ingresa el BOM manualmente.');
+    if(!available.length) toast('No BOM ingredient found for this finished good. Select the ingredient and enter BOM manually.');
     else toast(`BOM match loaded automatically for ${fg}`);
   }
 }
@@ -638,16 +638,16 @@ function buildIngRows() {
   const systemInputs=(stage,m)=>`<div class="ing-step ing-step-system">
     <div class="ing-step-head"><span class="ing-step-number">2</span><span>System &amp; SafetyChain</span></div>
     <div class="ing-system-grid">
-      <div class="field"><label>Qty in System</label><input class="ing-entry-input" type="number" step="any" id="ing-${stage}-sys-${m.s}" placeholder="lbs sistema" oninput="calcIng()"></div>
-      <div class="field"><label>${stage==='mid'?'SafetyChain Scrap':'Additional Scrap Since Mid'}</label><input class="ing-entry-input" type="number" step="any" min="0" id="ing-${stage}-scrap-${m.s}" placeholder="Cantidad positiva" oninput="calcIng()"></div>
+      <div class="field"><label>Qty in System</label><input class="ing-entry-input" type="number" step="any" id="ing-${stage}-sys-${m.s}" placeholder="System lbs" oninput="calcIng()"></div>
+      <div class="field"><label>${stage==='mid'?'SafetyChain Scrap':'Additional Scrap Since Mid'}</label><input class="ing-entry-input" type="number" step="any" min="0" id="ing-${stage}-scrap-${m.s}" placeholder="Positive amount" oninput="calcIng()"></div>
       <div class="field"><label>System After Scrap</label><input class="ing-auto-callout" id="ing-${stage}-system-after-scrap-${m.s}" value="0.00" readonly></div>
     </div>
   </div>`;
   const resultTable=(stage,m)=>{
     const fields=[
       ['Completion — Bags / Units','completion',''],['Pounds (Completion × BOM)','pounds',''],['Qty in System','system',''],['Qty in Physical','physical',''],
-      ['Scrap Reported','scrap','ing-result-scrap'],['% Scrap','scrapPct','ing-result-pct'],['Ajuste de producción','pa','ing-result-pa'],['% Ajuste de producción','paPct','ing-result-pct'],
-      ['Ajuste total','total','ing-result-total'],['Adjustment %','pct','ing-result-pct']
+      ['Scrap Reported','scrap','ing-result-scrap'],['Scrap %','scrapPct','ing-result-pct'],['Production Adjustment','pa','ing-result-pa'],['Production Adjustment %','paPct','ing-result-pct'],
+      ['Total Adjustment','total','ing-result-total'],['Adjustment %','pct','ing-result-pct']
     ];
     return `<div class="ing-step ing-step-result">
       <div class="ing-step-head"><span class="ing-step-number">3</span><span>Automatic Result</span></div>
@@ -676,7 +676,7 @@ function buildIngRows() {
       <div class="section-label" style="margin-top:0">Ingredient Setup</div>
       <div class="ing-bom-grid">${meta.map(m=>`<div class="ing-bom-card"><div><strong>${m.id} — ${m.name}</strong><small>BOM in lbs per completed bag / unit</small></div><input type="number" step="any" id="ing-bom-${m.s}" value="${m.defaultBom}" placeholder="BOM" oninput="calcIng()"></div>`).join('')}</div>
       <div class="ing-workflow-stack">
-        ${reportTable('mid','Mitad de turno','Enter the actual Mid physical count, NetSuite quantity and SafetyChain scrap.')}
+        ${reportTable('mid','Mid Shift','Enter the actual Mid physical count, NetSuite quantity and SafetyChain scrap.')}
         ${reportTable('end','End of Shift — Cumulative','Enter the actual End physical/system count plus additional Completion and Scrap since Mid.')}
       </div>
       <div class="ing-legend-bar" aria-label="Ingredient adjustment status legend">
@@ -733,7 +733,7 @@ function calcIng() {
     render('mid',mid,data.mid.completion);render('end',end,data.end.completion);
   });
 }
-function resetIng() { ['ingMidCompletion','ingEndCompletion'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); buildIngRows(); toast('Ingredientes restablecidos'); }
+function resetIng() { ['ingMidCompletion','ingEndCompletion'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); buildIngRows(); toast('Ingredients reset'); }
 function saveIng() {
   const data=getIngData();
   saveReport({id:String(Date.now()),module:'ingredients',date:data.date,shift:data.shift,building:'L1',operator:document.getElementById('ingEmployee').value.trim(),data,savedAt:new Date().toISOString()});
@@ -776,52 +776,52 @@ function renderSchedule(){
   }).join('')||'<tr><td colspan="3">No employee found.</td></tr>';
 }
 const SHIFT_TASKS=[
-  {id:'wo',phase:'Preparación',when:'Antes de comenzar',text:'Identifica órdenes de trabajo, artículo en producción, fecha de vencimiento y número de lote.'},
-  {id:'activate',phase:'Preparación',when:'Si aplica',text:'Activa la orden de trabajo en Work Order Inspector / NetSuite.',condition:s=>s.newProduct},
-  {id:'plan',phase:'Preparación',when:'Antes de comenzar',text:'Confirma la asignación, los reportes requeridos y los materiales usados en la línea.'},
-  {id:'kitchen-start',phase:'Inventario inicial',when:'Inicio de turno',text:'Completa el inventario físico de cocina.'},
-  {id:'special-start',phase:'Inventario inicial',when:'Inicio de turno',text:'Cuenta cada ingrediente especial en uso.',condition:s=>s.special},
-  {id:'pack-start',phase:'Inventario inicial',when:'Inicio de turno',text:s=>`Count the packaging material in physical inventory (${s.packagingLabel}).`,condition:s=>s.packaging!=='none'},
-  {id:'pouch-start',phase:'Inventario inicial',when:'Inicio de turno',text:'Compara las bolsas físicas contra el sistema e identifica la diferencia inicial.',condition:s=>s.packaging==='pouches'},
-  {id:'choc-start',phase:'Inventario inicial',when:'Después del inventario',text:'Completa el conteo físico de chocolate y el ajuste de chocolate.'},
-  {id:'labels-ready',phase:'Etiquetas y cocina',when:'Después del chocolate',text:'Prepara las etiquetas requeridas y verifica artículo, lote y vencimiento.'},
-  {id:'qc',phase:'Etiquetas y cocina',when:'Antes de colocar etiquetas',text:'Obtén la aprobación del líder de Quality Control asignado a la línea.'},
-  {id:'labels-apply',phase:'Etiquetas y cocina',when:'Después de aprobación de QC',text:'Coloca las etiquetas aprobadas y pon al día todos los pallets de producción.'},
-  {id:'pots-start',phase:'Etiquetas y cocina',when:'Después de las etiquetas',text:'Pregunta al líder de cocina cuántas ollas se han completado y cuántas faltan.'},
-  {id:'pots-record',phase:'Etiquetas y cocina',when:'Después de confirmar',text:'Registra las ollas completadas y calcula su consumo de materiales.'},
-  {id:'kitchen-adjust-start',phase:'Etiquetas y cocina',when:'Después de las ollas',text:'Ajusta el inventario de cocina usando cantidad física versus cantidad actual del sistema.'},
-  {id:'pouch-mid',phase:'Mitad de turno',when:'Mitad de turno',text:'Completa el reporte de bolsas usando el scrap de producción, el conteo físico y la cantidad del sistema.',condition:s=>s.packaging==='pouches'},
-  {id:'special-mid',phase:'Mitad de turno',when:'Mitad de turno',text:'Completa el reporte de ingredientes especiales usando el conteo físico y el scrap de SafetyChain.',condition:s=>s.special},
-  {id:'running-counts',phase:'Mitad de turno',when:'Según lo permita la línea',text:'Haz inventario de chocolate, ingredientes, ingredientes especiales y empaque en uso.',condition:s=>s.running},
-  {id:'stopped-counts',phase:'Mitad de turno',when:'Línea detenida',text:'Completa tantos inventarios de materiales como sea posible y verifica existencias suficientes y correctas.',condition:s=>!s.running},
-  {id:'lunch',phase:'Mitad de turno',when:'Hora programada',text:'Toma el lunch de 30 minutos.'},
-  {id:'return',phase:'Mitad de turno',when:'Después del lunch',text:'Regresa a la línea, actualiza las etiquetas pendientes y completa los inventarios prioritarios.'},
-  {id:'kitchen-final',phase:'Inventario final',when:s=>s.finalTime,text:'Repeat the physical kitchen inventory two hours before shift end.'},
-  {id:'pots-final',phase:'Inventario final',when:'Después del conteo físico',text:'Confirma las últimas ollas con el líder de cocina y registra su consumo.'},
-  {id:'kitchen-adjust-final',phase:'Inventario final',when:'Después de las últimas ollas',text:'Completa el ajuste final de cocina usando físico versus sistema.'},
-  {id:'pouch-final',phase:'Inventario final',when:'Fin de turno',text:'Completa el ajuste de bolsas de fin de turno con el conteo físico final y el scrap de producción.',condition:s=>s.packaging==='pouches'},
-  {id:'special-final',phase:'Inventario final',when:'Fin de turno',text:'Completa el ajuste final de ingredientes especiales y el scrap restante de SafetyChain.',condition:s=>s.special},
-  {id:'pending-counts',phase:'Inventario final',when:'Antes del cierre',text:'Termina los inventarios prioritarios y asegúrate de que todos los pallets y etiquetas estén al día.'},
-  {id:'safetychain',phase:'Cierre y reporte',when:'Fin de turno',text:'Procesa todo el scrap restante de SafetyChain no completado a mitad de turno.'},
-  {id:'pasos',phase:'Cierre y reporte',when:'Fin de turno',text:'Registra cada ajuste, movimiento, scrap y conteo cíclico en PASOS.'},
-  {id:'documents',phase:'Cierre y reporte',when:'Fin de turno',text:'Prepara el PASOS final, escanea los documentos de respaldo y descarga los reportes Word.'},
-  {id:'teams',phase:'Cierre y reporte',when:'Fin de turno',text:'Envía capturas de las tablas de reportes de bolsas y/o ingredientes especiales al grupo correcto de Teams.',condition:s=>s.packaging==='pouches'||s.special},
-  {id:'handoff',phase:'Cierre y reporte',when:'Antes de salir',text:'Envía el reporte final y comunica claramente el trabajo pendiente al siguiente turno.'}
+  {id:'wo',phase:'Preparation',when:'Before starting',text:'Identify work orders, running item, expiration date and lot number.'},
+  {id:'activate',phase:'Preparation',when:'If applicable',text:'Activate the work order in Work Order Inspector / NetSuite.',condition:s=>s.newProduct},
+  {id:'plan',phase:'Preparation',when:'Before starting',text:'Confirm the assignment, required reports and materials used on the line.'},
+  {id:'kitchen-start',phase:'Initial Inventory',when:'Start of shift',text:'Complete the physical kitchen inventory.'},
+  {id:'special-start',phase:'Initial Inventory',when:'Start of shift',text:'Count every special ingredient being used.',condition:s=>s.special},
+  {id:'pack-start',phase:'Initial Inventory',when:'Start of shift',text:s=>`Count the packaging material in physical inventory (${s.packagingLabel}).`,condition:s=>s.packaging!=='none'},
+  {id:'pouch-start',phase:'Initial Inventory',when:'Start of shift',text:'Compare physical pouches against the system and identify the starting difference.',condition:s=>s.packaging==='pouches'},
+  {id:'choc-start',phase:'Initial Inventory',when:'After inventory',text:'Complete the chocolate physical count and chocolate adjustment.'},
+  {id:'labels-ready',phase:'Labels & Kitchen',when:'After chocolate',text:'Prepare the required labels and verify item, lot and expiration.'},
+  {id:'qc',phase:'Labels & Kitchen',when:'Before applying labels',text:'Obtain approval from the Quality Control lead assigned to the line.'},
+  {id:'labels-apply',phase:'Labels & Kitchen',when:'After QC approval',text:'Apply approved labels and bring all production pallets up to date.'},
+  {id:'pots-start',phase:'Labels & Kitchen',when:'After labels',text:'Ask the kitchen lead how many pots have been completed and how many remain.'},
+  {id:'pots-record',phase:'Labels & Kitchen',when:'After confirmation',text:'Record the completed pots and calculate their material consumption.'},
+  {id:'kitchen-adjust-start',phase:'Labels & Kitchen',when:'After pots',text:'Adjust kitchen inventory using physical quantity versus current system quantity.'},
+  {id:'pouch-mid',phase:'Mid Shift',when:'Mid shift',text:'Complete the pouch report using production scrap, physical count and system quantity.',condition:s=>s.packaging==='pouches'},
+  {id:'special-mid',phase:'Mid Shift',when:'Mid shift',text:'Complete the special-ingredient report using physical count and SafetyChain scrap.',condition:s=>s.special},
+  {id:'running-counts',phase:'Mid Shift',when:'As line permits',text:'Inventory chocolate, ingredients, special ingredients and packaging currently in use.',condition:s=>s.running},
+  {id:'stopped-counts',phase:'Mid Shift',when:'Line not running',text:'Complete as many material inventories as possible and verify sufficient, accurate stock.',condition:s=>!s.running},
+  {id:'lunch',phase:'Mid Shift',when:'Scheduled time',text:'Take the 30-minute lunch.'},
+  {id:'return',phase:'Mid Shift',when:'After lunch',text:'Return to the line, update pending labels and complete priority inventories.'},
+  {id:'kitchen-final',phase:'Final Inventory',when:s=>s.finalTime,text:'Repeat the physical kitchen inventory two hours before shift end.'},
+  {id:'pots-final',phase:'Final Inventory',when:'After physical count',text:'Confirm the final pots with the kitchen lead and record their consumption.'},
+  {id:'kitchen-adjust-final',phase:'Final Inventory',when:'After final pots',text:'Complete the final kitchen adjustment using physical versus system quantity.'},
+  {id:'pouch-final',phase:'Final Inventory',when:'End of shift',text:'Complete the End Shift pouch adjustment with final physical count and production scrap.',condition:s=>s.packaging==='pouches'},
+  {id:'special-final',phase:'Final Inventory',when:'End of shift',text:'Complete the final special-ingredient adjustment and remaining SafetyChain scrap.',condition:s=>s.special},
+  {id:'pending-counts',phase:'Final Inventory',when:'Before close',text:'Finish priority inventories and ensure all pallets and labels are current.'},
+  {id:'safetychain',phase:'Close & Report',when:'End of shift',text:'Process all remaining SafetyChain scrap not completed at mid shift.'},
+  {id:'pasos',phase:'Close & Report',when:'End of shift',text:'Record every adjustment, movement, scrap and Cycle Count in PASOS / Pass Off.'},
+  {id:'documents',phase:'Close & Report',when:'End of shift',text:'Prepare the final Pass Off, scan supporting documents and download the Word reports.'},
+  {id:'teams',phase:'Close & Report',when:'End of shift',text:'Send screenshots of pouch and/or special-ingredient report tables to the correct Teams group.',condition:s=>s.packaging==='pouches'||s.special},
+  {id:'handoff',phase:'Close & Report',when:'Before leaving',text:'Send the final report and clearly communicate pending work to the next shift.'}
 ];
 const ASSIGNMENT_TASKS={
   'Sollich 1':[
-    {id:'s1-ingredients',phase:'Tareas asignadas',when:'Durante el turno',text:'Inventory ingredients used in all kitchens.'},
-    {id:'s1-cover',phase:'Tareas asignadas',when:'During lunches',text:'Cover Sollich 2 and Sollich 3 so label generation continues.'}
+    {id:'s1-ingredients',phase:'Assignment Duties',when:'During shift',text:'Inventory ingredients used in all kitchens.'},
+    {id:'s1-cover',phase:'Assignment Duties',when:'During lunches',text:'Cover Sollich 2 and Sollich 3 so label generation continues.'}
   ],
-  'Sollich 2':[{id:'s2-close',phase:'Tareas asignadas',when:'Fin de turno',text:'Leave Sollich 2 clean, updated and supplied for the next shift.'}],
-  'Sollich 3':[{id:'s3-close',phase:'Tareas asignadas',when:'Fin de turno',text:'Leave Sollich 3 clean, updated and supplied for the next shift.'}],
+  'Sollich 2':[{id:'s2-close',phase:'Assignment Duties',when:'End of shift',text:'Leave Sollich 2 clean, updated and supplied for the next shift.'}],
+  'Sollich 3':[{id:'s3-close',phase:'Assignment Duties',when:'End of shift',text:'Leave Sollich 3 clean, updated and supplied for the next shift.'}],
   'Twist Wrap':[
-    {id:'tw-cycle',phase:'Tareas asignadas',when:'Start and end',text:'Cycle Count chocolate in use and special ingredients.'},
-    {id:'tw-items',phase:'Tareas asignadas',when:'Durante el turno',text:'Inventory 40958, 40959, 40244, 40245, 40247 and 40248.'},
-    {id:'tw-areas',phase:'Tareas asignadas',when:'Durante el turno',text:'Inventory FG, LESollichReturn and running-line packaging materials.'}
+    {id:'tw-cycle',phase:'Assignment Duties',when:'Start and end',text:'Cycle Count chocolate in use and special ingredients.'},
+    {id:'tw-items',phase:'Assignment Duties',when:'During shift',text:'Inventory 40958, 40959, 40244, 40245, 40247 and 40248.'},
+    {id:'tw-areas',phase:'Assignment Duties',when:'During shift',text:'Inventory FG, LESollichReturn and running-line packaging materials.'}
   ],
-  'Kitchen 4':[{id:'k4-close',phase:'Tareas asignadas',when:'Fin de turno',text:'Complete final label, scrap and adjustments; leave Kitchen 4 updated.'}],
-  'Rework':[{id:'rw-close',phase:'Tareas asignadas',when:'Fin de turno',text:'Complete final rework inventory, movements and handoff.'}]
+  'Kitchen 4':[{id:'k4-close',phase:'Assignment Duties',when:'End of shift',text:'Complete final label, scrap and adjustments; leave Kitchen 4 updated.'}],
+  'Rework':[{id:'rw-close',phase:'Assignment Duties',when:'End of shift',text:'Complete final rework inventory, movements and handoff.'}]
 };
 const SHIFT_TASK_TITLES={
   wo:'Work Order Information',activate:'Activate Work Order',plan:'Confirm Shift Plan',
@@ -840,14 +840,14 @@ const SHIFT_TASK_TITLES={
 function shiftTaskTitle(task){
   return SHIFT_TASK_TITLES[task.id]||task.id.split('-').map(x=>x.charAt(0).toUpperCase()+x.slice(1)).join(' ');
 }
-const SHIFT_SECTION_ORDER=['Antes del turno','Start of Shift','Durante / Mitad de turno','Fin de turno'];
+const SHIFT_SECTION_ORDER=['Before the Shift','Start of Shift','During / Mid Shift','End of Shift'];
 function shiftTaskSection(task){
-  if(['Preparación'].includes(task.phase))return 'Antes del turno';
-  if(['Inventario inicial','Etiquetas y cocina'].includes(task.phase))return 'Start of Shift';
-  if(['Mitad de turno'].includes(task.phase))return 'Durante / Mitad de turno';
-  if(['Inventario final','Cierre y reporte'].includes(task.phase))return 'Fin de turno';
-  if(['s2-close','s3-close','k4-close','rw-close'].includes(task.id))return 'Fin de turno';
-  return 'Durante / Mitad de turno';
+  if(['Preparation'].includes(task.phase))return 'Before the Shift';
+  if(['Initial Inventory','Labels & Kitchen'].includes(task.phase))return 'Start of Shift';
+  if(['Mid Shift'].includes(task.phase))return 'During / Mid Shift';
+  if(['Final Inventory','Close & Report'].includes(task.phase))return 'End of Shift';
+  if(['s2-close','s3-close','k4-close','rw-close'].includes(task.id))return 'End of Shift';
+  return 'During / Mid Shift';
 }
 function getShiftTaskContext(){
   const shift=document.getElementById('palShift')?.value||'Shift 1';
@@ -896,7 +896,7 @@ function updatePalletProgress(){
 function resetPalletChecklist(){
   document.querySelectorAll('.pal-check').forEach(x=>x.checked=false);
   ['palEmployee','palNotes'].forEach(id=>document.getElementById(id).value='');
-  updatePalletProgress(); toast('Checklist de tareas restablecido');
+  updatePalletProgress(); toast('Shift task checklist reset');
 }
 function savePalletChecklist(){
   const tasks=[...document.querySelectorAll('#palletChecklistBody tr.task-row')].map(tr=>({done:tr.querySelector('.pal-check').checked,section:tr.dataset.section||'',title:tr.cells[1].querySelector('strong')?.textContent.trim()||'',task:tr.cells[2].textContent.trim()}));
@@ -994,7 +994,7 @@ function pchPctClass(pctAbs){ return pctAbs<=.05?'good-bg':pctAbs<=.08?'att-bg':
 function pchSectionData(section, midData){
   const cap = section === 'mid' ? 'Mid' : 'End';
   const val = id => parseFloat(document.getElementById(`pch${cap}${id}`)?.value) || 0;
-  const report = section === 'mid' ? 'Mitad de turno' : 'Fin de turno';
+  const report = section === 'mid' ? 'Mid Shift' : 'End of Shift';
 
   const completionInput = val('Completion');
   const completion = section === 'end' ? pchNumber((midData?.completion || 0) + completionInput) : completionInput;
@@ -1078,7 +1078,7 @@ function updatePouchSection(prefix, d){
   const preview = document.getElementById(`${prefix}ReportPreview`);
   if(preview){
     const completionNote = d.section === 'end' ? ` Cumulative Completion: ${pchFormat(d.completion)} (Mid + End additional ${pchFormat(d.additionalCompletion)}). Cumulative Scrap: ${pchFormatSigned(d.scrapDisplay)}. Cumulative Production Adjustment: ${pchFormatSigned(d.pa)}.` : ` Completion: ${pchFormat(d.completion)}.`;
-    preview.value = `${d.report} Pouches.${completionNote} Qty in System: ${pchFormat(d.system)} Qty in Physical: ${pchFormat(d.physical)} Scrap: ${pchFormatSigned(d.scrapDisplay)} (${(d.scrapPctAbs*100).toFixed(1)}%) Production Adjustment: ${pchFormatSigned(d.pa)} (${(d.paPctAbs*100).toFixed(1)}%) Ajuste total: ${pchFormatSigned(d.totalAdjustment)} Adjustment %: ${(d.adjPctAbs*100).toFixed(1)}% Status: ${d.status.label}`;
+    preview.value = `${d.report} Pouches.${completionNote} Qty in System: ${pchFormat(d.system)} Qty in Physical: ${pchFormat(d.physical)} Scrap: ${pchFormatSigned(d.scrapDisplay)} (${(d.scrapPctAbs*100).toFixed(1)}%) Production Adjustment: ${pchFormatSigned(d.pa)} (${(d.paPctAbs*100).toFixed(1)}%) Total Adjustment: ${pchFormatSigned(d.totalAdjustment)} Adjustment %: ${(d.adjPctAbs*100).toFixed(1)}% Status: ${d.status.label}`;
   }
 }
 
@@ -1141,7 +1141,7 @@ function resetPch(){
     if(el) el.value = '';
   });
   calcPchAll();
-  toast('Bolsas restablecidas');
+  toast('Pouches reset');
 }
 function savePch(){
   const mid = pchSectionData('mid');
@@ -1216,7 +1216,7 @@ async function ccLoadFile(event){
     if(name&&!name.value.trim())name.value=file.name.replace(/\.(xlsx?|csv)$/i,'');
     status.textContent=`Loaded ${ccRows.length} LPs from ${file.name}. Saved history remains available below.`;
     toast(`✅ ${ccRows.length} LPs loaded`);
-  }catch(err){console.error(err);status.textContent=`Could not read file: ${err.message||'unknown error'}`;toast('⚠️ No se pudo leer el archivo del conteo');}
+  }catch(err){console.error(err);status.textContent=`Could not read file: ${err.message||'unknown error'}`;toast('⚠️ Cycle Count file could not be read');}
 }
 function ccParseData(data,sourceName=''){
   if(!data?.length)throw new Error('No rows found.');
@@ -1242,7 +1242,7 @@ function ccParseData(data,sourceName=''){
   ccSourceFile=sourceName;
   ccRender();
 }
-function ccResultLabel(value){return {pending:'Pendiente',found:'Encontrado correcto',not_found:'No encontrado',moved:'Ubicación diferente',qty_diff:'Cantidad diferente',moved_qty:'Ubicación y cantidad diferentes'}[value]||value;}
+function ccResultLabel(value){return {pending:'Pending',found:'Found Correct',not_found:'Not Found',moved:'Different Location',qty_diff:'Different Quantity',moved_qty:'Location + Quantity Different'}[value]||value;}
 function ccDifference(row){
   if(row.result==='pending'||row.result==='moved')return 0;
   if(row.result==='not_found')return -row.systemQty;
@@ -1276,14 +1276,14 @@ function ccRender(){
       <td data-label="System Location">${esc(r.bin||'—')}</td>
       <td data-label="System Qty" class="mono">${fmt(r.systemQty)}</td>
       <td data-label="Result"><select class="cc-status" onchange="ccUpdate(${r.key},'result',this.value)">
-        <option value="pending"${r.result==='pending'?' selected':''}>Pendiente</option><option value="found"${r.result==='found'?' selected':''}>✓ Found Correct</option>
+        <option value="pending"${r.result==='pending'?' selected':''}>Pending</option><option value="found"${r.result==='found'?' selected':''}>✓ Found Correct</option>
         <option value="not_found"${r.result==='not_found'?' selected':''}>✕ Not Found</option><option value="moved"${r.result==='moved'?' selected':''}>↗ Different Location</option>
         <option value="qty_diff"${r.result==='qty_diff'?' selected':''}>± Different Quantity</option><option value="moved_qty"${r.result==='moved_qty'?' selected':''}>↗ ± Location + Qty</option>
       </select></td>
       <td data-label="Actual Location"><input value="${esc(r.actualLocation)}" ${needsLoc?'':'readonly'} placeholder="${needsLoc?'Required':'—'}" onchange="ccUpdate(${r.key},'actualLocation',this.value)"></td>
       <td data-label="Actual Qty"><input type="number" step="any" value="${r.actualQty!==''?r.actualQty:''}" ${needsQty?'':'readonly'} placeholder="${needsQty?'Required':'—'}" onchange="ccUpdate(${r.key},'actualQty',this.value)"></td>
       <td data-label="Difference" class="mono ${diffClass}">${r.result==='pending'?'—':ccSigned(diff)}</td>
-      <td data-label="Notes"><input class="cc-note" value="${esc(r.note)}" placeholder="Nota opcional" onchange="ccUpdate(${r.key},'note',this.value)"></td>
+      <td data-label="Notes"><input class="cc-note" value="${esc(r.note)}" placeholder="Optional note" onchange="ccUpdate(${r.key},'note',this.value)"></td>
     </tr>`;
   }).join(''):`<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--ink3)">No LPs match this filter.</td></tr>`;
   ccUpdateSummary();
@@ -1298,11 +1298,11 @@ function ccUpdateSummary(){
 }
 function ccMarkVisibleFound(){
   ccVisibleRows().forEach(r=>{if(r.result==='pending'){r.result='found';r.actualLocation=r.bin;r.actualQty=r.systemQty;}});
-  ccRender();toast('✅ LPs pendientes visibles marcados como encontrados');
+  ccRender();toast('✅ Visible pending LPs marked as found');
 }
 function ccReset(){
   ccRows=[];ccCurrentId='';ccSourceFile='';document.getElementById('ccFile').value='';document.getElementById('ccLoadStatus').textContent='No file loaded. Saved history was not deleted.';
-  ['ccName','ccSearch'].forEach(id=>document.getElementById(id).value='');document.getElementById('ccFilter').value='';ccRender();toast('Conteo cíclico limpiado · el historial se conserva');
+  ['ccName','ccSearch'].forEach(id=>document.getElementById(id).value='');document.getElementById('ccFilter').value='';ccRender();toast('Cycle Count cleared · saved history remains');
 }
 function ccSessionFromCurrent(){
   const date=document.getElementById('ccDate').value||new Date().toISOString().slice(0,10);
@@ -1319,13 +1319,13 @@ function ccSessionStats(session){
     pending:count('pending'),net:rows.reduce((sum,r)=>sum+ccDifference(r),0)};
 }
 function ccSave(){
-  if(!ccRows.length){toast('⚠️ Sube primero el archivo del conteo');return;}
+  if(!ccRows.length){toast('⚠️ Upload a Cycle Count file first');return;}
   const session=ccSessionFromCurrent(),index=ccHistory.findIndex(x=>x.id===session.id);
-  if(index>=0){ccHistory[index]=session;ccSetHistory(ccHistory);toast('✅ Conteo cíclico guardado actualizado');}
+  if(index>=0){ccHistory[index]=session;ccSetHistory(ccHistory);toast('✅ Saved Cycle Count updated');}
   else{
     ccHistory.unshift(session);ccSetHistory(ccHistory);
     saveReport({id:session.id,module:'cyclecount',date:session.date,shift:session.shift,building:session.area||'L1',operator:session.employee,data:{name:session.name,rows:session.rows},savedAt:session.savedAt});
-    toast('✅ Conteo cíclico agregado al historial');
+    toast('✅ Cycle Count added to cumulative history');
   }
   poSyncContext(session.employee,session.date,session.shift,session.area);
   poAutoReplace(`cycle|${session.id}`,'cycle',session.rows.filter(r=>r.result!=='pending').map(r=>({item:r.item,lpn:r.lp,found:r.result==='found'?'YES':'NO',detail:`${ccResultLabel(r.result)} · Lot ${r.lot||'—'} · System location ${r.bin||'—'} · System ${fmt(r.systemQty)} · Physical ${r.actualQty===''?'—':fmt(r.actualQty)} · Difference ${ccSigned(ccDifference(r))}${r.note?` · ${r.note}`:''}`})));
@@ -1352,7 +1352,7 @@ function ccLoadSession(id){
   document.getElementById('ccEmployee').value=s.employee||'';document.getElementById('ccArea').value=s.area||'';document.getElementById('ccName').value=s.name||'';
   document.getElementById('ccSearch').value='';document.getElementById('ccFilter').value='';
   document.getElementById('ccLoadStatus').textContent=`Opened saved count: ${s.name||s.date}. Save again to update this same count.`;
-  ccRender();document.getElementById('panel-cyclecount').scrollIntoView({behavior:'smooth',block:'start'});toast('✅ Conteo cíclico guardado abierto');
+  ccRender();document.getElementById('panel-cyclecount').scrollIntoView({behavior:'smooth',block:'start'});toast('✅ Saved Cycle Count opened');
 }
 function ccReportValue(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function ccBuildReportHtml(sessions,title){
@@ -1380,14 +1380,14 @@ function ccBuildReportHtml(sessions,title){
 }
 function ccDownloadHtml(sessions,filename,title){
   const blob=new Blob([ccBuildReportHtml(sessions,title)],{type:'text/html;charset=utf-8'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download=filename.replace(/[^a-z0-9_.-]+/gi,'_');a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('✅ Reporte de conteo cíclico descargado');
+  a.href=URL.createObjectURL(blob);a.download=filename.replace(/[^a-z0-9_.-]+/gi,'_');a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('✅ Clear Cycle Count report downloaded');
 }
 function ccDownloadReport(){
-  if(!ccRows.length){toast('⚠️ Sube o abre un conteo cíclico primero');return;}
+  if(!ccRows.length){toast('⚠️ Upload or open a Cycle Count first');return;}
   const s=ccSessionFromCurrent();ccDownloadHtml([s],`Cycle_Count_${s.date}_${s.name}.html`,s.name);
 }
 function ccDownloadCumulative(){
-  if(!ccHistory.length){toast('⚠️ Guarda al menos un conteo cíclico primero');return;}
+  if(!ccHistory.length){toast('⚠️ Save at least one Cycle Count first');return;}
   ccDownloadHtml(ccHistory,`Cycle_Count_Cumulative_${new Date().toISOString().slice(0,10)}.html`,'Cumulative Cycle Count Report');
 }
 function ccDownloadSaved(id){
@@ -1424,8 +1424,8 @@ function hersheyGenerate(){
   document.getElementById('herSegments').textContent=`${mfgCode.code} Manufacturing · UC Plant · ${designator} Designator · ${shift} Shift · ${packCode.code} Packaging · ${time}`;
 }
 async function hersheyCopy(id){
-  const text=document.getElementById(id)?.textContent||'';if(!text||text==='—'){toast('⚠️ Genera el código primero');return;}
-  try{await navigator.clipboard.writeText(text);toast('✅ Copiado');}catch{toast('Copiar no disponible en este dispositivo');}
+  const text=document.getElementById(id)?.textContent||'';if(!text||text==='—'){toast('⚠️ Generate the code first');return;}
+  try{await navigator.clipboard.writeText(text);toast('✅ Copied');}catch{toast('Copy unavailable on this device');}
 }
 function hersheyReset(){
   const today=new Date().toISOString().slice(0,10),now=new Date();
@@ -1443,9 +1443,9 @@ function poReasonChanged(){
 function poUpdateFields() {
   const type = document.getElementById('poType').value;
   let html = '';
-  if(type==='mov') html = `<div class="g2 field"><div class="field"><label>Item</label><input type="text" id="poManItem" placeholder="N.º artículo" list="prodList"></div><div class="field"><label>LPN</label><input type="text" id="poManLpn" placeholder="R..."></div><div class="field"><label>From Location</label><input type="text" id="poMovFrom" placeholder="e.g. LESL2 Kitchen"></div><div class="field"><label>To Location</label><input type="text" id="poMovTo" placeholder="e.g. LEHold Area"></div></div>`;
-  else if(type==='cycle') html = `<div class="g2 field"><div class="field"><label>Item</label><input type="text" id="poManItem" placeholder="N.º artículo" list="prodList"></div><div class="field"><label>LPN</label><input type="text" id="poManLpn" placeholder="R..."></div><div class="field"><label>Fully Found?</label><select id="poCycleFound"><option>YES</option><option>NO</option></select></div><div class="field"><label>Detail</label><input type="text" id="poCycleDetail" placeholder="e.g. Everything found"></div></div>`;
-  else if(type==='activity') html = `<div class="g2 field"><div class="field"><label>Task</label><input type="text" id="poActivityTask" placeholder="Tarea completada"></div><div class="field"><label>Area / Stage</label><input type="text" id="poActivityArea" placeholder="Área o etapa"></div><div class="field"><label>Employee</label><input type="text" id="poActivityEmployee" placeholder="Empleado"></div><div class="field"><label>Detail</label><input type="text" id="poActivityDetail" placeholder="Qué se completó"></div></div>`;
+  if(type==='mov') html = `<div class="g2 field"><div class="field"><label>Item</label><input type="text" id="poManItem" placeholder="Item #" list="prodList"></div><div class="field"><label>LPN</label><input type="text" id="poManLpn" placeholder="R..."></div><div class="field"><label>From Location</label><input type="text" id="poMovFrom" placeholder="e.g. LESL2 Kitchen"></div><div class="field"><label>To Location</label><input type="text" id="poMovTo" placeholder="e.g. LEHold Area"></div></div>`;
+  else if(type==='cycle') html = `<div class="g2 field"><div class="field"><label>Item</label><input type="text" id="poManItem" placeholder="Item #" list="prodList"></div><div class="field"><label>LPN</label><input type="text" id="poManLpn" placeholder="R..."></div><div class="field"><label>Fully Found?</label><select id="poCycleFound"><option>YES</option><option>NO</option></select></div><div class="field"><label>Detail</label><input type="text" id="poCycleDetail" placeholder="e.g. Everything found"></div></div>`;
+  else if(type==='activity') html = `<div class="g2 field"><div class="field"><label>Task</label><input type="text" id="poActivityTask" placeholder="Completed task"></div><div class="field"><label>Area / Stage</label><input type="text" id="poActivityArea" placeholder="Area or stage"></div><div class="field"><label>Employee</label><input type="text" id="poActivityEmployee" placeholder="Employee"></div><div class="field"><label>Detail</label><input type="text" id="poActivityDetail" placeholder="What was completed"></div></div>`;
   document.getElementById('poExtraFields').innerHTML = html;
 }
 function poLivePreview() {
@@ -1473,27 +1473,27 @@ function poAddEntry() {
   const type = document.getElementById('poType').value;
   const selectedReason = document.getElementById('poReason').value;
   const reason = selectedReason==='custom' ? document.getElementById('poCustomReason').value.trim() : selectedReason;
-  if(selectedReason==='custom'&&!reason){toast('⚠️ Escribe el motivo personalizado');return;}
+  if(selectedReason==='custom'&&!reason){toast('⚠️ Write the custom reason');return;}
   const p = parseIMS(text);
   const manItem = document.getElementById('poManItem')?.value||'';
   const manLpn = document.getElementById('poManLpn')?.value||'';
   const entry = {...p, item:manItem||p.item, lpn:manLpn||p.lpn, reason};
   if(type==='mov') {
     entry.from = document.getElementById('poMovFrom')?.value||''; entry.to = document.getElementById('poMovTo')?.value||'';
-    if(!entry.item) { toast('⚠️ Artículo requerido'); return; }
+    if(!entry.item) { toast('⚠️ Item required'); return; }
   } else if(type==='cycle') {
     entry.found = document.getElementById('poCycleFound')?.value||'YES'; entry.detail = document.getElementById('poCycleDetail')?.value||reason;
-    if(!entry.item) { toast('⚠️ Artículo requerido'); return; }
+    if(!entry.item) { toast('⚠️ Item required'); return; }
   } else if(type==='activity') {
     entry.task=document.getElementById('poActivityTask')?.value||'';entry.area=document.getElementById('poActivityArea')?.value||'';
     entry.employee=document.getElementById('poActivityEmployee')?.value||'';entry.detail=document.getElementById('poActivityDetail')?.value||reason;
-    if(!entry.task){toast('⚠️ Tarea requerida');return;}
-  } else { if(!entry.item && !entry.qty) { toast('⚠️ No se detectaron datos válidos'); return; } }
+    if(!entry.task){toast('⚠️ Task required');return;}
+  } else { if(!entry.item && !entry.qty) { toast('⚠️ No valid data detected'); return; } }
   poEntries[type].push(entry);
   poPersistDraft();
   renderPoTables();
   document.getElementById('poPaste').value=''; document.getElementById('poPreview').style.display='none';
-  toast('✅ Entrada agregada');
+  toast('✅ Entry added');
   updatePoBadges();
 }
 function renderPoTables() {
@@ -1530,7 +1530,7 @@ function poTab(tab, btn) {
 }
 function resetPo() {
   poEntries={adj:[],scrap:[],mov:[],cycle:[],activity:[]};poPersistDraft();
-  renderPoTables(); toast('PASOS restablecido');
+  renderPoTables(); toast('Pass Off reset');
   ['poOp','poProduct','poItem1','poQty1','poItem2','poQty2','poNotes','poObs','poPaste','poCustomReason'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('poReason').selectedIndex=0; poReasonChanged();
 }
@@ -1562,7 +1562,7 @@ function poSyncContext(operator,date,shift,area){
 // ══════════════════════ LOCAL STORAGE ══════════════════════
 function getReports() { try { return JSON.parse(localStorage.getItem('shifthub_pro_v1')||'[]'); } catch{ return []; } }
 function setReports(r) { localStorage.setItem('shifthub_pro_v1', JSON.stringify(r)); }
-function saveReport(report) { const arr=getReports(); arr.push(report); setReports(arr); toast('💾 Reporte guardado'); renderDash(); renderPublicLeaderboard(); }
+function saveReport(report) { const arr=getReports(); arr.push(report); setReports(arr); toast('💾 Report saved'); renderDash(); renderPublicLeaderboard(); }
 
 // ══════════════════════ DASHBOARD ══════════════════════
 let tlUnlocked = false;
@@ -1632,7 +1632,7 @@ function renderDash() {
       ['mid','end'].forEach(sec=>{ const x=r.data[sec]; if(!x) return;
         [empStat,shiftStat].filter(Boolean).forEach(s=>addQuality(s,x.adjPctAbs ?? x.pct ?? 0));
         const status=x.status?.label||x.status||'—', total=x.totalAdjustment ?? x.totalAdj ?? 0, pct=x.adjPctAbs ?? x.pct ?? 0;
-        if(status==='Critical' || Math.abs(total)>=500) high.push({type:'Pouches',date:r.date,building:r.building,shift:r.shift,detail:`${sec==='mid'?'Mitad de turno':'End Shift'} · Item ${r.item||''} · ${status} · Total Adj ${fmt(total)} · ${(Math.abs(pct)*100).toFixed(2)}%`});
+        if(status==='Critical' || Math.abs(total)>=500) high.push({type:'Pouches',date:r.date,building:r.building,shift:r.shift,detail:`${sec==='mid'?'Mid Shift':'End Shift'} · Item ${r.item||''} · ${status} · Total Adj ${fmt(total)} · ${(Math.abs(pct)*100).toFixed(2)}%`});
       });
     }
     if(r.module==='chocolate' && r.data){
@@ -1724,7 +1724,7 @@ function addPreKitchenRow(){
   ['preKitItem','preKitLP','preKitQty','preKitNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderPreKitchen();
   document.getElementById('preKitItem')?.focus();
-  toast('✅ Conteo físico de precocina agregado');
+  toast('✅ Pre-Kitchen physical count added');
 }
 
 function removePreKitchenRow(id){
@@ -1738,7 +1738,7 @@ function clearPreKitchen(){
   preKitchenRows = [];
   persistPreKitchen();
   renderPreKitchen();
-  toast('Precocina limpiada');
+  toast('Pre-Kitchen cleared');
 }
 
 function renderPreKitchen(){
@@ -1921,13 +1921,13 @@ function renderKitchenTable(){
       <td class="mono"><strong>${kitEscape(row.systemLP)}</strong></td>
       <td class="mono"><strong>${kitEscape(row.expiration || '—')}</strong></td>
       <td class="mono"><strong>${kitFormatExact(row.systemQtyText)}</strong></td>
-      <td><input type="number" step="any" inputmode="decimal" placeholder="Físico exacto" oninput="setKitchenValue(${row.key}, 'physicalQty', this.value)"></td>
+      <td><input type="number" step="any" inputmode="decimal" placeholder="Exact physical" oninput="setKitchenValue(${row.key}, 'physicalQty', this.value)"></td>
       <td id="kit-diff-${row.key}" class="mono" style="font-weight:900;background:#eff6ff">—</td>
       <td id="kit-final-${row.key}" class="mono" style="font-weight:900;background:#f0fdf4">—</td>
       <td><select onchange="setKitchenValue(${row.key}, 'lpMatch', this.value)"><option value="">Select</option><option value="Yes">Yes</option><option value="No">No</option></select></td>
       <td><select onchange="setKitchenValue(${row.key}, 'adjust', this.value)"><option value="">Select</option><option value="Yes">Yes</option><option value="No">No</option></select></td>
       <td id="kit-review-${row.key}">—</td>
-      <td><input type="text" placeholder="Notas..." oninput="setKitchenValue(${row.key}, 'notes', this.value)"></td>
+      <td><input type="text" placeholder="Notes..." oninput="setKitchenValue(${row.key}, 'notes', this.value)"></td>
     `;
     tbody.appendChild(tr);
   });
@@ -2049,7 +2049,7 @@ function updateKitchenSummary(){
     <strong>Counted:</strong> ${counted}/${kitRows.length} |
     <strong>LP Match Yes:</strong> ${yes} |
     <strong>LP Review:</strong> ${no} |
-    <strong>Selección pendiente:</strong> ${pendingSelection} |
+    <strong>Pending Selection:</strong> ${pendingSelection} |
     <strong>Expiration Missing:</strong> ${missingExpiration}
   `;
 }
@@ -2093,10 +2093,10 @@ function getKitchenRowsForExport(){
 function exportKitchenCSV(){
   const missingExpiration = kitchenExpirationMissingCount();
   if(missingExpiration){
-    toast(`⚠️ Al archivo subido le falta Expiration Date para ${missingExpiration} artículo${missingExpiration===1?'':'s'} de cocina. Sube un archivo corregido de IMS/NetSuite.`);
+    toast(`⚠️ The uploaded file is missing Expiration Date for ${missingExpiration} Kitchen item${missingExpiration===1?'':'s'}. Upload a corrected IMS/NetSuite file.`);
     return;
   }
-  const output = [['Area','Shift','Date','Prepared By','Item','Description','Inventory Number (System Lot)','LP sistema','Expiration Date','System Qty Exact','Physical Qty','EXACT ADJUSTMENT TO ENTER','Expected Final','Exact Check','Coincidencia LP','Adjust?','Acción requerida','Notes']];
+  const output = [['Area','Shift','Date','Prepared By','Item','Description','Inventory Number (System Lot)','System LP','Expiration Date','System Qty Exact','Physical Qty','EXACT ADJUSTMENT TO ENTER','Expected Final','Exact Check','LP Match','Adjust?','Required Action','Notes']];
 
   getKitchenRowsForExport().forEach(r => {
     output.push([r.area,r.shift,r.date,r.preparedBy,r.item,r.desc,r.inventoryNumber,r.systemLP,r.expiration,kitFormatExact(r.systemQty),r.physicalQty,r.exactAdjustment === '' ? '' : kitFormatExact(r.exactAdjustment),r.expectedFinal === '' ? '' : kitFormatExact(r.expectedFinal),r.physicalQty === '' ? '' : (r.exactMatch ? 'EXACT' : 'CHECK'),r.lpMatch,r.adjust,r.review,r.notes]);
@@ -2105,24 +2105,24 @@ function exportKitchenCSV(){
   const csv = output.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
   dlBlob(blob, 'Kitchen_Exact_Adjustments.csv');
-  toast('✅ CSV exacto de cocina exportado');
+  toast('✅ Exact Kitchen CSV exported');
 }
 
 async function exportKitchenWord(){
   if(!kitRows.length && !preKitchenRows.length){
-    toast('⚠️ Agrega conteos de precocina o sube el archivo de cocina primero');
+    toast('⚠️ Add Pre-Kitchen counts or upload a Kitchen file first');
     return;
   }
   const missingExpiration = kitchenExpirationMissingCount();
   if(missingExpiration){
-    toast(`⚠️ Al archivo subido le falta Expiration Date para ${missingExpiration} artículo${missingExpiration===1?'':'s'} de cocina. Sube un archivo corregido de IMS/NetSuite.`);
+    toast(`⚠️ The uploaded file is missing Expiration Date for ${missingExpiration} Kitchen item${missingExpiration===1?'':'s'}. Upload a corrected IMS/NetSuite file.`);
     return;
   }
 
   const rows = getKitchenRowsForExport();
   const cols = [750,1300,1200,1100,1150,900,900,1150,1000,750,750,1950];
   const tw = 12900;
-  const header = wRow(['Item','Description','System Lot','LP sistema','Expiration Date','System Qty','Physical','Exact Adjustment','Expected Final','Coincidencia LP','Adjust','Acción requerida'].map((h,i)=>thCell(h,cols[i])).join(''));
+  const header = wRow(['Item','Description','System Lot','System LP','Expiration Date','System Qty','Physical','Exact Adjustment','Expected Final','LP Match','Adjust','Required Action'].map((h,i)=>thCell(h,cols[i])).join(''));
 
   const bodyRows = rows.map((r,i) => wRow([r.item,r.desc,r.inventoryNumber,r.systemLP,r.expiration,kitFormatExact(r.systemQty),r.physicalQty,r.exactAdjustment === '' ? '' : kitFormatExact(r.exactAdjustment),r.expectedFinal === '' ? '' : `${kitFormatExact(r.expectedFinal)} ${r.exactMatch?'✓':'CHECK'}`,r.lpMatch,r.adjust,r.review].map((v,ci)=>tdCell(v || '—', cols[ci], i%2===1)).join(''))).join('');
 
@@ -2136,24 +2136,24 @@ async function exportKitchenWord(){
   const preCols=[1200,2200,1800,4400];
   const preHeader=wRow(['Item','LP','Physical Qty','Notes'].map((h,i)=>thCell(h,preCols[i])).join(''));
   const preBody=preKitchenRows.map((r,i)=>wRow([r.item,r.lp,kitFormatExact(r.qty),r.notes||'—'].map((v,ci)=>tdCell(v,preCols[ci],i%2===1)).join(''))).join('');
-  const preSection=preKitchenRows.length ? wSec('Inventario físico pre-cocina — sin archivo') + wPara(`Physical rows: ${preKitchenRows.length} · Unique items: ${new Set(preKitchenRows.map(r=>r.item)).size} · Unique LPs: ${new Set(preKitchenRows.map(r=>r.lp)).size}`, {size:18,color:'555555'}) + wTable(4,preCols,preHeader+preBody,9600) : '';
-  const verificationSection=rows.length ? wSec('Tabla de verificación de LP de inventario') + wTable(12, cols, header + bodyRows, tw) : '';
+  const preSection=preKitchenRows.length ? wSec('Pre-Kitchen Physical Inventory — No File') + wPara(`Physical rows: ${preKitchenRows.length} · Unique items: ${new Set(preKitchenRows.map(r=>r.item)).size} · Unique LPs: ${new Set(preKitchenRows.map(r=>r.lp)).size}`, {size:18,color:'555555'}) + wTable(4,preCols,preHeader+preBody,9600) : '';
+  const verificationSection=rows.length ? wSec('Inventory LP Verification Table') + wTable(12, cols, header + bodyRows, tw) : '';
 
   const docBody =
     wHdr(`Kitchen / Inventory LP Verification — ${document.getElementById('kitDate')?.value || ''}`) +
     wPara(`Area: ${document.getElementById('kitArea')?.value || ''}   Shift: ${document.getElementById('kitShift')?.value || ''}   Prepared By: ${document.getElementById('kitPreparedBy')?.value || ''}`, {size:18,color:'555555'}) +
-    wPara(`Summary: Pre-Kitchen ${preKitchenRows.length} · System Counted ${counted}/${rows.length} · Red Adjust ${redCount} · Green No Adjust ${greenCount} · Yellow Verify + Label ${yellowCount} · Orange Verify + Adjust ${orangeCount} · Pendientes ${pendingCount}`, {size:18,color:'555555'}) +
+    wPara(`Summary: Pre-Kitchen ${preKitchenRows.length} · System Counted ${counted}/${rows.length} · Red Adjust ${redCount} · Green No Adjust ${greenCount} · Yellow Verify + Label ${yellowCount} · Orange Verify + Adjust ${orangeCount} · Pending ${pendingCount}`, {size:18,color:'555555'}) +
     preSection + verificationSection;
 
   const blob = await buildDocx(docBody, true);
   if(blob) dlBlob(blob, 'Kitchen_LP_Verification.docx');
-  toast('✅ Word de cocina exportado');
+  toast('✅ Kitchen Word exported');
 }
 
 function saveKitchen(){
   const missingExpiration = kitchenExpirationMissingCount();
   if(missingExpiration){
-    toast(`⚠️ Al archivo subido le falta Expiration Date para ${missingExpiration} artículo${missingExpiration===1?'':'s'} de cocina. Sube un archivo corregido de IMS/NetSuite.`);
+    toast(`⚠️ The uploaded file is missing Expiration Date for ${missingExpiration} Kitchen item${missingExpiration===1?'':'s'}. Upload a corrected IMS/NetSuite file.`);
     return;
   }
   const data = {date:document.getElementById('kitDate')?.value || '', shift:document.getElementById('kitShift')?.value || '', building:'L1', operator:document.getElementById('kitPreparedBy')?.value || '', area:document.getElementById('kitArea')?.value || '', preKitchen:getPreKitchenRowsForExport(), rows:getKitchenRowsForExport()};
@@ -2191,7 +2191,7 @@ function resetKitchen(){
   if(badge) badge.textContent = '0';
 
   kitStatus('Ready. Add Pre-Kitchen physical counts, upload Excel/CSV or paste data.', 'ok');
-  toast('Cocina restablecida');
+  toast('Kitchen reset');
 }
 
 function toggleKitchenPaste(){
@@ -2340,7 +2340,7 @@ async function buildDocx(bodyXml, landscape=false) {
   const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:sz w:val="20"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>`;
   const ct = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`;
   const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
-  if(typeof JSZip === 'undefined') { toast('❌ JSZip no cargado'); return null; }
+  if(typeof JSZip === 'undefined') { toast('❌ JSZip not loaded'); return null; }
   const zip = new JSZip();
   zip.file('[Content_Types].xml', ct);
   zip.file('_rels/.rels', rootRels);
@@ -2372,7 +2372,7 @@ async function exportDailyWord() {
   });
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `DailyReport_${d.date}.docx`);
-  toast('✅ Reporte diario exportado!');
+  toast('✅ Daily Report exported!');
 }
 
 
@@ -2394,7 +2394,7 @@ async function exportChocWord() {
   }):[{kind:'CHOCOLATE',item:data.chocItem,physical:total,system:parseFloat(data.system)||0,diff:total-(parseFloat(data.system)||0)}];
 
   const sumCols=[2400,3000,3000,6000];
-  const sumHeader=wHeaderRow(['Chocolate','Total Physical','System Quantity','Acción requerida'].map((h,i)=>thCell(h,sumCols[i])).join(''));
+  const sumHeader=wHeaderRow(['Chocolate','Total Physical','System Quantity','Required Action'].map((h,i)=>thCell(h,sumCols[i])).join(''));
   const sumRows=groups.map((g,i)=>wRow([
     tdCell(`${g.kind} · ${g.item}`,sumCols[0],i%2===1,{bold:true,center:true}),
     tdCell(`${fmt(g.physical)} lbs`,sumCols[1],i%2===1,{bold:true,center:true}),
@@ -2404,11 +2404,11 @@ async function exportChocWord() {
   const body = wHdr(`Chocolate Adjustment — ${data.line}`) +
     wPara(`Date: ${data.date}   Shift: ${data.shift}   Running Item: ${data.item}   Chocolate Item: ${isPretzel?`${data.chocItem} Dark + ${data.chocItemMilk} Milk`:data.chocItem}`,{size:18,color:'555555'}) +
     wTable(5,cols,hdr+rows,tw) +
-    wSec('Resumen — verde = agregar / rojo = retirar') +
+    wSec('Summary — Green = Add / Red = Remove') +
     wTable(4,sumCols,sumHeader+sumRows,tw);
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `Chocolate_${data.date}.docx`);
-  toast('✅ Chocolate exportado!');
+  toast('✅ Chocolate exported!');
 }
 
 
@@ -2422,7 +2422,7 @@ async function exportIngWord() {
   data.rows.forEach(r=>{const key=`${r.item}|${r.detail}|${r.fixed}`;grouped[key] ||= {item:r.item,detail:r.detail,fixed:r.fixed,mid:null,end:null};grouped[key][r.stage]=r;});
   const rows = Object.values(grouped).map((r,i)=>wRow([r.item,r.detail,`${r.mid?.qty||'—'} / ${fmt(r.mid?.lbs||0)}`,`${r.end?.qty||'—'} / ${fmt(r.end?.lbs||0)}`,r.fixed].map((v,ci)=>tdCell(v,cols[ci],i%2===1)).join(''))).join('');
   const summaryCols=[1700,1300,1500,1700,1000,1700,1000,1800,1000,1400];
-  const summaryHeader=wHeaderRow(['Etapa','Completado','Libras','Scrap','% Scrap','Ajuste de producción','% Ajuste de producción','Total Adj.','Adj. %','Status'].map((h,i)=>thCell(h,summaryCols[i])).join(''));
+  const summaryHeader=wHeaderRow(['Stage','Completion','Pounds','Scrap','Scrap %','Production Adjustment','Production Adjustment %','Total Adj.','Adj. %','Status'].map((h,i)=>thCell(h,summaryCols[i])).join(''));
   const summaries = data.mid.ingredients.map((mid,index) => {
     const end=data.end.ingredients[index];
     const stageRow=(label,completion,d,even)=>wRow([
@@ -2443,7 +2443,7 @@ async function exportIngWord() {
     wTable(5,cols,hdr+rows,tw) + summaries;
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `Ingredients_${data.date}.docx`);
-  toast('✅ Ingredientes exportados!');
+  toast('✅ Ingredients exported!');
 }
 
 
@@ -2475,9 +2475,9 @@ async function exportPchWord() {
       {field:'Qty in System',value:pchFormat(d.system),notes:'Before applying scrap',status:''},
       {field:'Qty in Physical',value:pchFormat(d.physical),notes:'Real physical count',status:''},
       {field:'Scrap Reported',value:wordAdjustment(d.scrapDisplay,pchFormat),tone:d.scrapDisplay,notes:'Reported by Production',status:''},
-      {field:'% Scrap',value:`${(d.scrapPctAbs*100).toFixed(1)}%`,notes:'Scrap / Completion',status:''},
-      {field:'Ajuste de producción',value:wordAdjustment(d.pa,pchFormat),tone:d.pa,notes:'Physical - (System - Scrap)',status:''},
-      {field:'% Ajuste de producción',value:`${(d.paPctAbs*100).toFixed(1)}%`,notes:'Production Adjustment / Completion',status:''},
+      {field:'Scrap %',value:`${(d.scrapPctAbs*100).toFixed(1)}%`,notes:'Scrap / Completion',status:''},
+      {field:'Production Adjustment',value:wordAdjustment(d.pa,pchFormat),tone:d.pa,notes:'Physical - (System - Scrap)',status:''},
+      {field:'Production Adjustment %',value:`${(d.paPctAbs*100).toFixed(1)}%`,notes:'Production Adjustment / Completion',status:''},
       {field:'Total Adjustment',value:wordAdjustment(d.totalAdjustment,pchFormat),tone:d.totalAdjustment,notes:'Scrap + Production Adjustment',status:`${Math.round(d.adjPctAbs*100)}% · ${d.status.label}`}
     ].map((r,i)=>wRow([
       tdCell(r.field,cols[0],i%2===1,{bold:true}),
@@ -2489,7 +2489,7 @@ async function exportPchWord() {
   };
 
   const totalCols=[3200,3200,4200,3800];
-  const totalHeader=wHeaderRow(['Scrap','Ajuste de producción','Grand Adjustment','Grand Status'].map((h,i)=>thCell(h,totalCols[i])).join(''));
+  const totalHeader=wHeaderRow(['Scrap','Production Adjustment','Grand Adjustment','Grand Status'].map((h,i)=>thCell(h,totalCols[i])).join(''));
   const totalRow=wRow([
     wordToneCell(totalScrap,wordAdjustment(totalScrap,pchFormat),totalCols[0],false),
     wordToneCell(totalPA,wordAdjustment(totalPA,pchFormat),totalCols[1],false),
@@ -2498,29 +2498,29 @@ async function exportPchWord() {
   ].join(''));
   const body = wHdr(`Pouches Adjustments — ${date}`) +
     wPara(`Shift: ${document.getElementById('pchShift').value}   Line: ${document.getElementById('pchLine').value}   Matched FG: ${fgItem}`,{size:18,color:'555555'}) +
-    mkSection(mid, 'Mitad de turno') +
+    mkSection(mid, 'Mid Shift') +
     wPara(document.getElementById('pchMidReportPreview').value,{size:18,color:'555555'}) +
-    mkSection(end, 'Fin de turno') +
+    mkSection(end, 'End of Shift') +
     wPara(document.getElementById('pchEndReportPreview').value,{size:18,color:'555555'}) +
-    wSec('Totales generales — verde = agregar / rojo = retirar') +
+    wSec('Grand Totals — Green = Add / Red = Remove') +
     wTable(4,totalCols,totalHeader+totalRow,tw) +
-    wSec('Comentarios') +
+    wSec('Comments') +
     wPara(`Mid Shift: ${document.getElementById('pchMidComments').value || '—'}`,{size:18,color:'555555'}) +
     wPara(`End of Shift: ${document.getElementById('pchEndComments').value || '—'}`,{size:18,color:'555555'});
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `Pouches_${date}.docx`);
-  toast('✅ Bolsas exportadas!');
+  toast('✅ Pouches exported!');
 }
 
 // ── Shift Checklist Word ──
 async function exportChecklistWord(){
   const taskRows=[...document.querySelectorAll('#palletChecklistBody tr.task-row')];
-  if(!taskRows.length){toast('⚠️ No hay tareas disponibles en el checklist');return;}
+  if(!taskRows.length){toast('⚠️ No checklist tasks available');return;}
   const date=document.getElementById('palDate').value,shift=document.getElementById('palShift').value;
   const employee=document.getElementById('palEmployee').value.trim(),area=document.getElementById('palArea').value;
   const tasks=taskRows.map(tr=>({
     done:tr.querySelector('.pal-check')?.checked?'Completed':'Pending',
-    section:tr.dataset.section||'Durante / Mitad de turno',
+    section:tr.dataset.section||'During / Mid Shift',
     title:tr.cells[1].querySelector('strong')?.textContent.trim()||'Task',
     description:tr.cells[2].textContent.trim()
   }));
@@ -2536,10 +2536,10 @@ async function exportChecklistWord(){
     wPara(`Employee: ${employee||'—'}   Shift: ${shift}   Assignment: ${area}`,{size:18,color:'555555'})+
     wPara(`Progress: ${completed} of ${tasks.length} tasks completed (${pct}%)`,{size:20,bold:true})+
     checklistSections+
-    wSec('Notas del turno')+wPara(document.getElementById('palNotes').value||'No additional notes.',{size:18,color:'555555'});
+    wSec('Shift Notes')+wPara(document.getElementById('palNotes').value||'No additional notes.',{size:18,color:'555555'});
   const blob=await buildDocx(body,true);
   if(blob)dlBlob(blob,`IMS_Checklist_${date}_${shift.replace(/\s/g,'_')}.docx`);
-  toast('✅ Word del checklist exportado');
+  toast('✅ Checklist Word exported');
 }
 
 // ── Assignment Schedule Word ──
@@ -2555,7 +2555,7 @@ async function exportScheduleWord(){
     wTable(3,cols,header+bodyRows,tw);
   const blob=await buildDocx(body,true);
   if(blob)dlBlob(blob,`IMS_Assignment_Schedule_Week_${Number(week)+1}.docx`);
-  toast('✅ Word del programa exportado');
+  toast('✅ Assignment schedule Word exported');
 }
 
 // ── Cycle Count Word ──
@@ -2612,30 +2612,30 @@ function ccWordBody(sessions,title){
     wPara(`Generated: ${new Date().toLocaleString()}   Saved Counts: ${sessions.length}`,{size:18,color:'555555'})+
     wTable(5,totalCols,totalHeader+totalRow,14400)+
     wPara('Found Correct means the LP, location and quantity agree with the system. Exceptions require review because the LP was missing or the physical location/quantity was different.',{size:18,color:'555555'})+
-    wSec('Resumen de inventario por área y artículo')+wTable(9,groupCols,groupHeader+groupRows,groupW)+
-    wSec('Resumen del conteo')+wTable(8,summaryCols,summaryHeader+summaryRows,summaryW)+
-    wSec('Excepciones por revisar');
+    wSec('Inventory Summary by Area and Item')+wTable(9,groupCols,groupHeader+groupRows,groupW)+
+    wSec('Count Summary')+wTable(8,summaryCols,summaryHeader+summaryRows,summaryW)+
+    wSec('Exceptions Requiring Review');
   body+=exceptions.length?wTable(9,detailCols,detailHeader+makeRows(exceptions),detailW):wPara('No exceptions were reported.',{size:18,color:'555555'});
-  body+=wSec('Detalle completo de LP')+(all.length?wTable(9,detailCols,detailHeader+makeRows(all),detailW):wPara('No LP detail available.',{size:18,color:'555555'}));
+  body+=wSec('Complete LP Detail')+(all.length?wTable(9,detailCols,detailHeader+makeRows(all),detailW):wPara('No LP detail available.',{size:18,color:'555555'}));
   return body;
 }
 async function ccExportWord(){
-  if(!ccRows.length){toast('⚠️ Sube o abre un conteo cíclico primero');return;}
+  if(!ccRows.length){toast('⚠️ Upload or open a Cycle Count first');return;}
   const session=ccSessionFromCurrent(),blob=await buildDocx(ccWordBody([session],session.name),true);
   if(blob)dlBlob(blob,`Cycle_Count_${session.date}_${session.name.replace(/[^a-z0-9]+/gi,'_')}.docx`);
-  toast('✅ Word del conteo exportado');
+  toast('✅ Cycle Count Word exported');
 }
 async function ccExportCumulativeWord(){
-  if(!ccHistory.length){toast('⚠️ Guarda al menos un conteo cíclico primero');return;}
+  if(!ccHistory.length){toast('⚠️ Save at least one Cycle Count first');return;}
   const date=new Date().toISOString().slice(0,10),blob=await buildDocx(ccWordBody(ccHistory,'Cumulative Cycle Count Report'),true);
   if(blob)dlBlob(blob,`Cycle_Count_Cumulative_${date}.docx`);
-  toast('✅ Word del conteo acumulado exportado');
+  toast('✅ Cumulative Cycle Count Word exported');
 }
 async function ccExportSavedWord(id){
   const session=ccHistory.find(x=>x.id===id);if(!session)return;
   const blob=await buildDocx(ccWordBody([session],session.name||'Cycle Count Report'),true);
   if(blob)dlBlob(blob,`Cycle_Count_${session.date}_${(session.name||'report').replace(/[^a-z0-9]+/gi,'_')}.docx`);
-  toast('✅ Word del conteo guardado exportado');
+  toast('✅ Saved Cycle Count Word exported');
 }
 
 
@@ -2670,17 +2670,17 @@ async function exportPoWord() {
   };
   const body = wHdr('PASS OFF — Shift Handoff Report') +
     wPara(`Date: ${date}   Operator: ${op}   Shift: ${document.getElementById('poShift').value}   Building: ${document.getElementById('poBuilding').value}   Area: ${document.getElementById('poArea').value}`,{size:18,color:'555555'}) +
-    wSec('Resumen de producción') + wPara(`Item 1: ${document.getElementById('poItem1').value||'—'} · Qty: ${document.getElementById('poQty1').value||'—'}   Item 2: ${document.getElementById('poItem2').value||'—'} · Qty: ${document.getElementById('poQty2').value||'—'}`,{size:18}) +
+    wSec('Production Summary') + wPara(`Item 1: ${document.getElementById('poItem1').value||'—'} · Qty: ${document.getElementById('poQty1').value||'—'}   Item 2: ${document.getElementById('poItem2').value||'—'} · Qty: ${document.getElementById('poQty2').value||'—'}`,{size:18}) +
     wPara(document.getElementById('poNotes').value||'',{size:18,color:'555555',spaceAfter:200}) +
-    wSec('🔧 Ajustes') + mkTable(poEntries.adj,'adj') + wPara('',{spaceAfter:160}) +
+    wSec('🔧 Adjustments') + mkTable(poEntries.adj,'adj') + wPara('',{spaceAfter:160}) +
     wSec('♻️ Scrap') + mkTable(poEntries.scrap,'scrap') + wPara('',{spaceAfter:160}) +
-    wSec('🔄 Movimientos') + mkTable(poEntries.mov,'mov') + wPara('',{spaceAfter:160}) +
-    wSec('📦 Conteo cíclico') + mkTable(poEntries.cycle,'cycle') + wPara('',{spaceAfter:160}) +
-    wSec('✅ Tareas completadas') + mkTable(poEntries.activity,'activity') + wPara('',{spaceAfter:160}) +
-    wSec('Observaciones generales') + wPara(document.getElementById('poObs').value||'No observations.',{size:18,color:'555555'});
+    wSec('🔄 Movements') + mkTable(poEntries.mov,'mov') + wPara('',{spaceAfter:160}) +
+    wSec('📦 Cycle Count') + mkTable(poEntries.cycle,'cycle') + wPara('',{spaceAfter:160}) +
+    wSec('✅ Completed Tasks') + mkTable(poEntries.activity,'activity') + wPara('',{spaceAfter:160}) +
+    wSec('General Observations') + wPara(document.getElementById('poObs').value||'No observations.',{size:18,color:'555555'});
   const blob = await buildDocx(body, true);
   if(blob) dlBlob(blob, `PassOff_${date}_${op.replace(/\s/g,'_')}.docx`);
-  toast('✅ PASOS exportado!');
+  toast('✅ Pass Off exported!');
 }
 
 async function exportDayWord() {
@@ -2782,7 +2782,7 @@ window.addEventListener('DOMContentLoaded', init);
     const rows = issueRows.concat(normalRows).slice(0,22);
     return sheetHTML('kitchen','Kitchen LP Verification Report',
       [['Date',text('kitDate')||today()],['Area',text('kitArea')||'—'],['Shift',text('kitShift')||'—'],['Prepared By',text('kitPreparedBy')||'—'],['Rows',`${data.length}`]],
-      ['Item','Description','System Lot','LP sistema','Expiration Date','System Qty','Physical','Exact Adjustment','Coincidencia LP','Adjust','Acción requerida'],rows,
+      ['Item','Description','System Lot','System LP','Expiration Date','System Qty','Physical','Exact Adjustment','LP Match','Adjust','Required Action'],rows,
       [['Counted',`${counted}/${data.length}`],['LP Issues',review,review?'ops-status-review':'ops-status-ok'],['Adjustments',adjust,adjust?'ops-status-review':'ops-status-ok'],['Expiration Missing',expirationMissing,expirationMissing?'ops-status-critical':'ops-status-ok']],
       data.length>22 ? `Showing rows that require action first (${rows.length} of ${data.length}) to keep the report on one page.` : 'Kitchen report is formatted to stay on one landscape page.');
   }
@@ -2797,7 +2797,7 @@ window.addEventListener('DOMContentLoaded', init);
     const metaHTML=meta.map(x=>`<div><strong>${esc(x[0])}:</strong> ${esc(x[1])}</div>`).join('');
     const bodyHTML=rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
     const summaryRows=(data.mid?.ingredients||[]).flatMap((mid,index)=>{
-      const end=data.end.ingredients[index],items=[{label:'Mitad de turno',completion:data.mid.completion,i:mid},{label:'End — Cumulative',completion:data.end.completion,i:end}];
+      const end=data.end.ingredients[index],items=[{label:'Mid Shift',completion:data.mid.completion,i:mid},{label:'End — Cumulative',completion:data.end.completion,i:end}];
       return items.map(x=>{
       const i=x.i,cls=i.status?.label==='Critical'?'ops-status-critical':i.status?.label==='Attention'?'ops-status-review':'ops-status-ok';
       const signedVal=n=>`${n>0?'+':''}${money(n)}`;
@@ -2827,15 +2827,15 @@ window.addEventListener('DOMContentLoaded', init);
     if(typeof calcPchAll==='function') calcPchAll();
     const mid=pchData('mid'), end=pchData('end',mid);
     const rows=[
-      ['Mitad de turno',intf(mid.completion),intf(mid.system),intf(mid.physical),signed(mid.scrapDisplay),(mid.scrapPctAbs*100).toFixed(1)+'%',signed(mid.pa),(mid.paPctAbs*100).toFixed(1)+'%',signed(mid.totalAdjustment),Math.round((mid.adjPctAbs||0)*100)+'%',esc(mid.status?.label||'—')],
-      ['Fin de turno',intf(end.completion),intf(end.system),intf(end.physical),signed(end.scrapDisplay),(end.scrapPctAbs*100).toFixed(1)+'%',signed(end.pa),(end.paPctAbs*100).toFixed(1)+'%',signed(end.totalAdjustment),Math.round((end.adjPctAbs||0)*100)+'%',esc(end.status?.label||'—')]
+      ['Mid Shift',intf(mid.completion),intf(mid.system),intf(mid.physical),signed(mid.scrapDisplay),(mid.scrapPctAbs*100).toFixed(1)+'%',signed(mid.pa),(mid.paPctAbs*100).toFixed(1)+'%',signed(mid.totalAdjustment),Math.round((mid.adjPctAbs||0)*100)+'%',esc(mid.status?.label||'—')],
+      ['End of Shift',intf(end.completion),intf(end.system),intf(end.physical),signed(end.scrapDisplay),(end.scrapPctAbs*100).toFixed(1)+'%',signed(end.pa),(end.paPctAbs*100).toFixed(1)+'%',signed(end.totalAdjustment),Math.round((end.adjPctAbs||0)*100)+'%',esc(end.status?.label||'—')]
     ];
     const grandData=typeof pchGrandData==='function' ? pchGrandData(mid,end) : {totalScrap:end.scrapDisplay,totalPA:(mid.pa||0)+(end.pa||0),grandTotalAdjustment:end.scrapDisplay+(mid.pa||0)+(end.pa||0)};
     const grandScrap=grandData.totalScrap, grandPA=grandData.totalPA, grandAdj=grandData.grandTotalAdjustment;
     const denom=Math.abs(end.completion||mid.completion); const pct=denom?grandAdj/denom:0;
     return sheetHTML('pouches','Pouch Adjustment Report',
       [['Date',text('pchDate')||today()],['Shift',text('pchShift')||'—'],['Line',text('pchLine')||'—'],['Item',text('pchItem')||'—'],['Matched FG',text('pchFgItem')||'—'],['BOM',text('pchBom')||'1']],
-      ['Sección','Completado','System','Physical','Scrap','% Scrap','Ajuste de producción','% Ajuste de producción','Total Adj','Adj %','Status'],rows,
+      ['Section','Completion','System','Physical','Scrap','Scrap %','Production Adjustment','Production Adjustment %','Total Adj','Adj %','Status'],rows,
       [['Total Scrap',signed(grandScrap),'ops-negative'],['Total Production Adjustment',signed(grandPA),grandPA>=0?'ops-positive':'ops-negative'],['Net Adjustment',signed(grandAdj),grandAdj>=0?'ops-positive':'ops-negative'],['Grand Adj %',Math.round(Math.abs(pct)*100)+'%',Math.abs(pct)<=.05?'ops-status-ok':Math.abs(pct)<=.08?'ops-status-review':'ops-status-critical']],
       `Description: ${text('pchDesc')||'—'} | Mid Notes: ${text('pchMidComments')||'—'} | End Notes: ${text('pchEndComments')||'—'}`);
   }
@@ -2967,7 +2967,7 @@ window.addEventListener('DOMContentLoaded', init);
             <form id="imsBootstrapView" class="ims-auth-view" hidden>
               <h2>Create first administrator</h2>
               <p class="ims-auth-subtitle">This option works only while the project has no administrator.</p>
-              <div class="ims-auth-field"><label for="imsBootstrapName">Full name</label><input id="imsBootstrapName" required placeholder="Nombre completo"></div>
+              <div class="ims-auth-field"><label for="imsBootstrapName">Full name</label><input id="imsBootstrapName" required placeholder="Full name"></div>
               <div class="ims-auth-field"><label for="imsBootstrapUsername">IMS username</label><input id="imsBootstrapUsername" required maxlength="32" placeholder="JPACHECO"></div>
               <div class="ims-auth-field"><label for="imsBootstrapEmail">Email</label><input id="imsBootstrapEmail" type="email" required placeholder="admin@company.com"></div>
               <div class="ims-auth-field"><label for="imsBootstrapPassword">Password</label><input id="imsBootstrapPassword" type="password" required minlength="8" autocomplete="new-password"></div>
@@ -3308,7 +3308,7 @@ window.addEventListener('DOMContentLoaded', init);
     button.id = 'imsDashboardNav';
     button.type = 'button';
     button.className = 'nav-btn';
-    button.innerHTML = '📊 Tablero <span class="nav-badge">Lead</span>';
+    button.innerHTML = '📊 Dashboard <span class="nav-badge">Lead</span>';
     button.addEventListener('click', () => {
       if (typeof window.switchPanel === 'function') window.switchPanel('dashboard', button);
       if (typeof window.renderDash === 'function') window.renderDash();
