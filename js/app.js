@@ -355,7 +355,7 @@ function buildChocRows() {
   }
   document.getElementById('chDarkBody').innerHTML='';
   document.getElementById('chMilkBody').innerHTML='';
-  const rows = line === 'Sollich 3' ? CHOC_ROWS_S3 : CHOC_ROWS_S2;
+  const rows = line === 'Sollich 2' ? CHOC_ROWS_S2 : CHOC_ROWS_S3;
   const prod = PROD_ITEMS.find(p => p.id === document.getElementById('chItem').value) || {};
   const tbody = document.getElementById('chBody');
   tbody.innerHTML = rows.map(([name, weight, mode]) => {
